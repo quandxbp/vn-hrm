@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hr_tax_rule_user,hr.tax.rule,model_hr_tax_rule,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_hr_tax_rule_manager,hr.tax.rule,model_hr_tax_rule,hr_payroll.group_hr_payroll_manager,1,1,1,1
+
+access_hr_tax_bracket_user,hr.tax.bracket,model_hr_tax_bracket,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_hr_tax_bracket_manager,hr.tax.bracket,model_hr_tax_bracket,hr_payroll.group_hr_payroll_manager,1,1,1,1
+
+access_hr_payslip_income_tax_user,hr_payslip_income_tax,model_hr_payslip_income_tax,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_hr_payslip.income_tax_manager,hr_payslip_income_tax,model_hr_payslip_income_tax,hr_payroll.group_hr_payroll_manager,1,1,1,1
+
+access_hr_job_grade,hr.job.grade.user,model_hr_job_grade,,1,1,1,1
+access_hr_job_grade_category,hr.job.grade.category.user,model_hr_job_grade_category,,1,1,1,1

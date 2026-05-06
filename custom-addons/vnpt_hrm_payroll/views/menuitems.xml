@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <menuitem
+        id="menu_hr_tax_root"
+        name="Thuế TNCN"
+        parent="hr_payroll.menu_hr_payroll_configuration"
+        sequence="100"
+        groups="hr_payroll.group_hr_payroll_manager">
+        <menuitem
+            id="menu_hr_tax_rule_menu"
+            name="Quy tắc Thuế TNCN"
+            sequence="1"
+            action="vnpt_hrm_payroll.action_hr_tax_rule"
+            groups="hr_payroll.group_hr_payroll_manager" />
+    </menuitem>
+
+    <menuitem name="Nhật ký công việc"
+              groups="hr_payroll.group_hr_payroll_user"
+                  id="vnpt_hrm_work_entry_root_menu"
+                  web_icon="vnpt_hrm_payroll,static/description/work_entry.png"
+              sequence="10">
+
+        <menuitem
+                name="Công việc"
+                id="vnpt_hrm_work_entry_menu"
+                action="hr_payroll.hr_work_entry_action"/>
+
+        <menuitem
+                name="Công việc xung đột"
+                id="vnpt_hrm_work_entry_conflict_menu"
+                action="hr_work_entry.hr_work_entry_action_conflict"/>
+
+        <menuitem
+                name="Cấu hình"
+                id="vnpt_hrm_work_entry_config">
+            <menuitem
+                    id="vnpt_hrm_work_entry_type_menu"
+                    name="Loại nhật ký công việc"
+                    action="hr_work_entry.hr_work_entry_type_action"/>
+        </menuitem>
+
+    </menuitem>
+
+    <menuitem id="menu_vnpt_hr_job_grade_root" sequence="3"
+              parent="vnpt_hrm.menu_vnpt_hrm_contract_config"
+                  name="Bậc lương">
+        <menuitem id="menu_vnpt_hr_job_grade_category"
+                    sequence="1"
+                    name="Loại bậc lương"
+                    action="vnpt_hrm_payroll.action_hr_job_grade_category"/>
+
+        <menuitem id="menu_vnpt_hr_job_grade"
+                    sequence="2"
+                    name="Bậc lương"
+                    action="vnpt_hrm_payroll.action_hr_job_grade"/>
+    </menuitem>
+
+</odoo>

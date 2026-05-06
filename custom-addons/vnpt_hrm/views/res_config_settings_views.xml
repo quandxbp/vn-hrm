@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">vnpt.hrm.res.config.settings.view.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="70"/>
+        <field name="inherit_id" ref="hr.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//block[@name='work_organization_setting_container']" position="inside">
+                <setting help="Số ngày cần nhắc nhở đến hạn nâng lương"
+                         title="Số ngày còn lại mà bạn muốn cần cảnh báo đến đến hạn nâng lương">
+                    <field name="salary_increase_warning_left_days" string="Số ngày trước ngày nâng hạn lương"/>
+                </setting>
+                <setting help="Số ngày cần nhắc nhở hợp đồng gần hết hạn"
+                         title="Số ngày còn lại mà bạn muốn cần cảnh báo hợp đồng gần hết hạn">
+                    <field name="expired_contract_warning_left_days" string="Số ngày trước ngày hết hạn hợp đồng"/>
+                </setting>
+            </xpath>
+
+            <xpath expr="//block[@name='employee_rights_setting_container']" position="inside">
+                <setting help="Các ký tự đầu của Mã nhân viên, VD: BPC, BPD, BPE và sau đó mã nhân viên sẽ được đánh dấu tăng dần"
+                         title="Số ngày bạn muốn cần cảnh báo đến đến hạn nâng lương">
+                    <field name="employee_code_prefix" string="Ký tự đầu mã nhân viên"/>
+                </setting>
+            </xpath>
+
+
+        </field>
+    </record>
+</odoo>

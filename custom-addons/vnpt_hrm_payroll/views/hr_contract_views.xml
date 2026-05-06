@@ -1,0 +1,33 @@
+<odoo>
+    <record id="vnpt_hrm_payroll_contract_form" model="ir.ui.view">
+        <field name="name">vnpt.hr.contract.form</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//group[@name='salary']" position="inside">
+                <label for="grade_id"/>
+                <div class="o_row">
+                    <field name="grade_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_open': True}" />
+                    <button string="Đồng bộ lương" class="btn btn-link btn-primary" type="object"
+                            icon="fa-refresh"
+                            name="sync_wage_from_grade" invisible="not grade_id"/>
+                </div>
+                <field name="salary_coefficient" readonly="1"/>
+                <field name="insurance_wage" readonly="1"/>
+            </xpath>
+
+            <xpath expr="//group[@name='salary_info']" position="after">
+                <group>
+                    <group>
+                        <separator string="Thuế" class="text-primary"/>
+                        <field name="tax_rule_id" string="Quy tắc tính thuế"
+                        options="{'no_quick_create':True,'no_create_edit':True, 'no_open': True}" />
+                    </group>
+                </group>
+            </xpath>
+
+
+       </field>
+   </record>
+</odoo>

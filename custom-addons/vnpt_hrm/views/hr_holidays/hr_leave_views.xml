@@ -1,0 +1,39 @@
+<odoo>
+<!--    <record id="vnpt_hr_leave_view_form" model="ir.ui.view">-->
+<!--        <field name="model">hr.leave</field>-->
+<!--        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form" />-->
+<!--        <field name="arch" type="xml">-->
+<!--            <field name="user_id" position="after">-->
+<!--                <field name="manager_id" string="Người xét duyệt"-->
+<!--                       options="{'no_create': True, 'no_open': True}"-->
+<!--                       />-->
+<!--            </field>-->
+<!--        </field>-->
+<!--    </record>-->
+    <record id="hr_holidays.hr_leave_action_action_approve_department" model="ir.actions.act_window">
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Hiện tại không có bản ghi nào cần phê duyệt
+            </p><p>
+                Quản lý phê duyệt nghỉ phép của nhân viên
+            </p>
+        </field>
+    </record>
+
+    <record id="hr_holidays.hr_leave_allocation_action_approve_department" model="ir.actions.act_window">
+        <field name="name">Phân bổ ngày nghỉ</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Hãy phân bổ ngày nghỉ cho nhân viên của bạn
+            </p>
+        </field>
+    </record>
+
+    <record id="hr_holidays.hr_leave_allocation_action_my" model="ir.actions.act_window">
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Đăng ký thêm phân bố ngày nghỉ cho bạn
+            </p>
+        </field>
+    </record>
+</odoo>

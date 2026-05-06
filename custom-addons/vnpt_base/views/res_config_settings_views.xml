@@ -1,0 +1,66 @@
+<odoo>
+    <record id="hide_res_config_dev_tool_and_about" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.hide.dev.tool.and.about</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//widget[@name='res_config_dev_tool']" position="attributes">
+                <attribute name="style">display: none;</attribute>
+            </xpath>
+            <xpath expr="//div[@id='about']" position="attributes">
+                <attribute name="style">display: none;</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.web.login.styles</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='languages']" position="after">
+                <block title="Thiết lập giao diện" name="web_login_styles_setting_container">
+                    <setting id="window" string="Tiêu đề của website" >
+                        <div class="text-muted">
+                            Tiêu đề hiện thị trên thanh tab của trình duyệt
+                        </div>
+                        <div class="d-block mt-2">
+                            <field name="web_window_title" class="d-block w-50 p-0 m-0" placeholder="VNPT HRM"/>
+                        </div>
+                    </setting>
+<!--                    <setting id="window" string="Tên hệ thống" >-->
+<!--                        <div class="text-muted">-->
+<!--                            Tên hệ thống trên trang đăng nhập-->
+<!--                        </div>-->
+<!--                        <div class="d-block mt-2">-->
+<!--                            <field name="web_window_title" class="d-block w-100 p-0 m-0" placeholder="VNPT HRM"/>-->
+<!--                        </div>-->
+<!--                    </setting>-->
+                    <setting id="locations_approval"
+                             string="Background trang đăng nhập"
+                             title="Customize the login page with change the position of login box and customize background">
+                            <label string="Góc hiện thị" for="orientation" class="col-lg-3 o_light_label"/>
+                            <field name="orientation" help="Select orientation of login box."/>
+                        <div class="row mt-2" invisible="orientation in ('default', False)">
+                            <label string="Background" for="background" class="col-lg-3 o_light_label"/>
+                            <field name="background"/>
+                        </div>
+                        <div class="row mt-2" invisible="background in ('url', 'image', False) or orientation in ('default', False)">
+                            <label string="Color" for="color" class="col-lg-3 o_light_label"/>
+                            <field name="color" widget="color" help="Set a login background color."/>
+                        </div>
+                        <div class="row mt-2" invisible="background in ('image', 'color', False) or orientation in ('default', False)">
+                            <label string="URL" for="url" class="col-lg-3 o_light_label" />
+                            <field name="url" help="Set a url of background image."/>
+                        </div>
+                        <div class="row mt-2" invisible="background in ('url', 'color', False) or orientation in ('default', False)">
+                            <field name="image" widget="image" help="Select a login background image from system." class="ml-4 w-75"/>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

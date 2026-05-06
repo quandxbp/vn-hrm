@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Hồ sơ bảo hiểm   -->
+    <menuitem name="Hồ sơ bảo hiểm"
+              id="vnpt_hrm_insurance_root_menu"
+              web_icon="vnpt_hrm,static/description/icon_bao_hiem.png" sequence="10">
+        <menuitem name="Hồ sơ"
+                      id="menu_vnpt_hrm_insurance_management" sequence="1"
+                  groups="vnpt_hrm.group_hr_insurance_user"
+                  action="vnpt_hrm.hr_insurance_action" />
+
+        <menuitem name="Cấu hình" id="menu_vnpt_hrm_insurance_config" sequence="2"
+                  groups="vnpt_hrm.group_hr_insurance_user" >
+            <menuitem id="insurance_regist_place_management_menu_item"
+                  sequence="1"
+                  name="Nơi đăng ký khám chữa bệnh"
+                  action="vnpt_hrm.hr_insurance_regist_place_action" />
+        </menuitem>
+    </menuitem>
+
+    <!-- Hợp đồng   -->
+    <menuitem name="Hợp đồng"
+                  id="vnpt_hrm_contract_root_menu"
+                  web_icon="hr_skills,static/description/icon.png"
+              sequence="10">
+        <menuitem id="menu_vnpt_hrm_contract_management" sequence="1"
+                  name="Hợp đồng"
+                  groups="hr_contract.group_hr_contract_manager"
+                  action="hr_contract.action_hr_contract" />
+
+        <menuitem id="menu_vnpt_hrm_contract_config" sequence="1"
+                  groups="hr_contract.group_hr_contract_manager"
+                  name="Cấu hình" >
+
+            <menuitem id="menu_vnpt_hr_contract_type" sequence="1"
+                  name="Kiểu hợp đồng"
+                  action="hr.hr_contract_type_action" />
+
+            <menuitem id="menu_vnpt_hr_resource_calendar" sequence="2"
+                  name="Thời gian làm việc"
+                  action="resource.action_resource_calendar_form" />
+        </menuitem>
+    </menuitem>
+
+    <!-- Chỉnh sửa Menu module HR   -->
+    <menuitem
+        id="hr_org_chart.menu_hr_employee_org_chart"
+        parent="hr.menu_hr_root"
+        sequence="3" />
+
+    <menuitem
+        id="hr_contract.hr_menu_contract"
+        active="False" />
+
+    <menuitem
+            parent="hr.menu_hr_root"
+            id="hr.menu_hr_employee_payroll"
+            action="hr.open_view_employee_list_my"/>
+
+    <menuitem id="hr.menu_hr_employee_user" active="False" />
+
+</odoo>

@@ -1,0 +1,53 @@
+<odoo>
+    <data noupdate="0">
+        <record id="default_advantage_xang_xe" model="hr.advantage.template">
+            <field name="name">Phụ cấp đi lại, xăng xe</field>
+            <field name="code">TRAVEL</field>
+        </record>
+
+        <record id="default_advantage_dien_thoai" model="hr.advantage.template">
+            <field name="name">Phụ cấp điện thoại</field>
+            <field name="code">PHONE</field>
+        </record>
+
+        <record id="default_advantage_an" model="hr.advantage.template">
+            <field name="name">Phụ cấp ăn</field>
+            <field name="code">MEAL</field>
+        </record>
+
+        <record id="default_advantage_nha_o" model="hr.advantage.template">
+            <field name="name">Phụ cấp nhà ở</field>
+            <field name="code">HOUSE</field>
+        </record>
+
+        <record id="default_advantage_con_nho" model="hr.advantage.template">
+            <field name="name">Phụ cấp con nhỏ</field>
+            <field name="code">CHILD</field>
+        </record>
+
+        <record id="default_advantage_trach_nhiem" model="hr.advantage.template">
+            <field name="name">Phụ cấp trách nhiệm</field>
+            <field name="code">RESPONSIBILITY</field>
+        </record>
+
+        <record id="default_advantage_an_tam" model="hr.advantage.template">
+            <field name="name">An tâm công tác</field>
+            <field name="code">SECURE</field>
+        </record>
+
+        <record id="default_advantage_chuyen_can" model="hr.advantage.template">
+            <field name="name">Thưởng chuyên cần</field>
+            <field name="code">HARDWORK</field>
+        </record>
+
+        <record id="default_advantage_hieu_qua" model="hr.advantage.template">
+            <field name="name">Thưởng hiệu quả công việc</field>
+            <field name="code">PERFORMANCE</field>
+        </record>
+
+        <record id="default_advantage_doc_hai" model="hr.advantage.template">
+            <field name="name">Trợ cấp độc hại / đặc thù nghề</field>
+            <field name="code">HARMFUL</field>
+        </record>
+    </data>
+</odoo>

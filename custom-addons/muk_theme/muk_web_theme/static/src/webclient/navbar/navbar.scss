@@ -1,0 +1,19 @@
+.o_main_navbar {
+    border-bottom: none !important;
+}
+
+.mk_main_app_icon {
+    width: 24px;         /* hoặc 20px tùy kích thước bạn muốn */
+    height: 24px;
+    object-fit: contain; /* hoặc cover, tùy bạn muốn icon full hay vừa */
+    border-radius: 4px;
+    transition: all 0.3s ease; /* Tạo hiệu ứng mượt mà khi chuyển đổi */
+
+}
+
+.mk_main_app_icon:hover {
+    content: "";
+    display: inline-block;
+    transform: rotate(15deg); /* Nếu bạn muốn thêm hiệu ứng quay cho icon */
+}
+

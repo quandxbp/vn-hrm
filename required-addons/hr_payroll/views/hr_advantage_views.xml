@@ -1,0 +1,128 @@
+<odoo>
+    <!-- Form view for hr.advantage.template -->
+    <record id="view_hr_advantage_template_form" model="ir.ui.view">
+        <field name="name">hr.advantage.template.form</field>
+        <field name="model">hr.advantage.template</field>
+        <field name="arch" type="xml">
+            <form string="Mẫu phụ cấp/đãi ngộ" >
+                <header>
+                    <button name="action_update"
+                            type="object"
+                            string="Cập nhật phụ cấp hợp đồng"
+                            class="btn-primary"
+                            icon="fa-money"/>
+
+                </header>
+                <sheet>
+                    <field name="currency_id" invisible="1" />
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Phụ cấp đi lại, xăng xe"/>
+                        </h1>
+                    </div>
+                    <br/>
+                    <group>
+                        <group>
+                            <field name="code" string="Mã" placeholder="XANGXE" />
+                            <field name="description" string="Mô tả"/>
+                        </group>
+                        <group>
+                            <field name="active" widget="boolean_toggle" string="Kích hoạt?"/>
+                            <field name="amount" widget="monetary"/>
+                            <field name="lower_limit" widget="monetary"/>
+                            <field name="upper_limit" widget="monetary"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Tuỳ chỉnh phụ cấp theo chức vụ">
+                            <field name="advantage_line_ids">
+                                <tree editable="bottom">
+                                    <field name="currency_id" column_invisible="1" />
+                                    <field name="job_id" string="Chức vụ"
+                                           width="70%"
+                                           options="{'no_quick_create':True,'no_create_edit':True, 'no_open': True}" />
+                                    <field name="amount" width="30%" string="Mức phụ cấp" widget="monetary"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Danh sách chi tiết">
+                            <field name="advantage_ids" >
+                                <tree editable="bottom">
+                                    <field name="contract_id" string="Hợp đồng" readonly="1" class="fw-bold text-truncate"/>
+                                    <field name="employee_id" string="Nhân viên" readonly="1" class="text-primary"/>
+                                    <field name="job_id" string="Chức vụ" readonly="1"/>
+                                    <field name="department_id" string="Phòng ban" readonly="1"/>
+                                    <field name="amount" string="Mức phụ cấp" widget="monetary"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_advantage_template_tree" model="ir.ui.view">
+        <field name="name">hr.advantage.template.tree</field>
+        <field name="model">hr.advantage.template</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="currency_id" column_invisible="1" />
+                <field name="name" class="fw-bold"/>
+                <field name="code" />
+                <field name="upper_limit" widget="monetary" class="text-success"/>
+                <field name="lower_limit" widget="monetary" class="text-danger"/>
+
+                <field name="amount" widget="monetary"/>
+                <field name="active" widget="boolean_toggle" string="Kích hoạt?"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form view for hr.advantage.line -->
+    <record id="view_hr_advantage_line_form" model="ir.ui.view">
+        <field name="name">hr.advantage.line.form</field>
+        <field name="model">hr.advantage.line</field>
+        <field name="arch" type="xml">
+            <form string="Advantage Line">
+                <sheet>
+                    <group>
+                        <field name="advantage_template_id" />
+                        <field name="job_id" />
+                        <field name="code" />
+                        <field name="amount"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view for hr.advantage.line -->
+    <record id="view_hr_advantage_line_tree" model="ir.ui.view">
+        <field name="name">hr.advantage.line.tree</field>
+        <field name="model">hr.advantage.line</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="advantage_template_id" column_invisible="1"/>
+                <field name="job_id"/>
+                <field name="code" />
+                <field name="amount"/>
+            </tree>
+        </field>
+    </record>
+
+     <!-- Action để mở danh sách hr.advantage.template -->
+    <record id="action_hr_advantage_template" model="ir.actions.act_window">
+        <field name="name">Mẫu chế độ phụ cấp/đãi ngộ</field>
+        <field name="res_model">hr.advantage.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>
+                Quản lý các khoản phụ cấp hàng tháng cho nhân viên.
+                Bạn có thể thiết lập mức phụ cấp chung hoặc điều chỉnh theo từng nhân viên.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<templates xml:space="preserve">
+
+	<t t-name="muk_web_theme.NavBar" t-inherit="web.NavBar" t-inherit-mode="extension" >
+
+		<xpath expr="//t[@t-call='web.NavBar.AppsMenu']" position="replace">
+			<AppsMenu hotkey="'h'"
+				title="'Trang chủ'"
+				class="'o_navbar_apps_menu'">
+
+				<t t-set-slot="toggler">
+					<t t-if="this.currentApp &amp;&amp; this.currentApp.webIconData">
+						<img t-att-src="'data:image/png;base64,' + this.currentApp.webIconData"
+							 t-on-click="onClickDashboard"
+							 class="mk_main_app_icon d-none d-md-inline"/>
+
+						<i class="fa fa-th d-block d-md-none" />
+					</t>
+					<t t-else="">
+						<i class="fa fa-th d-md-none" t-on-click="onClickDashboard" style="cursor: pointer;" />
+						<i class="fa fa-th d-lg-none" />
+					</t>
+
+				</t>
+
+			    <DropdownItem
+			        t-foreach="this.appMenuService.getAppsMenuItems()"
+			        t-as="app"
+			        t-key="app.id"
+			        class="'o_app'"
+			        dataset="{ menuXmlid: app.xmlid, section: app.id }"
+					onSelected="() => app.action()"
+                	parentClosingMode="'none'" >
+					<a t-att-href="app.href"
+						t-on-click.prevent="" >
+						<img
+					        t-if="app.webIconData"
+		            		class="mk_app_icon"
+			                t-att-src="app.webIconData" />
+		            	<img
+		            		t-else=""
+		            		class="mk_app_icon"
+		            		src="/base/static/description/icon.png" />
+
+						<span class="mk_app_name">
+							<t t-out="app.name"/>
+						</span>
+					</a>
+				</DropdownItem>
+			</AppsMenu>
+		</xpath>
+	</t>
+
+</templates>

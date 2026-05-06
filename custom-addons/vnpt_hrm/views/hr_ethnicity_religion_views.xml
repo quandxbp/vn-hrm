@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="hr_ethnicity_view_tree" model="ir.ui.view">
+        <field name="name">hr.ethnicity.tree</field>
+        <field name="model">hr.ethnicity</field>
+        <field name="arch" type="xml">
+            <tree >
+                <field name="name" string="Tên" />
+                <field name="code" string="Mã" />
+                <field name="note" string="Ghi chú" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="hr_religion_view_tree" model="ir.ui.view">
+        <field name="name">hr.religion.tree</field>
+        <field name="model">hr.religion</field>
+        <field name="arch" type="xml">
+            <tree >
+                <field name="name" string="Tên" />
+                <field name="code" string="Mã" />
+                <field name="note" string="Ghi chú" />
+            </tree>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,128 @@
+<odoo>
+    <data>
+        <record id="hr_bank_agribank" model="res.bank">
+            <field name="bic">Agribank - AGR</field>
+            <field name="name">Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_vpbank" model="res.bank">
+            <field name="bic">VPBank - VPB</field>
+            <field name="name">Ngân hàng Việt Nam Thịnh Vượng</field>
+        </record>
+
+        <record id="hr_bank_vietcombank" model="res.bank">
+            <field name="bic">Vietcombank - VCB</field>
+            <field name="name">Ngân hàng Ngoại thương Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_vietinbank" model="res.bank">
+            <field name="bic">VietinBank - CTG</field>
+            <field name="name">Ngân hàng Công Thương Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_bidr" model="res.bank">
+            <field name="bic">BIDV - BID</field>
+            <field name="name">Ngân hàng Đầu tư và Phát triển Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_mb" model="res.bank">
+            <field name="bic">MB - MBB</field>
+            <field name="name">Ngân hàng Quân Đội</field>
+        </record>
+
+        <record id="hr_bank_acb" model="res.bank">
+            <field name="bic">ACB - ACB</field>
+            <field name="name">Ngân hàng Á Châu</field>
+        </record>
+
+        <record id="hr_bank_hdbank" model="res.bank">
+            <field name="bic">HDBank - HDB</field>
+            <field name="name">Ngân hàng Phát triển Nhà TP.HCM</field>
+        </record>
+
+        <record id="hr_bank_tpbank" model="res.bank">
+            <field name="bic">TPBank - TPB</field>
+            <field name="name">Ngân hàng Tiên Phong</field>
+        </record>
+
+        <record id="hr_bank_shb" model="res.bank">
+            <field name="bic">SHB - SHB</field>
+            <field name="name">Ngân hàng Sài Gòn - Hà Nội</field>
+        </record>
+
+        <record id="hr_bank_seabank" model="res.bank">
+            <field name="bic">SeABank - SEAB</field>
+            <field name="name">Ngân hàng Đông Nam Á</field>
+        </record>
+
+        <record id="hr_bank_eximbank" model="res.bank">
+            <field name="bic">Eximbank - EIB</field>
+            <field name="name">Ngân hàng Xuất Nhập Khẩu Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_vib" model="res.bank">
+            <field name="bic">VIB - VIB</field>
+            <field name="name">Ngân hàng Quốc tế Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_scb" model="res.bank">
+            <field name="bic">SCB - SCB</field>
+            <field name="name">Ngân hàng Sài Gòn</field>
+        </record>
+
+        <record id="hr_bank_pvcombank" model="res.bank">
+            <field name="bic">PVcomBank - PVCB</field>
+            <field name="name">Ngân hàng Đại Chúng Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_bacabank" model="res.bank">
+            <field name="bic">Bac A Bank - BAB</field>
+            <field name="name">Ngân hàng Bắc Á</field>
+        </record>
+
+        <record id="hr_bank_namabank" model="res.bank">
+            <field name="bic">Nam A Bank - NAB</field>
+            <field name="name">Ngân hàng Nam Á</field>
+        </record>
+
+        <record id="hr_bank_vietbank" model="res.bank">
+            <field name="bic">VietBank - VBB</field>
+            <field name="name">Ngân hàng Việt Nam Thương Tín</field>
+        </record>
+
+        <record id="hr_bank_kienlongbank" model="res.bank">
+            <field name="bic">KienlongBank - KLB</field>
+            <field name="name">Ngân hàng Kiên Long</field>
+        </record>
+
+        <record id="hr_bank_baovietbank" model="res.bank">
+            <field name="bic">BaoViet Bank - BVB</field>
+            <field name="name">Ngân hàng Bảo Việt</field>
+        </record>
+
+        <record id="hr_bank_oceanbank" model="res.bank">
+            <field name="bic">OceanBank - OJB</field>
+            <field name="name">Ngân hàng Đại Dương</field>
+        </record>
+
+        <record id="hr_bank_gpbank" model="res.bank">
+            <field name="bic">GPBank - GPB</field>
+            <field name="name">Ngân hàng Dầu khí Toàn cầu</field>
+        </record>
+
+        <record id="hr_bank_ncb" model="res.bank">
+            <field name="bic">NCB - NCB</field>
+            <field name="name">Ngân hàng Quốc Dân</field>
+        </record>
+
+        <record id="hr_bank_vdb" model="res.bank">
+            <field name="bic">VDB - VDB</field>
+            <field name="name">Ngân hàng Phát triển Việt Nam</field>
+        </record>
+
+        <record id="hr_bank_vbsp" model="res.bank">
+            <field name="bic">VBSP - VBSP</field>
+            <field name="name">Ngân hàng Chính sách Xã hội</field>
+        </record>
+    </data>
+</odoo>

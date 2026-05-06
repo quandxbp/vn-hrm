@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="relatives_relationship_me" model="hr.employee.relatives.relationship">
+            <field name="code">ME</field>
+            <field name="name">Mẹ đẻ</field>
+            <field name="male_symmetrical_name">Con trai</field>
+            <field name="female_symmetrical_name">Con gái</field>
+        </record>
+
+        <record id="relatives_relationship_cha" model="hr.employee.relatives.relationship">
+            <field name="code">CHA</field>
+            <field name="name">Cha đẻ</field>
+            <field name="male_symmetrical_name">Con trai</field>
+            <field name="female_symmetrical_name">Con gái</field>
+        </record>
+
+        <record id="relatives_relationship_chong" model="hr.employee.relatives.relationship">
+            <field name="code">CHONG</field>
+            <field name="name">Chồng</field>
+            <field name="male_symmetrical_name">Vợ</field>
+            <field name="female_symmetrical_name">Vợ</field>
+        </record>
+
+        <record id="relatives_relationship_vo" model="hr.employee.relatives.relationship">
+            <field name="code">VO</field>
+            <field name="name">Vợ</field>
+            <field name="male_symmetrical_name">Chồng</field>
+            <field name="female_symmetrical_name">Chồng</field>
+        </record>
+
+        <record id="relatives_relationship_mechong" model="hr.employee.relatives.relationship">
+            <field name="code">MECHONG</field>
+            <field name="name">Mẹ chồng</field>
+            <field name="male_symmetrical_name">Con dâu</field>
+            <field name="female_symmetrical_name">Con dâu</field>
+        </record>
+
+        <record id="relatives_relationship_chachong" model="hr.employee.relatives.relationship">
+            <field name="code">CHACHONG</field>
+            <field name="name">Cha chồng</field>
+            <field name="male_symmetrical_name">Con dâu</field>
+            <field name="female_symmetrical_name">Con dâu</field>
+        </record>
+
+        <record id="relatives_relationship_chavo" model="hr.employee.relatives.relationship">
+            <field name="code">CHAVO</field>
+            <field name="name">Cha vợ</field>
+            <field name="male_symmetrical_name">Con rể</field>
+            <field name="female_symmetrical_name"></field>
+        </record>
+
+        <record id="relatives_relationship_mevo" model="hr.employee.relatives.relationship">
+            <field name="code">MEVO</field>
+            <field name="name">Mẹ vợ</field>
+            <field name="male_symmetrical_name">Con rể</field>
+            <field name="female_symmetrical_name"></field>
+        </record>
+    </data>
+</odoo>

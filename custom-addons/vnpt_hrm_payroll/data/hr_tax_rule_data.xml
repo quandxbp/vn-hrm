@@ -1,0 +1,57 @@
+<odoo>
+    <record id="hr_tax_rule_vietnam" model="hr.tax.rule">
+        <field name="name">Biểu Thuế Lũy Tiến Từng Phần</field>
+        <field name="tax_policy">progressive</field>
+        <field name="apply_deduction">True</field>
+        <field name="base_deduction">11000000</field>
+        <field name="dependent_deduction">4400000</field>
+    </record>
+
+    <record id="hr_tax_bracket_1" model="hr.tax.bracket">
+        <field name="tax_rule_id" ref="hr_tax_rule_vietnam"/>
+        <field name="lower_limit">0</field>
+        <field name="tax_rate">5</field>
+    </record>
+    <record id="hr_tax_bracket_2" model="hr.tax.bracket">
+        <field name="tax_rule_id" ref="hr_tax_rule_vietnam"/>
+        <field name="lower_limit">5000000</field>
+        <field name="tax_rate">10</field>
+    </record>
+    <record id="hr_tax_bracket_3" model="hr.tax.bracket">
+        <field name="tax_rule_id" ref="hr_tax_rule_vietnam"/>
+        <field name="lower_limit">10000000</field>
+        <field name="tax_rate">15</field>
+    </record>
+    <record id="hr_tax_bracket_4" model="hr.tax.bracket">
+        <field name="tax_rule_id" ref="hr_tax_rule_vietnam"/>
+        <field name="lower_limit">18000000</field>
+        <field name="tax_rate">20</field>
+    </record>
+    <record id="hr_tax_bracket_5" model="hr.tax.bracket">
+        <field name="tax_rule_id" ref="hr_tax_rule_vietnam"/>
+        <field name="lower_limit">32000000</field>
+        <field name="tax_rate">25</field>
+    </record>
+    <record id="hr_tax_bracket_6" model="hr.tax.bracket">
+        <field name="tax_rule_id" ref="hr_tax_rule_vietnam"/>
+        <field name="lower_limit">52000000</field>
+        <field name="tax_rate">30</field>
+    </record>
+    <record id="hr_tax_bracket_7" model="hr.tax.bracket">
+        <field name="tax_rule_id" ref="hr_tax_rule_vietnam"/>
+        <field name="lower_limit">80000000</field>
+        <field name="tax_rate">35</field>
+    </record>
+
+    <record id="hr_tax_rule_flat_10_vietnam" model="hr.tax.rule">
+        <field name="name">Thuế suất cá nhân cố định 10,00% </field>
+        <field name="tax_policy">flat</field>
+        <field name="apply_deduction">False</field>
+    </record>
+
+    <record id="hr_tax_rule_flat_20_vietnam" model="hr.tax.rule">
+        <field name="name">Thuế suất cá nhân cố định 20,00% </field>
+        <field name="tax_policy">flat</field>
+        <field name="apply_deduction">False</field>
+    </record>
+</odoo>

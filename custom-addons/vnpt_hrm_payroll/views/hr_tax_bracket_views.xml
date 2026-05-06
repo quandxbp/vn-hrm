@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- View cho Bậc Thuế (hr.tax.bracket) -->
+    <record id="view_hr_tax_bracket_form" model="ir.ui.view">
+        <field name="name">hr.tax.bracket.form</field>
+        <field name="model">hr.tax.bracket</field>
+        <field name="arch" type="xml">
+            <form string="Bậc Thuế">
+                <sheet>
+                    <group>
+                        <field name="tax_rule_id"/>
+                        <field name="lower_limit"/>
+                        <field name="tax_rate"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_tax_bracket_tree" model="ir.ui.view">
+        <field name="name">hr.tax.bracket.tree</field>
+        <field name="model">hr.tax.bracket</field>
+        <field name="arch" type="xml">
+            <tree string="Bậc Thuế">
+                <field name="tax_rule_id"/>
+                <field name="lower_limit"/>
+                <field name="tax_rate"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_hr_tax_bracket" model="ir.actions.act_window">
+        <field name="name">Bậc Thuế</field>
+        <field name="res_model">hr.tax.bracket</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

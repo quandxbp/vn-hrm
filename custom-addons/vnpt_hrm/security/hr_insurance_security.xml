@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Create a new category for HR Insurance -->
+    <record id="module_category_human_resources_insurance" model="ir.module.category">
+        <field name="name">Hồ sơ bảo hiểm</field>
+        <field name="description">Quản lý mọi hoạt động liên quan đến bảo hiểm trong mô-đun HR.</field>
+        <field name="sequence">10</field>
+        <field name="parent_id" ref="base.module_category_human_resources"/>
+    </record>
+
+    <!-- Define User Groups -->
+    <record id="group_hr_insurance_user" model="res.groups">
+        <field name="name">Người phụ trách: Quản lý tất cả hồ sơ bảo hiểm</field>
+        <field name="category_id" ref="module_category_human_resources_insurance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_hr_insurance_manager" model="res.groups">
+        <field name="name">Quản trị viên</field>
+        <field name="category_id" ref="module_category_human_resources_insurance"/>
+        <field name="implied_ids" eval="[(4, ref('vnpt_hrm.group_hr_insurance_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Assign default user to insurance manager group -->
+    <data noupdate="1">
+        <record id="base.default_user" model="res.users">
+            <field name="groups_id" eval="[(4,ref('group_hr_insurance_manager'))]"/>
+        </record>
+    </data>
+</odoo>

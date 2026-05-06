@@ -1,0 +1,211 @@
+<odoo>
+    <data noupdate="0">
+        <!-- Phụ cấp ăn trưa -->
+        <record id="hr_salary_rule_alw_meal" model="hr.salary.rule">
+            <field name="name">Phụ cấp ăn trưa</field>
+            <field name="code">ALW_MEAL</field>
+            <field name="category_id" ref="hr_payroll.ALW"/>
+            <field name="sequence">100</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = advantages.MEAL and advantages.MEAL.amount > 0</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('MEAL')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+if total_days > 0:
+    result = amount * paid_days / total_days
+else:
+    result = 0.0
+            </field>
+            <field name="struct_id" ref="hr_payroll.default_structure"/>
+        </record>
+
+        <!-- Phụ cấp xăng xe -->
+        <record id="hr_salary_rule_alw_fuel" model="hr.salary.rule">
+            <field name="name">Phụ cấp xăng xe</field>
+            <field name="code">ALW_TRAVEL</field>
+            <field name="category_id" ref="hr_payroll.ALW"/>
+            <field name="sequence">101</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = advantages.TRAVEL and advantages.TRAVEL.amount > 0</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('TRAVEL')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+if total_days > 0:
+    result = amount * paid_days / total_days
+else:
+    result = 0.0
+            </field>
+            <field name="struct_id" ref="hr_payroll.default_structure"/>
+        </record>
+
+        <!-- Phụ cấp điện thoại -->
+        <record id="hr_salary_rule_alw_phone" model="hr.salary.rule">
+            <field name="name">Phụ cấp điện thoại</field>
+            <field name="code">ALW_PHONE</field>
+            <field name="category_id" ref="hr_payroll.ALW"/>
+            <field name="sequence">102</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = advantages.PHONE and advantages.PHONE.amount > 0</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('PHONE')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+if total_days > 0:
+    result = amount * paid_days / total_days
+else:
+    result = 0.0
+            </field>
+            <field name="struct_id" ref="hr_payroll.default_structure"/>
+        </record>
+
+    </data>
+
+        <!-- Phụ cấp nhà ở -->
+    <record id="hr_salary_rule_alw_house" model="hr.salary.rule">
+        <field name="name">Phụ cấp nhà ở</field>
+        <field name="code">ALW_HOUSE</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="sequence">103</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = advantages.HOUSE and advantages.HOUSE.amount > 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('HOUSE')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+if total_days > 0:
+    result = amount * paid_days / total_days
+else:
+    result = 0.0
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+
+    <!-- Phụ cấp con nhỏ -->
+    <record id="hr_salary_rule_alw_child" model="hr.salary.rule">
+        <field name="name">Phụ cấp con nhỏ</field>
+        <field name="code">ALW_CHILD</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="sequence">104</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = advantages.CHILD and advantages.CHILD.amount > 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('CHILD')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+if total_days > 0:
+    result = amount * paid_days / total_days
+else:
+    result = 0.0
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+
+    <!-- Phụ cấp an tâm công tác -->
+    <record id="hr_salary_rule_alw_secure" model="hr.salary.rule">
+        <field name="name">An tâm công tác</field>
+        <field name="code">ALW_SECURE</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="sequence">105</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = advantages.SECURE and advantages.SECURE.amount > 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('SECURE')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+result = total_days > 0 ? amount * paid_days / total_days : 0.0
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+
+    <!-- Phụ cấp KPI -->
+    <record id="hr_salary_rule_alw_kpi" model="hr.salary.rule">
+        <field name="name">Phụ cấp KPI</field>
+        <field name="code">ALW_KPI</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="sequence">106</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = advantages.PERFORMANCE and advantages.PERFORMANCE.amount > 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('PERFORMANCE')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+result = total_days > 0 ? amount * paid_days / total_days : 0.0
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+
+    <record id="hr_salary_rule_alw_harmful" model="hr.salary.rule">
+        <field name="name">Phụ cấp trách nhiệm / độc hại</field>
+        <field name="code">ALW_HARMFUL</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="sequence">107</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = advantages.HARMFUL and advantages.HARMFUL.amount > 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+amount = contract.get_advantage_amount_by_code('HARMFUL')
+paid_days = 0.0
+total_days = 0.0
+
+for line in worked_days.values():
+    total_days += line.number_of_days or 0.0
+    if line.is_paid:
+        paid_days += line.number_of_days or 0.0
+
+result = total_days > 0 ? amount * paid_days / total_days : 0.0
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+
+</odoo>

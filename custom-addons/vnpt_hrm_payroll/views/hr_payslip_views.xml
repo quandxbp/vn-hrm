@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="vnpt_view_hr_payslip_form" model="ir.ui.view">
+        <field name="name">vnpt.hrm.payslip.form</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form" />
+        <field name="arch" type="xml">
+            <page name="salary_computation" position="after">
+                <page string="Tính toán thuế TNCN" name="tax_computation">
+                    <group>
+                        <group string="Quy tắc tính thuế">
+                            <field name="personal_tax_policy" />
+                            <field name="personal_tax_rule_id" />
+                        </group>
+                        <group string="Tính thuế">
+                            <field name="personal_tax_apply_deduction" invisible="1" />
+                            <field name="currency_id" invisible="1" />
+                            <field name="gross_wage" string="Lương tổng (GROSS)"/>
+                            <field name="personal_tax_base_deduction" widget="monetary" invisible="not personal_tax_apply_deduction"
+                                   string="Giảm trừ bản thân"/>
+
+                            <label for="personal_dependent_deduction" invisible="not personal_tax_apply_deduction"
+                                   string="Giảm trừ người phụ thuộc"/>
+                            <div invisible="not personal_tax_apply_deduction">
+                                <span><field name="personal_dependent_deduction" widget="monetary"
+                                             nolabel="1" class="oe_inline"/> (Giảm trừ người phụ thuộc) </span>
+                                <br/>
+                                <span>x <field name="personal_total_dependant" nolabel="1" class="oe_inline"/> (Số người phụ thuộc) </span>
+                                <br/>
+                                <span ><span class="text text-primary" style="font-size: 1em; font-weight: bold; white-space: nowrap;">= <field name="total_dependent_deduction" widget="monetary" nolabel="1" readonly="1" class="oe_inline"/></span> (Tổng giảm trừ phụ thuộc)</span>
+                            </div>
+
+
+                            <field name="personal_tax_base"
+                                   string="Cơ sở tính thuế thu nhập cá nhân" widget="monetary" />
+
+                            <!-- Áp dụng cho thuế suất cố định   -->
+
+                            <label for="personal_fixed_tax_rate" invisible="personal_tax_policy != 'flat'"
+                                   string="Thuế suất cố định"/>
+                            <div invisible="personal_tax_policy != 'flat'">
+                                <span><field name="personal_fixed_tax_rate" nolabel="1" class="oe_inline"/> % </span>
+                            </div>
+
+                            <label for="ptax_wage" string="Tổng trừ thuế" />
+                            <field name="ptax_wage" string="Thuế suất" nolabel="1" class="text text-primary"
+                                   style="font-size: 1em; font-weight: bold; white-space: nowrap;"/>
+                        </group>
+
+
+                    </group>
+
+                    <field name="personal_tax_policy" invisible="1"/>
+                    <separator string="Bảng tính thuế luỹ tiến từng phần"
+                               invisible="personal_tax_policy == 'flat'"/>
+                    <field name="payslip_personal_income_tax_ids" invisible="personal_tax_policy == 'flat'"
+                           nolabel="1" readonly="1">
+                        <tree>
+                            <field name="currency_id" column_invisible="True" />
+                            <field name="description" string="Thuế luỹ tiến" />
+                            <field name="personal_tax_base" widget="monetary"/>
+                            <field name="personal_tax_rate"/>
+                            <field name="upper_base" sum="Total" widget="monetary"/>
+                            <field name="tax_amount" sum="Total" widget="monetary"/>
+                        </tree>
+                    </field>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

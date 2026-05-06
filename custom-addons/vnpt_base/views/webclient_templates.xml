@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="login" inherit_id="web.login" name="Custom Login">
+<!--        <xpath expr="//form" position="before">-->
+<!--            <t t-set="form_small" t-value="True" t-if="len(providers) &gt; 2"/>-->
+<!--        </xpath>-->
+        <xpath expr="//div[hasclass('o_login_auth')]" position="inside">
+            <t t-call="auth_oauth.providers"/>
+        </xpath>
+
+        <xpath expr="//label[@for='login']" position="replace">
+            <label for="login">Tên tài khoản</label>
+        </xpath>
+
+        <xpath expr="//div[contains(@t-attf-class, 'oe_login_buttons')]" position="replace">
+            <div class="text-center small mt-4 pt-3 border-top">
+                <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+                <t t-if="debug">
+                    <button type="submit" name="redirect" value="/web/become" class="btn btn-link btn-sm btn-block">Log in as superuser</button>
+                </t>
+                <div class="o_login_auth"/>
+                <a t-attf-href="/web/signup" class="btn btn-link btn-sm mt-3" role="button">Bạn chưa có tài khoản ?</a>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="login_layout" inherit_id="web.login_layout" name="Login Layout">
+        <xpath expr="//div[hasclass('container')]" position="replace">
+            <div class="container py-5">
+                <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 300px;">
+                    <div class="card-body">
+                        <div t-attf-class="text-center pb-3 border-bottom {{'mb-3' if form_small else 'mb-4'}}">
+                            <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo" style="max-height:120px; max-width: 100%; width:auto"/>
+                        </div>
+                        <t t-out="0"/>
+                        <t t-if="debug">
+                            <div class="text-center small mt-4 pt-3 border-top" t-if="not disable_footer">
+                                <t t-if="not disable_database_manager">
+                                    <a class="border-right pr-2 mr-1" href="/web/database/manager">Manage Databases</a>
+                                </t>
+                                <a href="https://www.odoo.com?utm_source=db&amp;utm_medium=auth" target="_blank">Powered by <span>Odoo</span></a>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[hasclass('container')]/div[1]" position="attributes">
+            <attribute name="style">
+                max-width: 300px; box-shadow:
+                rgba(0, 0, 0, 0.35) 0px 5px 15px !important;
+                border-radius: 25px !important; </attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('card-body')]" position="attributes">
+            <attribute name="style">border-radius: 25px !important; padding-bottom:30px !important</attribute>
+        </xpath>
+
+
+
+    </template>
+</odoo>

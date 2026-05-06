@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="BASIC" model="hr.salary.rule.category">
+        <field name="name">Cơ bản</field>
+        <field name="code">BASIC</field>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="ALW" model="hr.salary.rule.category">
+        <field name="name">Phụ cấp</field>
+        <field name="code">ALW</field>
+    </record>
+
+    <record id="GROSS" model="hr.salary.rule.category">
+        <field name="name">Tổng</field>
+        <field name="code">GROSS</field>
+    </record>
+
+    <record id="DED" model="hr.salary.rule.category">
+        <field name="name">Giảm trừ</field>
+        <field name="code">DED</field>
+    </record>
+
+    <record id="DED_BEFORE_TAX" model="hr.salary.rule.category">
+        <field name="name">Giảm trừ (trước thuế)</field>
+        <field name="code">DED_BEFORE_TAX</field>
+    </record>
+
+    <record id="TAXBASE" model="hr.salary.rule.category">
+        <field name="name">Cơ sở tính thuế thu nhập cá nhân</field>
+        <field name="code">TAXBASE</field>
+    </record>
+
+    <record id="PTAX" model="hr.salary.rule.category">
+        <field name="name">Thuế thu nhập cá nhân</field>
+        <field name="code">PTAX</field>
+    </record>
+
+    <record id="DED_AFTER_TAX" model="hr.salary.rule.category">
+        <field name="name">Giảm trừ (sau thuế)</field>
+        <field name="code">DED_AFTER_TAX</field>
+    </record>
+
+    <record id="NET" model="hr.salary.rule.category">
+        <field name="name">Thực lĩnh</field>
+        <field name="code">NET</field>
+    </record>
+
+    <record id="COMP" model="hr.salary.rule.category">
+        <field name="name">Công ty đóng góp</field>
+        <field name="code">COMP</field>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="ALWNOTAX" model="hr.salary.rule.category">
+        <field name="name">Phụ cấp (không chịu thuế)</field>
+        <field name="code">ALWNOTAX</field>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="MISC" model="hr.salary.rule.category">
+        <field name="name">Khác (vd: làm cơ sở cho các tính toán khác)</field>
+        <field name="code">MISC</field>
+    </record>
+
+    <record id="TRAVEL" model="hr.salary.rule.category">
+        <field name="name">Phụ cấp đi lại, xăng xe</field>
+        <field name="code">TRAVEL</field>
+        <field name="parent_id" ref="ALW"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="PHONE" model="hr.salary.rule.category">
+        <field name="name">Phụ cấp điện thoại</field>
+        <field name="code">PHONE</field>
+        <field name="parent_id" ref="ALW"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="MEAL" model="hr.salary.rule.category">
+        <field name="name">Phụ cấp ăn</field>
+        <field name="code">MEAL</field>
+        <field name="parent_id" ref="ALW"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="RESPONSIBILITY" model="hr.salary.rule.category">
+        <field name="name">Phụ cấp trách nhiệm</field>
+        <field name="code">RESPONSIBILITY</field>
+        <field name="parent_id" ref="ALW"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="HARDWORK" model="hr.salary.rule.category">
+        <field name="name">Thưởng chuyên cần</field>
+        <field name="code">HARDWORK</field>
+        <field name="parent_id" ref="ALW"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="PERFORMANCE" model="hr.salary.rule.category">
+        <field name="name">Thưởng hiệu quả công việc</field>
+        <field name="code">PERFORMANCE</field>
+        <field name="parent_id" ref="ALW"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="E_INSURANCE" model="hr.salary.rule.category">
+        <field name="name">Bảo hiểm người lao động (bởi NLĐ)</field>
+        <field name="code">E_INSURANCE</field>
+        <field name="parent_id" ref="DED_BEFORE_TAX"/>
+    </record>
+
+    <record id="E_LU" model="hr.salary.rule.category">
+        <field name="name">Công đoàn (NLĐ đóng)</field>
+        <field name="code">E_LU</field>
+        <field name="parent_id" ref="DED_AFTER_TAX"/>
+    </record>
+
+    <record id="C_INSURANCE" model="hr.salary.rule.category">
+        <field name="name">Bảo hiểm người lao động (bởi công ty)</field>
+        <field name="code">C_INSURANCE</field>
+        <field name="parent_id" ref="COMP"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="C_LU" model="hr.salary.rule.category">
+        <field name="name">Công đoàn (Công ty đóng)</field>
+        <field name="code">C_LU</field>
+        <field name="parent_id" ref="COMP"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="HARMFUL" model="hr.salary.rule.category">
+        <field name="name">Trợ cấp độc hại / đặc thù nghề</field>
+        <field name="code">HARMFUL</field>
+        <field name="parent_id" ref="ALWNOTAX"/>
+        <field name="paid_by_company">True</field>
+    </record>
+
+    <record id="TIMESHEET" model="hr.salary.rule.category">
+        <field name="name">Chấm công</field>
+        <field name="code">TIMESHEET</field>
+    </record>
+
+    <record id="EXREIMB" model="hr.salary.rule.category">
+        <field name="name">Bồi hoàn chi tiêu</field>
+        <field name="code">EXREIMB</field>
+    </record>
+
+</odoo>

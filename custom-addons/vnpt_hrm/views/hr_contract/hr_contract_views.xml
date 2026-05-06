@@ -1,0 +1,81 @@
+<odoo>
+    <record id="vnpt_hrm_contract_form" model="ir.ui.view">
+        <field name="name">vnpt.hr.contract.form</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+        <field name="arch" type="xml">
+            <field name="date_end" position="replace">
+                <field name="date_end" string="Ngày kết thúc hợp đồng"/>
+            </field>
+            <field name="contract_type_id" position="before">
+                <field name="job_title" string="Chức danh" />
+            </field>
+
+            <xpath expr="//group[@name='yearly_benefits']" position="inside">
+                <separator string="Cảnh báo" class="text-primary"/>
+                <field name="next_salary_increment_date" string="Ngày nâng lương tiếp theo"/>
+            </xpath>
+
+            <xpath expr="//page[@name='other']" position="after">
+                <page string="Tài liệu" name="attachment_ids" >
+                    <div>
+                        <group>
+                            <field name="attachment_ids" widget="many2many_binary" nolabel="1" colspan="2"/>
+                        </group>
+                    </div>
+                </page>
+            </xpath>
+
+
+       </field>
+   </record>
+
+    <record id="action_close_hr_contract" model="ir.actions.act_window">
+        <field name="name">Danh sách hợp đồng hết hạn</field>
+        <field name="res_model">hr.contract</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('employee_id', '!=', False), ('state', '=', 'close')]</field>
+        <field name="search_view_id" ref="hr_contract.hr_contract_view_search"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Hiện tại không có hợp đồng nào hết hạn
+          </p>
+        </field>
+    </record>
+
+    <record id="action_nearly_close_hr_contract" model="ir.actions.act_window">
+        <field name="name">Hợp đồng sắp hết hạn</field>
+        <field name="res_model">hr.contract</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[
+            ('employee_id', '!=', False),
+            ('state', 'in', ['draft', 'open']),
+            ('date_end', '&gt;=', (context_today() + datetime.timedelta(days=0)).strftime('%Y-%m-%d')),
+            ('date_end', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d') )
+            ]</field>
+        <field name="search_view_id" ref="hr_contract.hr_contract_view_search"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Hiện tại không có hợp đồng nào sắp hết hạn
+          </p>
+        </field>
+    </record>
+
+    <record id="action_salary_alert_hr_contract" model="ir.actions.act_window">
+        <field name="name">Cảnh báo nâng hạn lương</field>
+        <field name="res_model">hr.contract</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[
+            ('employee_id', '!=', False),
+            ('state', 'in', ['draft', 'open']),
+            ('next_salary_increment_date', '&lt;=', (context_today() + datetime.timedelta(days=15)).strftime('%Y-%m-%d')),
+            ]</field>
+        <field name="search_view_id" ref="hr_contract.hr_contract_view_search"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Hiện tại không có hợp đồng cần cảnh báo
+          </p>
+        </field>
+    </record>
+
+</odoo>

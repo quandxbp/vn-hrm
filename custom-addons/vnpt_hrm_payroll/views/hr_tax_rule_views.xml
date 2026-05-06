@@ -1,0 +1,56 @@
+<odoo>
+    <record id="view_hr_tax_rule_form" model="ir.ui.view">
+        <field name="name">hr.tax.rule.form</field>
+        <field name="model">hr.tax.rule</field>
+        <field name="arch" type="xml">
+            <form string="Quy tắc Thuế TNCN">
+                <sheet>
+                    <field name="currency_id" invisible="1" />
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="tax_policy"/>
+                            <field name="fixed_tax_rate" invisible="tax_policy == 'progressive'" />
+                        </group>
+
+                        <group>
+                            <field name="apply_deduction"/>
+                            <field name="base_deduction" invisible="apply_deduction == False" widget="monetary"/>
+                            <field name="dependent_deduction" invisible="apply_deduction == False" widget="monetary"/>
+                        </group>
+                    </group>
+
+
+                    <notebook invisible="tax_policy == 'flat'">
+                        <page string="Biểu Thuế Lũy Tiến Từng Phần">
+                            <field name="bracket_ids">
+                                <tree editable="bottom">
+                                    <field name="lower_limit"/>
+                                    <field name="tax_rate"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_tax_rule_tree" model="ir.ui.view">
+        <field name="name">hr.tax.rule.tree</field>
+        <field name="model">hr.tax.rule</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="tax_policy"/>
+                <field name="apply_deduction"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_hr_tax_rule" model="ir.actions.act_window">
+        <field name="name">Quy tắc thuế TNCN</field>
+        <field name="res_model">hr.tax.rule</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

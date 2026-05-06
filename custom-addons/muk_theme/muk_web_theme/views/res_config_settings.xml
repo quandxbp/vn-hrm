@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+	<record id="view_res_config_settings_appsbar_form" model="ir.ui.view">
+	    <field name="name">res.config.settings.form</field>
+	    <field name="model">res.config.settings</field>
+	    <field name="inherit_id" ref="muk_web_appsbar.view_res_config_settings_form"/>
+	    <field name="arch" type="xml">
+	    	<xpath expr="//field[@name='appbar_image']/../.." position="attributes">
+	    		<attribute name="invisible">1</attribute>
+	    	</xpath>
+	    </field>
+	</record>
+
+	<record id="view_res_config_settings_colors_form" model="ir.ui.view">
+	    <field name="name">res.config.settings.form</field>
+	    <field name="model">res.config.settings</field>
+	    <field name="inherit_id" ref="muk_web_colors.view_res_config_settings_form"/>
+	    <field name="arch" type="xml">
+	    	<xpath expr="//block[@id='branding_settings']" position="attributes">
+	    		<attribute name="invisible">1</attribute>
+	    	</xpath>
+	    	<div id="languages" position="after">
+	    		<block title="Thiết lập giao diện chủ đề" id="theme_settings">
+	    			<setting string="Màu sắc tổng thệ" help="Tùy chỉnh giao diện của chủ đề">
+                     	<div class="w-50 row">
+                            <label for="color_brand_light" string="Brand" class="d-block w-75 py-2"/>
+                            <field name="color_brand_light" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_primary_light" string="Primary" class="d-block w-75 py-2"/>
+                            <field name="color_primary_light" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="theme_color_appsmenu_text" string="Màu chữ Menu" class="d-block w-75 py-2"/>
+                            <field name="theme_color_appsmenu_text" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="theme_color_appbar_text" string="Màu chữ Apps" class="d-block w-75 py-2"/>
+                            <field name="theme_color_appbar_text" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="theme_color_appbar_active" string="Màu sắc Active Apps" class="d-block w-75 py-2"/>
+                            <field name="theme_color_appbar_active" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="theme_color_appbar_background" string="Màu nền" class="d-block w-75 py-2"/>
+                            <field name="theme_color_appbar_background" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                    </setting>
+	    			<setting string="Màu sắc ngữ cảnh/thông báo" help="Tùy chỉnh màu sắc ngữ cảnh của hệ thống">
+                     	<div class="w-50 row">
+                            <label for="color_info_light" string="Info" class="d-block w-75 py-2"/>
+                            <field name="color_info_light" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_success_light" string="Success" class="d-block w-75 py-2"/>
+                            <field name="color_success_light" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_warning_light" string="Warning" class="d-block w-75 py-2"/>
+                            <field name="color_warning_light" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>
+                     	<div class="w-50 row">
+                            <label for="color_danger_light" string="Danger" class="d-block w-75 py-2"/>
+                            <field name="color_danger_light" class="d-block w-25 p-0 m-0" widget="color"/>
+                        </div>                        
+                        <button name="action_reset_theme_color_assets" icon="oi-arrow-right" type="object"
+                            string="Đặt lại màu chủ đề" class="btn-link"/>
+                    </setting>
+	    			<setting
+	    				string="Ảnh nền hệ thống" company_dependent="1" help="Đặt hình nền cho menu ứng dụng">
+	    				<field name="theme_background_image" widget="image" class="ml-4 w-75"/>
+                    </setting>
+                    <setting string="Favicon &amp; Logo" company_dependent="1" help="Đặt biểu tượng yêu thích và logo của riêng bạn cho thanh ứng dụng">
+		    			<div class="w-100 row">
+							<div class="col-6">
+								<label for="appbar_image" string="Logo" class="o_light_label mb-1 bold-text"/>
+	                        	<field name="appbar_image" widget="image" class="ml-4 oe_avatar"/>
+							</div>
+	                    	<div class="col-6">
+								<label for="theme_favicon" string="Favicon" class="o_light_label mb-1 bold-text"/>
+	                        	<field name="theme_favicon" widget="image" class="ml-4 oe_avatar"/>
+							</div>
+	                    </div>
+	                </setting>
+	    		</block>
+	    	</div>
+	    </field>
+	</record>
+	
+</odoo>

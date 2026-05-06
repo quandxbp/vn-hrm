@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="departure_moved" model="hr.departure.reason">
+        <field name="sequence">3</field>
+        <field name="name">Điều chuyển nhân viên</field>
+        <field name="reason_code">341</field>
+    </record>
+</odoo>

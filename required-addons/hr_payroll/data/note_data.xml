@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="hr_payroll_note_demo_content">
+        <p>Tóm tắt cuộc họp:</p>
+        <p>Chúng ta cần cải thiện quy trình bảng lương với quy trình mới</p>
+        <p><br/></p>
+        <p>Vào ngày <t t-out="date_today"/></p>
+        <p>1. Lưu trữ tài liệu cho nhân viên đã nghỉ việc</p>
+        <p>2. Điều chỉnh mức lương cho các bộ phận</p>
+        <p>3. Tạo hợp đồng mới cho Marc Demo với vị trí mới</p>
+        <p><br/></p>
+        <ul class="o_checklist">
+            <li id="checkId-130162183830">Cấp thẻ bảo hiểm cho nhân viên mới đăng ký</li>
+        </ul>
+    </template>
+</odoo>

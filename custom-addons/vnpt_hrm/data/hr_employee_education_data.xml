@@ -1,0 +1,126 @@
+<odoo>
+    <data>
+        <record id="education_level_ts" model="hr.employee.education.level">
+            <field name="code">TS</field>
+            <field name="name">Tiến sĩ</field>
+        </record>
+
+        <record id="education_level_ths" model="hr.employee.education.level">
+            <field name="code">ThS</field>
+            <field name="name">Thạc sĩ</field>
+        </record>
+
+        <record id="education_level_ckii" model="hr.employee.education.level">
+            <field name="code">CKII</field>
+            <field name="name">Bác sĩ Chuyên khoa II</field>
+        </record>
+
+        <record id="education_level_cki" model="hr.employee.education.level">
+            <field name="code">CKI</field>
+            <field name="name">Bác sĩ chuyên khoa I</field>
+        </record>
+
+        <record id="education_level_bsnt" model="hr.employee.education.level">
+            <field name="code">BSNT</field>
+            <field name="name">Bác sĩ nội trú</field>
+        </record>
+
+        <record id="education_level_dh" model="hr.employee.education.level">
+            <field name="code">DH</field>
+            <field name="name">Đại học</field>
+        </record>
+
+        <record id="education_level_cd" model="hr.employee.education.level">
+            <field name="code">CD</field>
+            <field name="name">Cao đẳng</field>
+        </record>
+
+        <record id="education_level_cc" model="hr.employee.education.level">
+            <field name="code">CC</field>
+            <field name="name">Cao cấp</field>
+        </record>
+
+        <record id="education_level_trc" model="hr.employee.education.level">
+            <field name="code">TrC</field>
+            <field name="name">Trung cấp</field>
+        </record>
+
+        <record id="education_level_sc" model="hr.employee.education.level">
+            <field name="code">SC</field>
+            <field name="name">Sơ cấp</field>
+        </record>
+
+        <record id="education_level_khong" model="hr.employee.education.level">
+            <field name="code">KHONG</field>
+            <field name="name">Chưa qua đào tạo</field>
+        </record>
+
+        <record id="education_level_ccn" model="hr.employee.education.level">
+            <field name="code">CCN</field>
+            <field name="name">Chứng chỉ nghề</field>
+        </record>
+
+    </data>
+
+    <data noupdate="1">
+        <record id="trinh_do_1" model="hr.trinh.do.van.hoa">
+            <field name="code">01</field>
+            <field name="name">Lớp 1</field>
+        </record>
+        <record id="trinh_do_2" model="hr.trinh.do.van.hoa">
+            <field name="code">02</field>
+            <field name="name">Lớp 2</field>
+        </record>
+        <record id="trinh_do_3" model="hr.trinh.do.van.hoa">
+            <field name="code">03</field>
+            <field name="name">Lớp 3</field>
+        </record>
+        <record id="trinh_do_4" model="hr.trinh.do.van.hoa">
+            <field name="code">04</field>
+            <field name="name">Lớp 4</field>
+        </record>
+        <record id="trinh_do_5" model="hr.trinh.do.van.hoa">
+            <field name="code">05</field>
+            <field name="name">Lớp 5</field>
+        </record>
+        <record id="trinh_do_6" model="hr.trinh.do.van.hoa">
+            <field name="code">06</field>
+            <field name="name">Lớp 6</field>
+        </record>
+        <record id="trinh_do_7" model="hr.trinh.do.van.hoa">
+            <field name="code">07</field>
+            <field name="name">Lớp 7</field>
+        </record>
+        <record id="trinh_do_8" model="hr.trinh.do.van.hoa">
+            <field name="code">08</field>
+            <field name="name">Lớp 8</field>
+        </record>
+        <record id="trinh_do_9" model="hr.trinh.do.van.hoa">
+            <field name="code">09</field>
+            <field name="name">Lớp 9</field>
+        </record>
+        <record id="trinh_do_10" model="hr.trinh.do.van.hoa">
+            <field name="code">10</field>
+            <field name="name">Lớp 10</field>
+        </record>
+        <record id="trinh_do_11" model="hr.trinh.do.van.hoa">
+            <field name="code">11</field>
+            <field name="name">Lớp 11</field>
+        </record>
+        <record id="trinh_do_12" model="hr.trinh.do.van.hoa">
+            <field name="code">12</field>
+            <field name="name">Lớp 12</field>
+        </record>
+
+        <!--  HỌC HÀM-->
+        <record id="hoc_ham_giao_su" model="hr.hoc.ham">
+            <field name="code">GIAO_SU</field>
+            <field name="name">Giáo sư</field>
+        </record>
+
+        <record id="hoc_ham_pho_giao_su" model="hr.hoc.ham">
+            <field name="code">PHO_GIAO_SU</field>
+            <field name="name">Phó giáo sư</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,21 @@
+<odoo>
+    <record id="vnpt_hrm_res_users_view_form_profile" model="ir.ui.view">
+        <field name="name">vnpt.hrm.res.users.profile.form.inherit</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="hr.res_users_view_form_profile" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='personal_information']" position="attributes">
+                <attribute name="groups">base.group_no_one</attribute>
+            </xpath>
+            <xpath expr="//page[@name='page_account_security']" position="attributes">
+                <attribute name="groups">base.group_no_one</attribute>
+            </xpath>
+            <xpath expr="//page[@name='skills_resume']" position="attributes">
+                <attribute name="groups">base.group_no_one</attribute>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="preference_change_password" type="object" string="Đổi mật khẩu" class="btn btn-secondary"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <!--  Giảm trừ cơ sở tính thuế thu nhập cá nhân  -->
+    <record id="default_tbded_salary_rule" model="hr.salary.rule">
+        <field name="category_id" ref="hr_payroll.MISC"/>
+        <field name="name">Giảm trừ cơ sở tính thuế thu nhập cá nhân</field>
+        <field name="sequence">190</field>
+        <field name="code">TBDED</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# personal_tax_rule_id.base_deduction: Giảm trừ Cơ sở tính Thuế thu nhập cá nhân
+# personal_tax_rule_id.dependent_deduction: Giảm trừ cho mỗi người phụ thuộc
+# categories.DED_BEFORE_TAX: Những khoản giảm trừ (sau thuế)
+# categories.PHONE: Phụ cấp điện thoại
+
+result = payslip.personal_tax_base_deduction + payslip.total_dependent_deduction - categories['DED_BEFORE_TAX']
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+
+    <!--  Cơ sở tính thuế thu nhập cá nhân  -->
+    <record id="default_taxbase_salary_rule" model="hr.salary.rule">
+        <field name="category_id" ref="hr_payroll.TAXBASE"/>
+        <field name="name">Cơ sở tính thuế thu nhập cá nhân</field>
+        <field name="sequence">191</field>
+        <field name="code">TAXBASE</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['GROSS']
+if payslip.personal_tax_rule_id.apply_deduction:
+    result -= categories['MISC']
+if result &lt; 0.0:
+    result = 0.0
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+
+    <!--  Thuế thu nhập cá nhân  -->
+    <record id="default_ptax_salary_rule" model="hr.salary.rule">
+        <field name="category_id" ref="hr_payroll.PTAX"/>
+        <field name="name">Thuế thu nhập cá nhân</field>
+        <field name="sequence">199</field>
+        <field name="code">PTAX</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# KHÔNG SỬA ĐỔI TRỪ KHI BẠN BIẾT MÌNH ĐANG LÀM GÌ
+
+# cơ sở tính thuế từ quy tắc "TAXBASE"
+tax_base = categories['TAXBASE']
+
+# gán giá trị ban đầu cho số tiền thuế
+tax = 0.0
+
+# lấy quy tắc thuế thu nhập cá nhân từ phiếu lương
+tax_rule = payslip.personal_tax_rule_id
+
+# tính toán số tiền thuế dựa trên chính sách của "Bảng thuế suất cố định" hoặc "Bảng thuế suất lũy tiến"
+# TH1: Bảng thuế suất cố định
+if payslip.personal_tax_policy == 'flat':
+    tax += tax_rule.fixed_tax_rate * tax_base / 100.0
+
+# TH2: Bảng thuế suất luỹ tiến
+else:
+    for rule in tax_rule.bracket_ids.sorted('tax_rate', reverse=True):
+        rule_base = rule.lower_limit
+        if tax_base > rule_base:
+            diff = tax_base - rule_base
+            tax += rule.tax_rate * diff / 100.0
+            tax_base -= diff
+result = -1 * tax
+        </field>
+        <field name="struct_id" ref="hr_payroll.default_structure"/>
+    </record>
+</odoo>

@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="hr_ethnicity_kinh" model="hr.ethnicity">
+            <field name="code">KINH</field>
+            <field name="name">Kinh (Việt)</field>
+            <field name="note">Kinh</field>
+        </record>
+        <record id="hr_ethnicity_tay" model="hr.ethnicity">
+            <field name="code">TAY</field>
+            <field name="name">Tày</field>
+            <field name="note">Thổ, Ngạn, Phén, Thủ Lao, Pa Dí...</field>
+        </record>
+        <record id="hr_ethnicity_thai" model="hr.ethnicity">
+            <field name="code">THAI</field>
+            <field name="name">Thái</field>
+            <field name="note">Tày Khao* hoặc Đón (Thái Trắng*), Tày Đăm* (Thái Đen*), Tày Mười, Tày Thanh (Mán Thanh), Hàng Tổng (Tây Mường), Pa Thay, Thổ Đà</field>
+        </record>
+        <record id="hr_ethnicity_muong" model="hr.ethnicity">
+            <field name="code">MUONG</field>
+            <field name="name">Mường</field>
+            <field name="note">Mol (Mual, Mon**, Moan**), Mọi* (1), Mọi bi, Ao Tá (Âu Tá)...</field>
+        </record>
+        <record id="hr_ethnicity_khmer" model="hr.ethnicity">
+            <field name="code">KMR</field>
+            <field name="name">Khmer</field>
+            <field name="note">Cul, Cur, Cu, Thổ, Việt gốc Miên, Khor Me, Krôm...</field>
+        </record>
+        <record id="hr_ethnicity_hoa" model="hr.ethnicity">
+            <field name="code">HOA</field>
+            <field name="name">Hoa</field>
+            <field name="note">Triều Châu, Phúc Kiến, Quảng Đông, Quảng Tây*, Hải Nam, Hẹ*, Xạ Phạng*, Xia Phố*, Thắng Nhẩm**, Minh Hương**, Hẹ**, Sang Phan</field>
+        </record>
+        <record id="hr_ethnicity_nung" model="hr.ethnicity">
+            <field name="code">NUNG</field>
+            <field name="name">Nùng</field>
+            <field name="note">Nùng Xương, Nùng Giang, Nùng An, Nùng Inh**, Nùng Phàn Sình, Nùng Cháo, Nùng Lòi, Nùng Quy Rin, Nùng Dín**, Khèn Lài, Nông**...</field>
+        </record>
+        <record id="hr_ethnicity_mong" model="hr.ethnicity">
+            <field name="code">MONG</field>
+            <field name="name">Mông</field>
+            <field name="note">Mèo, Hoa, Mèo Xanh, Mèo Đỏ, Mèo Đen, Ná Mèo (Na Mièo), Mán Trắng, Miếu Ha**...</field>
+        </record>
+        <record id="hr_ethnicity_dao" model="hr.ethnicity">
+            <field name="code">DAO</field>
+            <field name="name">Dao</field>
+            <field name="note">Mán, Động*, Trại*, Xá*, Diu*, Miền*, Kiềm*, Miển*, Dao Quần Trắng, Dao Đỏ, Dao Quần Chẹt, Dao Lô Gang, Dao Tiền, Dao Thanh Y, Dao</field>
+        </record>
+        <record id="hr_ethnicity_giarai" model="hr.ethnicity">
+            <field name="code">GRI</field>
+            <field name="name">Gia Rai</field>
+            <field name="note">Gơr Rai, Tor Buân, Chor Rai, Hđrung (Hbau, Chor), Aráp**, Mthur**…</field>
+        </record>
+        <record id="hr_ethnicity_ede" model="hr.ethnicity">
+            <field name="code">EDE</field>
+            <field name="name">Êđê</field>
+            <field name="note">Ra Đê, Ê Đê Êga**, Đê, Kpa, A Dham, Krung, KtuL, Đliê Hruê, Blô, Kah**, Kdrao**, Dong Kay**, Dong Mak**, Ening**, Arul**, Hwing*</field>
+        </record>
+        <record id="hr_ethnicity_bana" model="hr.ethnicity">
+            <field name="code">BNA</field>
+            <field name="name">Ba Na</field>
+            <field name="note">Gơr Lar, Tơ Lô, Giar Lâng, (Y lăng,), Rơ ngaơ, Krem, Roh, ConKđe, A La Công, Kpang Công, Bơ Năm…</field>
+        </record>
+        <record id="hr_ethnicity_sancy" model="hr.ethnicity">
+            <field name="code">SCY</field>
+            <field name="name">Sán Chay</field>
+            <field name="note">Cao Lan*, Mán Cao Lan*, Hờn Bạn, Sán Chỉ* (cộnggọi Sơn tử* và không bao gồm nhóm Sán Chỉ ở Bảo Lạc và Chợ Rạ), Chủng**, Trại*…</field>
+        </record>
+        <record id="hr_ethnicity_cham" model="hr.ethnicity">
+            <field name="code">CHAM</field>
+            <field name="name">Chăm</field>
+            <field name="note">Chăm, Chiêm**, Chiêm Thành, Chăm Pa**, Chăm Hroi, Chăm Pông**, Chà Và Ku**, Chăm Châu Đốc**…</field>
+        </record>
+        <record id="hr_ethnicity_coho" model="hr.ethnicity">
+            <field name="code">CHO</field>
+            <field name="name">Cơ Ho</field>
+            <field name="note">Xrê, Nộp (Tu Lốp), Cơ Don, Chil, (3), Lat (Lạch), Tơ Ring…</field>
+        </record>
+        <record id="hr_ethnicity_xodang" model="hr.ethnicity">
+            <field name="code">XDG</field>
+            <field name="name">Xơ Đăng</field>
+            <field name="note">Xơ Teng, Hđang, Tơ Dra, Mơ Năm, Ha Lăng, Ca Dong, Km’râng*, Con Lan, Bri La, Tang*, Tà Trí*, Châu**…</field>
+        </record>
+        <record id="hr_ethnicity_sandiu" model="hr.ethnicity">
+            <field name="code">SDU</field>
+            <field name="name">Sán Dìu</field>
+            <field name="note">Sán Déo*, Sán Dèo Nhín** (Sơn Dao Nhân**), Trại, Trại Đát, Mán Quần Cộc, Mán Váy Xẻ**…</field>
+        </record>
+        <record id="hr_ethnicity_hre" model="hr.ethnicity">
+            <field name="code">HRE</field>
+            <field name="name">Hrê</field>
+            <field name="note">Chăm Rê, Mọi Chom, Krể*, Luy*, Thượng Ba Tơ**, Mọi Lúy**, Mọi Sơn Phồng**, Mọi Đá Vách**, Chăm Quảng…</field>
+        </record>
+        <record id="hr_ethnicity_raglai" model="hr.ethnicity">
+            <field name="code">RGY</field>
+            <field name="name">Ra Glay</field>
+            <field name="note">Ra Cláy*, Rai, La Oang , Noang...</field>
+        </record>
+        <record id="hr_ethnicity_mnong" model="hr.ethnicity">
+            <field name="code">MNG</field>
+            <field name="name">Mnông</field>
+            <field name="note">Pnông, Mnông Nông, Mnông Pré, Mnông Bu đâng, ĐiPri*, Biat*, Mnông Gar, Mnông Rơ Lam, Mnông Chil (3), Mnông Kuênh**, Mnông Điêp**,...</field>
+        </record>
+        <record id="hr_ethnicity_tho" model="hr.ethnicity">
+            <field name="code">THO</field>
+            <field name="name">Thổ</field>
+            <field name="note">Người Nhà Làng**, Mường**, Kẹo, Mọn, Cuối, Họ, Đan Lai, Ly Hà, Tây Pọng, Con Kha, Xá Lá Vàng (5)...</field>
+        </record>
+        <record id="hr_ethnicity_xtieng" model="hr.ethnicity">
+            <field name="code">XTG</field>
+            <field name="name">Xtiêng</field>
+            <field name="note">Xa Điêng, Xa Chiêng**, Bù Lơ**, Bù Đek** (Bù Đêh**), Bù Biêk**...</field>
+        </record>
+        <record id="hr_ethnicity_khmu" model="hr.ethnicity">
+            <field name="code">KMU</field>
+            <field name="name">Khơ Mú</field>
+            <field name="note">Xá Cẩu, Khạ Khẩu**, Mảng Cấu**, Mứn Xen, Pu bính, Tênh, Tây Hay, Kmu**, Kurm Mụ**...</field>
+        </record>
+        <record id="hr_ethnicity_bru" model="hr.ethnicity">
+            <field name="code">BVK</field>
+            <field name="name">Bru Vân Kiều</field>
+            <field name="note">Măng Coong, Tri Khùa...</field>
+        </record>
+        <record id="hr_ethnicity_cotu" model="hr.ethnicity">
+            <field name="code">CTU</field>
+            <field name="name">Cơ Tu</field>
+            <field name="note">Ca Tu, Cao*, Hạ*, Phương*, Ca Tang*(7)...</field>
+        </record>
+        <record id="hr_ethnicity_giay" model="hr.ethnicity">
+            <field name="code">GIAY</field>
+            <field name="name">Giáy</field>
+            <field name="note">Nhắng, Dẳng*, Pầu Thìn*, Pu Nà*, Củi Chu*(6), Xá*, Giàng**...</field>
+        </record>
+        <record id="hr_ethnicity_taoi" model="hr.ethnicity">
+            <field name="code">TOI</field>
+            <field name="name">Tà Ôi</field>
+            <field name="note">Tôi Ôi, Pa Co, Pa Hi (Ba Hi), Kan Tua**, Tà Ướt**...</field>
+        </record>
+        <record id="hr_ethnicity_ma" model="hr.ethnicity">
+            <field name="code">MA</field>
+            <field name="name">Mạ</field>
+            <field name="note">Châu Mạ, Chồ Mạ**, Chế Mạ**, Mạ Ngăn, Mạ Xốp, Mạ Tô, Mạ Krung...</field>
+        </record>
+        <record id="hr_ethnicity_gietrieng" model="hr.ethnicity">
+            <field name="code">GTG</field>
+            <field name="name">Giẻ-Triêng</field>
+            <field name="note">Đgiéh*, Ta Riêng*, Ve(Veh)*, Giang Rẫy Pin, Triêng, Treng*, Ca Tang(7), La Ve, Bnoong (Mnoong)**, Cà Tang*…</field>
+        </record>
+        <record id="hr_ethnicity_co" model="hr.ethnicity">
+            <field name="code">CO</field>
+            <field name="name">Co</field>
+            <field name="note">Cor, Col, Cùa, Trầu</field>
+        </record>
+        <record id="hr_ethnicity_choro" model="hr.ethnicity">
+            <field name="code">CRO</field>
+            <field name="name">Chơ Ro</field>
+            <field name="note">Dơ Ro, Châu Ro, Chro**, Thượng**...</field>
+        </record>
+        <record id="hr_ethnicity_xinhmun" model="hr.ethnicity">
+            <field name="code">XMN</field>
+            <field name="name">Xinh Mun</field>
+            <field name="note">Puộc, Pua*, Xá**, Pna**, Xinh Mun Dạ**, Nghệt**...</field>
+        </record>
+        <record id="hr_ethnicity_hanhi" model="hr.ethnicity">
+            <field name="code">HNI</field>
+            <field name="name">Hà Nhì</field>
+            <field name="note">Hà Nhì Già**, U Ni, Xá U Nhì, Hà Nhì Cồ Chồ**, Hà Nhì La Mí**, Hà Nhì Đen**...</field>
+        </record>
+        <record id="hr_ethnicity_churu" model="hr.ethnicity">
+            <field name="code">CRU</field>
+            <field name="name">Chu Ru</field>
+            <field name="note">Chor Ru, Chu*, Kru**, Thượng**...</field>
+        </record>
+        <record id="hr_ethnicity_lao" model="hr.ethnicity">
+            <field name="code">LAO</field>
+            <field name="name">Lào</field>
+            <field name="note">Lào Bốc (Lào Cạn**), Lào Nọi (Lào Nho**), Phu Thay**, Phu Lào**, Thay Duồn**, Thay Nhườn**...</field>
+        </record>
+        <record id="hr_ethnicity_lachi" model="hr.ethnicity">
+            <field name="code">LCI</field>
+            <field name="name">La Chí</field>
+            <field name="note">Cù Tè, La Quả*, Thổ Đen**, Mản**, Xá**...</field>
+        </record>
+        <record id="hr_ethnicity_khang" model="hr.ethnicity">
+            <field name="code">KHANG</field>
+            <field name="name">Kháng</field>
+            <field name="note">Xá Khao*, Xá Quảng*, Xá Dón*, Xá Dẳng*, Xá Hốc*, Xá Ái*, Xá Bung*, Quảng Lâm*, Mơ Kháng**, Háng**, Brển**, Kháng Đẳng*, Kháng Hoạ</field>
+        </record>
+        <record id="hr_ethnicity_phula" model="hr.ethnicity">
+            <field name="code">PLA</field>
+            <field name="name">Phù Lá</field>
+            <field name="note">Bố Khó Pạ (Phù Lá Lão**), Mu Dí*, Pạ Xá*, Phố Phó*, Vaxo*, Cần Thìn**, Phù Lá Đen**, Phù La Hán**...</field>
+        </record>
+        <record id="hr_ethnicity_lahu" model="hr.ethnicity">
+            <field name="code">LHU</field>
+            <field name="name">La Hủ</field>
+            <field name="note">Lao*, Pu Đang Khù Xung, Cò Xung, Khà Quy, Cọ So*, Nê Thứ*, La Hủ Na (Đen), La Hủ Phung (Trắng), Xá Lá Vàng**...</field>
+        </record>
+        <record id="hr_ethnicity_laha" model="hr.ethnicity">
+            <field name="code">LHA</field>
+            <field name="name">La Ha</field>
+            <field name="note">Xá Khao*, Khlá Phlaọ (La Ha Cạn), La Ha Nước (La Ha Ừng), Xá Cha**, Xá Bung**, Xá Khao**, Xá Táu Nhạ**, Xá Poọng**, Xá Uống**, B</field>
+        </record>
+        <record id="hr_ethnicity_pathen" model="hr.ethnicity">
+            <field name="code">PTN</field>
+            <field name="name">Pà Thẻn</field>
+            <field name="note">Pà Hưng, Tống*, Mèo Lài**, Mèo Hoa**, Mèo Đỏ**, Bát Tiên Tộc**...</field>
+        </record>
+        <record id="hr_ethnicity_lu" model="hr.ethnicity">
+            <field name="code">LU</field>
+            <field name="name">Lự</field>
+            <field name="note">Lử, Nhuồn (Duôn), Mùn Di*, Thay**, Thay Lử**, Phù Lử**, Lự Đen (Lự Đăm)**, Lự Trắng**...</field>
+        </record>
+        <record id="hr_ethnicity_ngai" model="hr.ethnicity">
+            <field name="code">NGAI</field>
+            <field name="name">Ngái</field>
+            <field name="note">Xín, Lê, Đàn, Khách Gia*, Ngái Hắc Cá**, Ngái Lầu Mằn**, Hẹ**, Xuyến**, Sán Ngái**...</field>
+        </record>
+        <record id="hr_ethnicity_chut" model="hr.ethnicity">
+            <field name="code">CHUT</field>
+            <field name="name">Chứt</field>
+            <field name="note">MãLiêng*, A Rem, Tu Vang*, Pa Leng*, Xơ Lang*, Tơ Hung*, Chà Củi*, Tắc Củi*, U Mo*, Xá Lá Vàng*, Rục**, Sách**, Mày**, Mã Liềng**.</field>
+        </record>
+        <record id="hr_ethnicity_lolo" model="hr.ethnicity">
+            <field name="code">LLO</field>
+            <field name="name">Lô Lô</field>
+            <field name="note">Sách*, Mày*, Rục*, Mun Di**, Di**, Màn Di**, Qua La**, Ô Man**, Lu Lộc Màn**, Lô Lô Hoa**, Lô Lô Đen**...</field>
+        </record>
+        <record id="hr_ethnicity_mang" model="hr.ethnicity">
+            <field name="code">MANG</field>
+            <field name="name">Mảng</field>
+            <field name="note">Mảng Ư, Xá Lá Vàng*, Xá Mảng**, Niểng O**, Xá Bá O**, Mảng Gửng**, Mảng Lệ**...</field>
+        </record>
+        <record id="hr_ethnicity_clo" model="hr.ethnicity">
+            <field name="code">CLO</field>
+            <field name="name">Cơ Lao</field>
+            <field name="note">Tống*, Tứ Đư**, Ho Ki**, Voa Đè**, Cờ Lao Xanh**, Cờ Lao Trắng**, Cờ Lao Đỏ**...</field>
+        </record>
+        <record id="hr_ethnicity_boy" model="hr.ethnicity">
+            <field name="code">BOY</field>
+            <field name="name">Bố Y</field>
+            <field name="note">Chừng Chá, Trọng Gia, Tu Dí, Tu Din*...</field>
+        </record>
+        <record id="hr_ethnicity_cong" model="hr.ethnicity">
+            <field name="code">CONG</field>
+            <field name="name">Cống</field>
+            <field name="note">Xấm Khống, Mảng Nhé*, Xá Xeng*, Phuy A**...</field>
+        </record>
+        <record id="hr_ethnicity_sila" model="hr.ethnicity">
+            <field name="code">SLA</field>
+            <field name="name">Si La</field>
+            <field name="note">Cù Dề Xừ, Khà Pẻ...</field>
+        </record>
+        <record id="hr_ethnicity_ppoe" model="hr.ethnicity">
+            <field name="code">PPO</field>
+            <field name="name">Pu Péo</field>
+            <field name="note">Ka Pèo, Pen Ti Lô Lô, La Quả**...</field>
+        </record>
+        <record id="hr_ethnicity_rmm" model="hr.ethnicity">
+            <field name="code">RMM</field>
+            <field name="name">Rơ Măm</field>
+            <field name="note"></field>
+        </record>
+        <record id="hr_ethnicity_brau" model="hr.ethnicity">
+            <field name="code">BRAU</field>
+            <field name="name">Brâu</field>
+            <field name="note">Brao</field>
+        </record>
+        <record id="hr_ethnicity_odu" model="hr.ethnicity">
+            <field name="code">ODU</field>
+            <field name="name">Ơ Đu</field>
+            <field name="note">Tày Hạt, I Đu**</field>
+        </record>
+        <record id="hr_ethnicity_nn" model="hr.ethnicity">
+            <field name="code">NN</field>
+            <field name="name">Người nước ngoài</field>
+            <field name="note"></field>
+        </record>
+        <record id="hr_ethnicity_cadong" model="hr.ethnicity">
+            <field name="code">CADONG</field>
+            <field name="name">Cadong</field>
+            <field name="note">Cadong</field>
+        </record>
+    </data>
+
+    <data>
+        <record id="hr_religion_pgo" model="hr.religion">
+            <field name="code">PGO</field>
+            <field name="name">Phật giáo</field>
+            <field name="note">Phật giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_cgo" model="hr.religion">
+            <field name="code">CGO</field>
+            <field name="name">Công giáo</field>
+            <field name="note">Công giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_hho" model="hr.religion">
+            <field name="code">HHO</field>
+            <field name="name">Phật giáo Hoà Hảo</field>
+            <field name="note">Phật giáo Hoà Hảo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_hog" model="hr.religion">
+            <field name="code">HOG</field>
+            <field name="name">Hồi giáo</field>
+            <field name="note">Hồi giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ctn" model="hr.religion">
+            <field name="code">CTN</field>
+            <field name="name">Cao đài Tây Ninh</field>
+            <field name="note">Hồi giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ctt" model="hr.religion">
+            <field name="code">CTT</field>
+            <field name="name">Cao đài Tiên Thiên</field>
+            <field name="note">Hồi giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ccl" model="hr.religion">
+            <field name="code">CCL</field>
+            <field name="name">Cao đài Chơn Lý</field>
+            <field name="note">Hồi giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_cby" model="hr.religion">
+            <field name="code">CBY</field>
+            <field name="name">Cao đài Bạch Y</field>
+            <field name="note">Hồi giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_cdi" model="hr.religion">
+            <field name="code">CDI</field>
+            <field name="name">Cao Đài</field>
+            <field name="note">Cao Đài</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ccmlc" model="hr.religion">
+            <field name="code">CCMLC</field>
+            <field name="name">Cao đài Chiếu minh Long châu</field>
+            <field name="note">Cao Đài</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_cmcd" model="hr.religion">
+            <field name="code">CMCD</field>
+            <field name="name">Cao đài Minh chơn đạo</field>
+            <field name="note">Cao Đài</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_cbc" model="hr.religion">
+            <field name="code">CBC</field>
+            <field name="name">Cao đài Ban chính</field>
+            <field name="note">Cao Đài</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ccktq" model="hr.religion">
+            <field name="code">CCKTQ</field>
+            <field name="name">Cao đài Cầu kho tam quan</field>
+            <field name="note">Cao Đài</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_tgcd" model="hr.religion">
+            <field name="code">TGCD</field>
+            <field name="name">Truyền giáo Cao đài</field>
+            <field name="note">Cao Đài</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ckhac" model="hr.religion">
+            <field name="code">CKHAC</field>
+            <field name="name">Các tổ chức Cao đài khác</field>
+            <field name="note">Cao Đài</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_msd" model="hr.religion">
+            <field name="code">MSD</field>
+            <field name="name">Minh sư đạo</field>
+            <field name="note">Minh sư đạo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_mld" model="hr.religion">
+            <field name="code">MLD</field>
+            <field name="name">Minh lý đạo</field>
+            <field name="note">Minh lý đạo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ttlb" model="hr.religion">
+            <field name="code">TTLB</field>
+            <field name="name">Tổng hội Hội thánh Tin lành Việt Nam (miền Bắc)</field>
+            <field name="note">Minh lý đạo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ttln" model="hr.religion">
+            <field name="code">TTLN</field>
+            <field name="name">Tổng hội Hội thánh Tin lành Việt Nam (miền Nam)</field>
+            <field name="note">Minh lý đạo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_cdvn" model="hr.religion">
+            <field name="code">CDVN</field>
+            <field name="name">Hội truyền giáo Cơ đốc Việt Nam</field>
+            <field name="note">Minh lý đạo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_tl" model="hr.religion">
+            <field name="code">TL</field>
+            <field name="name">Tin Lành</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_cdpl" model="hr.religion">
+            <field name="code">CDPL</field>
+            <field name="name">Hội thánh Cơ đốc Phục lâm</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_btvnad" model="hr.religion">
+            <field name="code">BTVNAD</field>
+            <field name="name">Hội thánh Báp tít VN (Ân điển)</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_ccc" model="hr.religion">
+            <field name="code">CCC</field>
+            <field name="name">Nam phương</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_mvn" model="hr.religion">
+            <field name="code">MVN</field>
+            <field name="name">Hội thánh Mennonite Việt Nam</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_lhcd" model="hr.religion">
+            <field name="code">LHCD</field>
+            <field name="name">Hội thánh Liên hữu Cơ đốc</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_tltl" model="hr.religion">
+            <field name="code">TLTL</field>
+            <field name="name">Hội thánh Tin lành Trưởng lão</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_vtvnnp" model="hr.religion">
+            <field name="code">VTVNNP</field>
+            <field name="name">Hội thánh Báp tít VN (Nam phương)</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_tlkhac" model="hr.religion">
+            <field name="code">TLKHAC</field>
+            <field name="name">Các tổ chức Tin lành khác</field>
+            <field name="note">Tin Lành</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_tdc_sph" model="hr.religion">
+            <field name="code">TDCSPh</field>
+            <field name="name">Tịnh độ Cư sĩ Phật hội Việt Nam</field>
+            <field name="note">Tịnh độ Cư sĩ Phật hội Việt Nam</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_dtahn" model="hr.religion">
+            <field name="code">DTAHN</field>
+            <field name="name">Đạo Tứ ấn hiếu nghĩa</field>
+            <field name="note">Đạo Tứ ấn hiếu nghĩa</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_bskh" model="hr.religion">
+            <field name="code">BSKH</field>
+            <field name="name">Bửu sơn Kỳ hương</field>
+            <field name="note">Bửu sơn Kỳ hương</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_bh" model="hr.religion">
+            <field name="code">BH</field>
+            <field name="name">Ba Ha'i</field>
+            <field name="note">Ba Ha'i</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_khong" model="hr.religion">
+            <field name="code">KHONG</field>
+            <field name="name">Không</field>
+            <field name="note">Không</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_thienchua" model="hr.religion">
+            <field name="code">THIENCHUA</field>
+            <field name="name">Thiên chúa giáo</field>
+            <field name="note">Thiên chúa giáo</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_luong" model="hr.religion">
+            <field name="code">LUONG</field>
+            <field name="name">Lương</field>
+            <field name="note">Lương</field>
+            <field name="active">True</field>
+        </record>
+        <record id="hr_religion_balamon" model="hr.religion">
+            <field name="code">BALAMON</field>
+            <field name="name">Bà-la-môn</field>
+            <field name="note">Bà-la-môn</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

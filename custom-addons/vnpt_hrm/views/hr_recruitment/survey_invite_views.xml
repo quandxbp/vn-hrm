@@ -1,0 +1,17 @@
+<odoo>
+    <record id="vnpt_survey_invite_view_form" model="ir.ui.view">
+        <field name="model">survey.invite</field>
+        <field name="inherit_id" ref="survey.survey_invite_view_form" />
+        <field name="arch" type="xml">
+            <field name="emails" position="replace">
+                <field name="emails" invisible="survey_users_login_required or not send_email"
+                       string="Emails cc"
+                       placeholder="VD:  'Nguyễn Văn A' &lt;nguyenvana@gmail.com&gt;, buivanbe@gmail.com"/>
+
+            </field>
+            <field name="deadline" position="replace">
+                <field name="deadline" widget="date" string="Ngày hết hạn trả lời"/>
+            </field>
+        </field>
+    </record>
+</odoo>
