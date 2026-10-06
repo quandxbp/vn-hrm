@@ -7,7 +7,7 @@
 VNPT: HRM Customization
 """,
     'website': ' ',
-    'depends': ["vnpt_base", "hr", "hr_holidays", "hr_recruitment", "hr_contract",
+    'depends': ["vnpt_base", "hr", "hr_holidays", "hr_recruitment", "survey", "hr_contract",
                 "hr_attendance", "hr_payroll"],
 
     'data': [
