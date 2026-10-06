@@ -1,19 +1,90 @@
+// Thanh trên cùng: dải màu thương hiệu, cùng gradient với thẻ chào của dashboard.
+// Odoo đọc màu chữ / nền của navbar qua các biến --NavBar-*, nên chỉ cần gán lại ở đây.
+
+$mk-navbar-gradient: linear-gradient(120deg, $o-brand-primary, darken($o-brand-primary, 14%));
+
 .o_main_navbar {
-    border-bottom: none !important;
+    // Chữ trắng trên nền gradient.
+    --NavBar-entry-color: #fff;
+    --NavBar-entry-color--hover: #fff;
+    --NavBar-entry-color--active: #fff;
+    --NavBar-brand-color: #fff;
+    // Nền mặc định của mục menu phải trong suốt. Mặc định Odoo tô nền xanh đặc,
+    // gây ra chữ xám trên nền xanh (tương phản 1.72).
+    --NavBar-entry-backgroundColor: transparent;
+    --NavBar-entry-backgroundColor--hover: rgba(255, 255, 255, 0.14);
+    --NavBar-entry-backgroundColor--focus: rgba(255, 255, 255, 0.14);
+    --NavBar-entry-backgroundColor--active: rgba(255, 255, 255, 0.22);
+    --o-navbar-badge-bg: #{$o-danger};
+    --o-navbar-badge-color: #fff;
+    --o-navbar-badge-text-shadow: none;
+
+    background: $mk-navbar-gradient;
+    border-bottom: 0 !important;
+    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.12);
+
+    .o_nav_entry,
+    .dropdown-toggle {
+        border-radius: 8px;
+    }
+
+    .o_menu_sections {
+        gap: 2px;
+        margin-left: 4px;
+
+        .o_nav_entry,
+        .dropdown-toggle {
+            font-weight: 500;
+        }
+    }
+
+    .o_menu_brand {
+        font-weight: 600;
+    }
+
+    // Cụm tiện ích bên phải (chat, hoạt động, người dùng).
+    .o_menu_systray {
+        gap: 2px;
+        align-items: center;
+        padding-right: 8px;
+
+        .o_nav_entry,
+        .dropdown-toggle {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+    }
+
+    .o_user_menu .o_avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50% !important;
+        object-fit: cover;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+    }
+
+    // Menu xổ xuống nằm trên nền trắng nên trả lại màu chữ tối.
+    // Biến CSS kế thừa xuống phần tử con, nên gán lại tại .dropdown-menu là đủ.
+    .dropdown-menu {
+        border-radius: 12px;
+        --NavBar-entry-color: #{$o-gray-700};
+        --NavBar-entry-color--hover: #{$o-gray-900};
+        --NavBar-entry-color--active: #{darken($o-brand-primary, 10%)};
+        --NavBar-entry-backgroundColor: transparent;
+        --NavBar-entry-backgroundColor--hover: #{$o-gray-100};
+        --NavBar-entry-backgroundColor--focus: #{$o-gray-100};
+        --NavBar-entry-backgroundColor--active: #{mix($o-brand-primary, $o-view-background-color, 10%)};
+    }
 }
 
 .mk_main_app_icon {
-    width: 24px;         /* hoặc 20px tùy kích thước bạn muốn */
-    height: 24px;
-    object-fit: contain; /* hoặc cover, tùy bạn muốn icon full hay vừa */
-    border-radius: 4px;
-    transition: all 0.3s ease; /* Tạo hiệu ứng mượt mà khi chuyển đổi */
-
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
 }
 
 .mk_main_app_icon:hover {
-    content: "";
-    display: inline-block;
-    transform: rotate(15deg); /* Nếu bạn muốn thêm hiệu ứng quay cho icon */
+    transform: scale(1.08);
 }
-

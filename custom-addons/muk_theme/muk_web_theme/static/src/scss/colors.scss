@@ -1,9 +1,9 @@
 // Colors
 
 $mk_color_appsmenu_text: #000000;
-$mk_color_appbar_text: #000000;
-$mk_color_appbar_active: #cadfef;
-$mk_color_appbar_background: #1276C4;
+$mk_color_appbar_text: $o-gray-700;
+$mk_color_appbar_active: mix($mk_color_primary, $o-view-background-color, 10%);
+$mk_color_appbar_background: $o-view-background-color;
 
 // Override
 

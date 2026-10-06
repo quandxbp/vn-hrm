@@ -3,6 +3,7 @@ from time import sleep
 from odoo import api, fields, models
 from lxml import etree
 from datetime import date, timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
 
 class HrEmployee(models.Model):
@@ -104,6 +105,65 @@ class HrEmployee(models.Model):
                 "nearlyExpiredContracts": len(nearly_expired_contracts),
                 "salaryIncrease": len(salary_increase_contracts)
             }
+        }
+
+    @api.model
+    def get_dashboard_stats(self):
+        """Số liệu tổng quan cho dashboard. Chỉ trả về cho quản lý nhân sự."""
+        if not self.env.user.has_group('hr.group_hr_user'):
+            return {}
+
+        Employee = self.env['hr.employee'].sudo()
+        Contract = self.env['hr.contract'].sudo()
+        today = fields.Date.context_today(self)
+        month_start = today.replace(day=1)
+
+        def hired_between(start, end):
+            # Ưu tiên "Ngày vào đơn vị", nếu trống thì lấy ngày tạo hồ sơ.
+            return [
+                '|',
+                '&', ('ngay_vao_don_vi', '>=', start), ('ngay_vao_don_vi', '<', end),
+                '&', ('ngay_vao_don_vi', '=', False),
+                '&', ('create_date', '>=', start), ('create_date', '<', end),
+            ]
+
+        hires_by_month = []
+        for offset in range(5, -1, -1):
+            start = month_start - relativedelta(months=offset)
+            end = start + relativedelta(months=1)
+            hires_by_month.append({
+                'label': start.strftime('%m/%Y'),
+                'count': Employee.search_count(hired_between(start, end)),
+            })
+
+        departments = Employee._read_group([], ['department_id'], ['__count'])
+        by_department = sorted(
+            ({'label': dept.name or 'Chưa phân bổ', 'count': count} for dept, count in departments),
+            key=lambda item: item['count'], reverse=True,
+        )[:8]
+
+        state_labels = dict(Contract._fields['state']._description_selection(self.env))
+        contract_groups = Contract._read_group(
+            [('state', 'in', ['draft', 'open', 'close'])], ['state'], ['__count'])
+        contracts_by_state = [
+            {'key': state, 'label': state_labels.get(state, state), 'count': count}
+            for state, count in contract_groups
+        ]
+
+        now = fields.Datetime.now()
+        on_leave_today = self.env['hr.leave'].sudo().search_count([
+            ('state', '=', 'validate'),
+            ('date_from', '<=', now),
+            ('date_to', '>=', now),
+        ])
+
+        return {
+            'total': Employee.search_count([]),
+            'newThisMonth': hires_by_month[-1]['count'],
+            'onLeaveToday': on_leave_today,
+            'hiresByMonth': hires_by_month,
+            'byDepartment': by_department,
+            'contractsByState': contracts_by_state,
         }
 
     def get_employee_birthdays(self):

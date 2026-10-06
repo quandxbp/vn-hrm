@@ -19,7 +19,6 @@
             'vnpt_hrm_dashboard/static/src/components/**/*.js',
             'vnpt_hrm_dashboard/static/src/components/**/*.xml',
             'vnpt_hrm_dashboard/static/src/components/**/*.scss',
-            'vnpt_hrm_dashboard/static/src/scss/*.css',
         ],
     },
 }

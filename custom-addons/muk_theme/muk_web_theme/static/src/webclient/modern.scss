@@ -1,0 +1,43 @@
+// Giao diện hiện đại: thanh bên sáng, bo góc mềm, đổ bóng nhẹ.
+// Màu lấy từ biến của theme nên vẫn đổi theo màu chủ đạo và dark mode.
+
+$mk-radius-sm: 8px;
+$mk-radius-md: 12px;
+$mk-radius-lg: 16px;
+$mk-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06);
+$mk-shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.16);
+
+// ---- Khối nội dung ------------------------------------------------------
+
+.o_form_view .o_form_sheet {
+    border: 1px solid $o-gray-200;
+    border-radius: $mk-radius-md;
+    box-shadow: $mk-shadow-card;
+}
+
+.o_kanban_view .o_kanban_record:not(.o_kanban_ghost) {
+    border-radius: $mk-radius-md;
+    box-shadow: $mk-shadow-card;
+}
+
+.btn {
+    border-radius: $mk-radius-sm;
+}
+
+.o_control_panel .o_searchview {
+    border-radius: $mk-radius-sm;
+}
+
+// ---- Hộp thoại và menu thả xuống ---------------------------------------
+
+.modal-content {
+    border: 0;
+    border-radius: $mk-radius-lg;
+    box-shadow: $mk-shadow-pop;
+    overflow: hidden;
+}
+
+.dropdown-menu {
+    border-radius: $mk-radius-md;
+    box-shadow: $mk-shadow-pop;
+}

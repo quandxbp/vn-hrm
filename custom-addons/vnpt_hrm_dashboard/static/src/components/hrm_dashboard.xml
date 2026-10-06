@@ -1,354 +1,163 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="owl.OwlHrmDashboard" owl="1">
-        <div class="tbl-home-page w-100" style="margin-top: 10px;-webkit-box-flex: 1;
-                -webkit-flex: 1 1 auto;
-                flex: 1 1 auto;
-                height: 100%;
-                overflow: auto;
-                position: relative;">
-            <div class="main">
+    <t t-name="vnpt_hrm_dashboard.Dashboard">
+        <div class="vd">
+            <div class="vd-grid">
 
-            <div class="row" style="">
-                <div class="main-left col-md-3">
-
-                    <div class="main-left-user">
-                        <div class="left-user-name">
-                            <div class="user-avatar">
-                                <t t-if="state.employee.id">
-                                    <img id="dashboard_avatar" t-att-src="'/web/image?model=hr.employee.public&amp;id=' + state.employee.id + '&amp;field=image_1024'"
-                                     alt="Avatar"/>
-                                </t>
-                                <t t-else="">
-                                    <img id="dashboard_avatar" src="/vnpt_hrm_dashboard/static/images/avatar_placeholder.png" alt="Avatar"/>
-                                </t>
-
-                            </div>
-                            <div class="user-name">
-                                <div class="user-name-text" id="dashboard_tendaydu">
-                                    <t t-if="state.employee.name" >
-                                        <t t-esc="state.employee.name" />
-                                    </t>
-                                    <t t-else="">
-                                        Chưa có thông tin nhân sự
-                                    </t>
-                                </div>
-                                <t t-if="state.employee.code">
-                                    <div class="user-name-code" id="dashboard_manhanvien"><t t-esc="state.employee.code" /></div>
-                                </t>
-
-                            </div>
-                            <div class="clear" />
-                        </div>
-                        <div class="left-user-info">
-                            <div class="user-info-item location">
-                                <div class="item-label">Đơn vị</div>
-                                <div class="item-text" id="dashboard_phongban">
-                                    <t t-if="state.employee.department_name">
-                                        <t t-esc="state.employee.department_name" />
-                                    </t>
-                                    <t t-else="">
-                                        <i>(Chưa có dữ liệu)</i>
-                                    </t>
-                                </div>
-                            </div>
-                            <div class="user-info-item title">
-                                <div class="item-label">Vị trí</div>
-                                <div class="item-text" id="dashboard_chucdanh">
-                                    <t t-if="state.employee.job_title">
-                                        <t t-esc="state.employee.job_title" />
-                                    </t>
-                                    <t t-else="">
-                                        <i>(Chưa có dữ liệu)</i>
-                                    </t>
-                                </div>
-                            </div>
-                            <div class="user-info-item email">
-                                <div class="item-label">Email</div>
-                                <div class="item-text" id="dashboard_email">
-                                    <t t-if="state.employee.work_email">
-                                        <t t-esc="state.employee.work_email" />
-                                    </t>
-                                    <t t-else="">
-                                        <i>(Chưa có dữ liệu)</i>
-                                    </t>
-                                </div>
-                            </div>
-                            <div class="user-info-item phone">
-                                <div class="item-label">Di động</div>
-                                <div class="item-text" id="dashboard_mobile">
-                                    <t t-if="state.employee.work_phone">
-                                        <t t-esc="state.employee.work_phone" />
-                                    </t>
-                                    <t t-else="">
-                                        <i>(Chưa có dữ liệu)</i>
-                                    </t>
-                                </div>
-                            </div>
-                            <div class="clear" />
-                            <div class="row">
-                                <div class="clear" />
-                            </div>
-
-                        </div>
-                        <div class="clear" />
+                <!-- Lời chào -->
+                <section class="vd-card vd-hero">
+                    <div class="vd-hero-text">
+                        <div class="vd-hero-date" t-esc="todayLabel"/>
+                        <h1 class="vd-hero-title">
+                            <t t-esc="greeting"/><t t-if="firstName">, <span t-esc="firstName"/></t>
+                        </h1>
+                        <p class="vd-hero-sub" t-if="state.employee.id">
+                            <t t-if="state.employee.job_title" t-esc="state.employee.job_title"/>
+                            <t t-if="state.employee.job_title and state.employee.department_name"> · </t>
+                            <t t-if="state.employee.department_name" t-esc="state.employee.department_name"/>
+                        </p>
+                        <p class="vd-hero-sub" t-else="">Tài khoản chưa được liên kết với hồ sơ nhân sự.</p>
                     </div>
-                </div>
-
-                <div class="main-right col-md-9">
-                    <div class="oe_dashboard_column_new ui-sortable" id="undefined_column_00" style="vertical-align: top; padding: 0 2px;">
-
-                        <div class="right-item dashboard-canvas-item" data-id="544134">
-                            <div class="item-head">
-                                <div class="item-head-text">TRUY CẬP NHANH</div>
-                                <div class="clear" />
-                            </div>
-                            <div class="item-body o_home_menu" id="box-dashboard-application-content">
-                                <div role="listbox" class="o_apps row user-select-none mx-0 mt-3">
-                                    <!--  Cho nhân sự thường-->
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" t-if="state.employee.id" t-on-click="openPersonalProfile">
-                                        <a role="option" class="cursor-pointer o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2">
-                                            <img class="o_app_icon rounded-3"
-                                              src="/vnpt_hrm/static/description/icon_ho_so_nhan_su.png" />
-                                            <div class="o_caption w-100 text-center text-truncate mt-2">Hồ sơ cá nhân</div>
-                                        </a>
-                                    </div>
-
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" t-if="!isHrManager">
-                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                                         href="#action=hr.hr_employee_public_action" >
-                                         <img class="o_app_icon rounded-3"
-                                              src="/hr/static/description/icon.png" />
-                                         <div class="o_caption w-100 text-center text-truncate mt-2">Danh bạ nhân sự</div>
-                                      </a>
-                                   </div>
-
-<!--                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" >-->
-<!--                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"-->
-<!--                                         href="#action=hr_holidays.hr_leave_action_new_request" >-->
-<!--                                         <img class="o_app_icon rounded-3"-->
-<!--                                              src="/hr_holidays/static/description/icon.png" />-->
-<!--                                         <div class="o_caption w-100 text-center text-truncate mt-2">Nghỉ phép</div>-->
-<!--                                      </a>-->
-<!--                                   </div>-->
-<!--                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" >-->
-<!--                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"-->
-<!--                                         href="#action=hr_attendance.hr_attendance_action" >-->
-<!--                                         <img class="o_app_icon rounded-3"-->
-<!--                                              src="/hr_attendance/static/description/icon.png" />-->
-<!--                                         <div class="o_caption w-100 text-center text-truncate mt-2">Chấm công</div>-->
-<!--                                      </a>-->
-<!--                                   </div>-->
-                                    <!--  Cho nhân sự thường-->
-
-                                    <!--  Cho nhân Quản lý-->
-                                    <!--  QUẢN LÝ NHÂN SỰ -->
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" t-if="isHrManager">
-                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                                         href="#action=hr.open_view_employee_list_my" >
-                                         <img class="o_app_icon rounded-3"
-                                              src="/hr/static/description/icon.png" />
-                                         <div class="o_caption w-100 text-center text-truncate mt-2">Nhân sự</div>
-                                      </a>
-                                   </div>
-
-                                    <!--  QUẢN LÝ NGHỈ PHÉP -->
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" >
-                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                                         href="#action=hr_holidays.hr_leave_action_new_request" >
-                                         <img class="o_app_icon rounded-3"
-                                              src="/hr_holidays/static/description/icon.png" />
-                                         <div class="o_caption w-100 text-center text-truncate mt-2">Nghỉ phép</div>
-                                      </a>
-                                   </div>
-
-                                    <!--  QUẢN LÝ HỢP ĐỒNG -->
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0 cursor-pointer" t-if="isContractManager" t-on-click="openContract">
-                                        <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2">
-                                            <img class="o_app_icon rounded-3" src="/hr_skills/static/description/icon.png"/>
-                                            <div class="o_caption w-100 text-center text-truncate mt-2">Hợp đồng</div>
-                                        </a>
-                                    </div>
-
-                                    <!--  QUẢN LÝ BẢO HIỂM -->
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" t-if="isInsuranceManager" >
-                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                                         href="#action=vnpt_hrm.hr_insurance_action" >
-                                         <img class="o_app_icon rounded-3" src="/vnpt_hrm/static/description/icon_bao_hiem.png" />
-                                         <div class="o_caption w-100 text-center text-truncate mt-2">Bảo hiểm</div>
-                                      </a>
-                                   </div>
-
-                                    <!--  QUẢN LÝ TUYỂN DUNG -->
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" t-if="isRecruitmentManager" >
-                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                                         href="#action=hr_recruitment.action_hr_job" >
-                                         <img class="o_app_icon rounded-3"
-                                              src="/hr_recruitment/static/description/icon.png" />
-                                         <div class="o_caption w-100 text-center text-truncate mt-2">Tuyển dụng</div>
-                                      </a>
-                                   </div>
-
-                                    <!--  QUẢN LÝ BẢNG LƯƠNG -->
-<!--                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" t-if="isPayrollManager" >-->
-<!--                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"-->
-<!--                                         href="#action=hr_payroll.action_view_hr_payslip_month_form" >-->
-<!--                                         <img class="o_app_icon rounded-3"-->
-<!--                                              src="/hr_payroll/static/description/icon.png" />-->
-<!--                                         <div class="o_caption w-100 text-center text-truncate mt-2">Bảng lương</div>-->
-<!--                                      </a>-->
-<!--                                   </div>-->
-
-                                    <!--  QUẢN LÝ CHẤM CÔNG -->
-                                    <div class="col-3 col-md-2 o_draggable mb-3 px-0" >
-                                      <a role="option" class="o_app o_menuitem d-flex flex-column rounded-3 justify-content-start align-items-center w-100 p-1 p-md-2"
-                                         href="#action=hr_attendance.hr_attendance_action" >
-                                         <img class="o_app_icon rounded-3"
-                                              src="/hr_attendance/static/description/icon.png" />
-                                         <div class="o_caption w-100 text-center text-truncate mt-2">Chấm công</div>
-                                      </a>
-                                   </div>
-
-                                    <!--  Cho nhân Quản lý-->
-                                </div>
-
-                            </div>
-                            <div class="clear" />
-                            <span class="oe_icon oe_close">
-                                <ul class="dropdown-menu-dashboard" style="display: none;">
-                                    <li action="431040" style="padding: 5px;">Ẩn</li>
-                                </ul>
-                            </span>
-                        </div>
-
-                        <!-- CẢNH BÁO HỢP ĐỒNG-->
-                        <div class="right-item dashboard-canvas-item" t-if="isContractManager">
-                            <div class="item-head">
-                                <div class="item-head-text">CẢNH BÁO NHÂN SỰ</div>
-                                <div class="clear" />
-                            </div>
-
-                            <div class="item-body">
-                                <div class="row canhbaonhansu mt-3">
-                                    <div class="canhbaonhansu-item col-4" t-on-click="openNearlyExpiredContracts">
-                                        <div class="button mocdongbaohiem">
-                                            <img src="/vnpt_hrm_dashboard/static/images/icon/icon_filecheck.png" />
-                                        </div>
-                                        <div class="canhbaonhansu-item-title">
-                                            <div class="button-title-nubmer" id="number_mocdongbaohiem">
-                                                <t t-esc="state.alerts.nearlyExpiredContracts" />
-                                            </div>
-                                            <div class="button-title-text">Hợp đồng gần hết hạn</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="canhbaonhansu-item col-4">
-                                        <a class="button hethanhopdong"
-                                           href="/web#action=vnpt_hrm.action_close_hr_contract">
-                                            <img src="/vnpt_hrm_dashboard/static/images/icon/icon_hethanhopdong.png" />
-                                        </a>
-                                        <div class="canhbaonhansu-item-title">
-                                            <div class="button-title-nubmer" id="number_nhansuhethanhopdong">
-                                                <t t-esc="state.alerts.expiredContracts" />
-                                            </div>
-                                            <div class="button-title-text">Hợp đồng hết hạn</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="canhbaonhansu-item col-4" t-on-click="openSalaryIncreaseContracts">
-                                        <div class="button nangluongchinhsach">
-                                            <img src="/vnpt_hrm_dashboard/static/images/icon/icon_nangluongchinhsach.png" />
-                                        </div>
-                                        <div class="canhbaonhansu-item-title">
-                                            <div class="button-title-nubmer" id="number_nangluongchinhsach">
-                                                <t t-esc="state.alerts.salaryIncrease" />
-                                            </div>
-                                            <div class="button-title-text">Cảnh báo nâng lương</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="clear" />
-                            </div>
-                            <div class="clear" />
-                        </div>
-
-                        <div class="right-item dashboard-canvas-item" data-id="544134">
-                            <div class="item-head">
-                                <div class="item-head-text">CHÚC MỪNG SINH NHẬT</div>
-                                <div class="clear" />
-                            </div>
-                            <div class="item-body" id="box-dashboard-sinhnhat-content">
-                                <t t-if="state.birthdayEmpls.length">
-                                    <t t-foreach="state.birthdayEmpls" t-as="birthday" t-key="birthday.id">
-                                        <div class="birthday-item row">
-                                            <div class="col-1 float-left">
-                                                <div class="user-avatar ">
-                                                    <div class="user-avatar-cover">
-
-                                                        <img t-att-src="'/web/image?model=hr.employee.public&amp;id=' + birthday.id + '&amp;field=image_1024'" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="user-text col-9">
-                                                <div class="user-text-name text-primary" t-esc="birthday.name" />
-                                                <div class="user-text-label" t-esc="birthday.job_title" />
-                                                <div class="user-text-label" t-esc="birthday.department_name"/>
-                                            </div>
-                                            <div class="birthday-item-action col-2 text-center">
-                                                <button class="btn btn-primary btn-sm float-right mt-2" type="button">Chúc mừng</button>
-                                            </div>
-                                        </div>
-                                    </t>
-                                </t>
-                                <t t-else="">
-                                    <div id="no-content-sinhnhat">Không có nhân viên sinh nhật ngày hôm nay!</div>
-                                </t>
-                            </div>
-                            <div class="clear" />
-                        </div>
-
-
-
-<!--                            <div class="right-item dashboard-canvas-item" data-id="544127">-->
-<!--                                <div class="item-head">-->
-<!--                                    <div class="item-head-text">THÔNG TIN NGHỈ PHÉP</div>-->
-<!--                                    <div class="item-head-icon">-->
-<!--                                        <img src="/vnpt_dashboard/static/images/icon/icon_threedot.png">-->
-<!--                                    <span class="spanHide" action="544127">Ẩn</span></div>-->
-<!--                                    <div class="clear"></div>-->
-<!--                                </div>-->
-<!--                                <div class="item-body">-->
-<!--                                    <div class="thongtinnghiphep">-->
-
-<!--                                        <div id="chart-ngay-nghi-tong-hop" data-highcharts-chart="0" style="overflow: hidden;"><div id="highcharts-1nj9qjg-0" dir="ltr" class="highcharts-container " style="position: relative; overflow: hidden; width: 258px; height: 258px; text-align: left; line-height: normal; z-index: 0; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"><svg version="1.1" class="highcharts-root" style="font-family:&quot;Lucida Grande&quot;, &quot;Lucida Sans Unicode&quot;, Arial, Helvetica, sans-serif;font-size:12px;" xmlns="http://www.w3.org/2000/svg" width="258" height="258" viewBox="0 0 258 258"><desc>Created with Highcharts 8.0.4</desc><defs><clipPath id="highcharts-1nj9qjg-3-"><rect x="0" y="0" width="238" height="233" fill="none"></rect></clipPath></defs><rect fill="rgba(0,0,0,0)" class="highcharts-background" x="0" y="0" width="258" height="258" rx="0" ry="0"></rect><rect fill="none" class="highcharts-plot-background" x="10" y="10" width="238" height="233"></rect><g class="highcharts-pane-group" data-z-index="0"></g><rect fill="none" class="highcharts-plot-border" data-z-index="1" x="10" y="10" width="238" height="233"></rect><g class="highcharts-series-group" data-z-index="3"><g data-z-index="0.1" class="highcharts-series highcharts-series-0 highcharts-pie-series highcharts-tracker" transform="translate(10,10) scale(1 1)"><path fill="#005AC9" d="M 118.97830880380647 10.000002208957739 A 106.5 106.5 0 1 1 118.85207363659538 10.00010273342508 M 118.85346261653345 11.000101768791993 A 105.5 105.5 0 1 0 118.97851247701016 11.000002188216342 " class="highcharts-halo highcharts-color-1" data-z-index="-1" fill-opacity="0.25" visibility="hidden"></path><path fill="#F58220" d="M 118.97830880380647 10.000002208957739 A 106.5 106.5 0 0 1 118.87180883461103 10.000077150144762 L 118.91026618422772 41.950054005101336 A 74.55 74.55 0 0 0 118.98481616266453 41.950001546270414 Z" transform="translate(0,-10)" opacity="1" stroke-linejoin="round" class="highcharts-point highcharts-point-select highcharts-color-0"></path><path fill="rgb(0,90,201)" d="M 118.97830880380647 10.000002208957739 A 106.5 106.5 0 1 1 118.85207363659538 10.00010273342508 M 118.89645154561676 41.950071913397565 A 74.55 74.55 0 1 0 118.98481616266453 41.950001546270414 " transform="translate(0,0)" opacity="1" stroke-linejoin="round" class="highcharts-point highcharts-color-1"></path></g><g data-z-index="0.1" class="highcharts-markers highcharts-series-0 highcharts-pie-series" transform="translate(10,10) scale(1 1)"></g></g><text x="129" text-anchor="middle" class="highcharts-title" data-z-index="4" style="color:#333333;font-size:18px;fill:#333333;" y="24"></text><text x="129" text-anchor="middle" class="highcharts-subtitle" data-z-index="4" style="color:#666666;fill:#666666;" y="24"></text><text x="10" text-anchor="start" class="highcharts-caption" data-z-index="4" style="color:#666666;fill:#666666;" y="255"></text><g class="highcharts-legend" data-z-index="7"><rect fill="none" class="highcharts-legend-box" rx="0" ry="0" x="0" y="0" width="8" height="8" visibility="hidden"></rect><g data-z-index="1"><g></g></g></g><g class="highcharts-label highcharts-tooltip  highcharts-color-1" style="white-space:nowrap;pointer-events:none;" data-z-index="8" transform="translate(1,-9999)" opacity="0" visibility="visible"><path fill="none" class="highcharts-label-box highcharts-tooltip-box highcharts-shadow" d="M 3.5 0.5 L 120.5 0.5 C 123.5 0.5 123.5 0.5 123.5 3.5 L 123.5 27.5 C 123.5 30.5 123.5 30.5 120.5 30.5 L 3.5 30.5 C 0.5 30.5 0.5 30.5 0.5 27.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5" stroke="#000000" stroke-opacity="0.049999999999999996" stroke-width="5" transform="translate(1, 1)"></path><path fill="none" class="highcharts-label-box highcharts-tooltip-box highcharts-shadow" d="M 3.5 0.5 L 120.5 0.5 C 123.5 0.5 123.5 0.5 123.5 3.5 L 123.5 27.5 C 123.5 30.5 123.5 30.5 120.5 30.5 L 3.5 30.5 C 0.5 30.5 0.5 30.5 0.5 27.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5" stroke="#000000" stroke-opacity="0.09999999999999999" stroke-width="3" transform="translate(1, 1)"></path><path fill="none" class="highcharts-label-box highcharts-tooltip-box highcharts-shadow" d="M 3.5 0.5 L 120.5 0.5 C 123.5 0.5 123.5 0.5 123.5 3.5 L 123.5 27.5 C 123.5 30.5 123.5 30.5 120.5 30.5 L 3.5 30.5 C 0.5 30.5 0.5 30.5 0.5 27.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5" stroke="#000000" stroke-opacity="0.15" stroke-width="1" transform="translate(1, 1)"></path><path fill="rgba(247,247,247,0.85)" class="highcharts-label-box highcharts-tooltip-box" d="M 3.5 0.5 L 120.5 0.5 C 123.5 0.5 123.5 0.5 123.5 3.5 L 123.5 27.5 C 123.5 30.5 123.5 30.5 120.5 30.5 L 3.5 30.5 C 0.5 30.5 0.5 30.5 0.5 27.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5" stroke="#005AC9" stroke-width="1"></path><text x="8" data-z-index="1" style="font-size:12px;color:#333333;cursor:default;fill:#333333;" y="20"><tspan style="fill:#005AC9">Còn lại</tspan><tspan dx="0">: </tspan><tspan style="font-weight:bold" dx="0">24</tspan><tspan dx="0"> của 24</tspan></text></g></svg></div></div>-->
-<!--                                        <div class="thongtinnghiphep-title">-->
-<!--                                            <div class="thongtinnghiphep-title-item">-->
-<!--                                                <div class="item-dot all"></div>-->
-<!--                                                <div class="item-text">Tổng số ngày được nghỉ: <b id="thongtinnghiphep_ngayduocnghi">24 ngày</b></div>-->
-<!--                                            </div>-->
-<!--                                            <div class="clear"></div>-->
-<!--                                            <div class="thongtinnghiphep-title-item">-->
-<!--                                                <div class="item-dot conlai"></div>-->
-<!--                                                <div class="item-text">Số ngày còn lại: <b id="thongtinnghiphep_ngayconlai" title="12.0 ngày nghỉ tồn của năm 2024 + 12 ngày nghỉ phép còn lại của năm 2025">24 ngày</b></div>-->
-<!--                                            </div>-->
-<!--                                            <div class="clear"></div>-->
-<!--                                            <div class="thongtinnghiphep-title-item">-->
-<!--                                                <div class="item-dot danghi"></div>-->
-<!--                                                <div class="item-text">Số ngày đã nghỉ: <b id="thongtinnghiphep_ngaydanghi" title="">0 ngày</b></div>-->
-<!--                                            </div>-->
-<!--                                            <div class="clear"></div>-->
-<!--                                        </div>-->
-<!--                                        <div class="clear"></div>-->
-<!--                                    </div>-->
-<!--                                    <div class="clear"></div>-->
-<!--                                </div>-->
-<!--                                <div class="clear"></div>-->
-<!--                            </div>-->
-                        </div>
+                    <div class="vd-hero-avatar">
+                        <img t-if="state.employee.id"
+                             t-att-src="'/web/image?model=hr.employee.public&amp;id=' + state.employee.id + '&amp;field=image_1024'"
+                             alt="Ảnh đại diện"/>
+                        <img t-else="" src="/vnpt_hrm_dashboard/static/images/avatar_placeholder.png" alt="Ảnh đại diện"/>
                     </div>
-                </div>
+                </section>
+
+                <!-- Chỉ số tổng quan (quản lý nhân sự) -->
+                <t t-foreach="kpis" t-as="kpi" t-key="kpi.key">
+                    <section t-attf-class="vd-card vd-kpi vd-tone-{{ kpi.tone }} {{ kpi.onClick ? 'vd-clickable' : '' }}"
+                             t-on-click="kpi.onClick">
+                        <span class="vd-kpi-icon"><i t-attf-class="fa {{ kpi.icon }}" role="img"/></span>
+                        <div class="vd-kpi-body">
+                            <div class="vd-kpi-value" t-esc="kpi.value"/>
+                            <div class="vd-kpi-label" t-esc="kpi.label"/>
+                        </div>
+                    </section>
+                </t>
+
+                <!-- Truy cập nhanh -->
+                <section class="vd-card vd-quick">
+                    <header class="vd-card-head"><h2>Truy cập nhanh</h2></header>
+                    <div class="vd-quick-list">
+                        <t t-foreach="quickLinks" t-as="link" t-key="link.key">
+                            <button type="button" class="vd-quick-item" t-on-click="link.onClick">
+                                <img t-att-src="link.icon" alt=""/>
+                                <span t-esc="link.label"/>
+                            </button>
+                        </t>
+                    </div>
+                </section>
+
+                <!-- Cảnh báo nhân sự -->
+                <section class="vd-card vd-alerts" t-if="perms.isContractManager">
+                    <header class="vd-card-head"><h2>Cảnh báo nhân sự</h2></header>
+                    <ul class="vd-alert-list">
+                        <t t-foreach="alertItems" t-as="alert" t-key="alert.key">
+                            <li t-attf-class="vd-alert vd-tone-{{ alert.tone }} vd-clickable" t-on-click="alert.onClick">
+                                <span class="vd-alert-icon"><i t-attf-class="fa {{ alert.icon }}" role="img"/></span>
+                                <span class="vd-alert-label" t-esc="alert.label"/>
+                                <span class="vd-alert-count" t-esc="alert.count"/>
+                                <i class="fa fa-angle-right vd-alert-go" role="img"/>
+                            </li>
+                        </t>
+                    </ul>
+                </section>
+
+                <!-- Biểu đồ -->
+                <t t-if="state.stats">
+                    <section class="vd-card vd-chart-hires">
+                        <header class="vd-card-head">
+                            <h2>Nhân sự mới theo tháng</h2>
+                            <span class="vd-card-hint">6 tháng gần nhất</span>
+                        </header>
+                        <DashboardChart type="'bar'" labels="hiresChart.labels" values="hiresChart.values"
+                                        tones="['primary']" datasetLabel="'Nhân sự mới'"/>
+                    </section>
+
+                    <section class="vd-card vd-chart-contracts">
+                        <header class="vd-card-head"><h2>Hợp đồng</h2></header>
+                        <t t-if="hasData(contractChart)">
+                            <DashboardChart type="'doughnut'" labels="contractChart.labels"
+                                            values="contractChart.values" tones="contractChart.tones"/>
+                        </t>
+                        <div class="vd-empty" t-else="">Chưa có dữ liệu hợp đồng</div>
+                    </section>
+
+                    <section class="vd-card vd-chart-departments">
+                        <header class="vd-card-head">
+                            <h2>Nhân sự theo phòng ban</h2>
+                            <span class="vd-card-hint">Top 8</span>
+                        </header>
+                        <t t-if="hasData(departmentChart)">
+                            <DashboardChart type="'hbar'" labels="departmentChart.labels"
+                                            values="departmentChart.values"
+                                            tones="['primary', 'info', 'success']"/>
+                        </t>
+                        <div class="vd-empty" t-else="">Chưa có dữ liệu phòng ban</div>
+                    </section>
+                </t>
+
+                <!-- Sinh nhật -->
+                <section class="vd-card vd-birthdays">
+                    <header class="vd-card-head">
+                        <h2>Sinh nhật hôm nay</h2>
+                        <span class="vd-card-hint" t-if="state.birthdayEmpls.length" t-esc="state.birthdayEmpls.length"/>
+                    </header>
+                    <ul class="vd-birthday-list" t-if="state.birthdayEmpls.length">
+                        <t t-foreach="state.birthdayEmpls" t-as="person" t-key="person.id">
+                            <li class="vd-person">
+                                <img t-att-src="'/web/image?model=hr.employee.public&amp;id=' + person.id + '&amp;field=image_128'"
+                                     alt=""/>
+                                <div class="vd-person-text">
+                                    <div class="vd-person-name" t-esc="person.name"/>
+                                    <div class="vd-person-sub" t-esc="person.job_title or ''"/>
+                                </div>
+                                <a t-if="person.work_email" class="vd-person-action"
+                                   t-att-href="'mailto:' + person.work_email" title="Gửi lời chúc">
+                                    <i class="fa fa-birthday-cake" role="img"/>
+                                </a>
+                            </li>
+                        </t>
+                    </ul>
+                    <div class="vd-empty" t-else="">
+                        <i class="fa fa-smile-o" role="img"/>
+                        <span>Hôm nay không có ai sinh nhật</span>
+                    </div>
+                </section>
+
+                <!-- Thông tin liên hệ -->
+                <section class="vd-card vd-contact" t-if="state.employee.id">
+                    <header class="vd-card-head"><h2>Thông tin của tôi</h2></header>
+                    <dl class="vd-contact-list">
+                        <div class="vd-contact-row" t-if="state.employee.code">
+                            <dt><i class="fa fa-id-badge" role="img"/> Mã nhân viên</dt>
+                            <dd t-esc="state.employee.code"/>
+                        </div>
+                        <div class="vd-contact-row">
+                            <dt><i class="fa fa-building-o" role="img"/> Đơn vị</dt>
+                            <dd><t t-esc="state.employee.department_name or '(Chưa có dữ liệu)'"/></dd>
+                        </div>
+                        <div class="vd-contact-row">
+                            <dt><i class="fa fa-briefcase" role="img"/> Vị trí</dt>
+                            <dd><t t-esc="state.employee.job_title or '(Chưa có dữ liệu)'"/></dd>
+                        </div>
+                        <div class="vd-contact-row">
+                            <dt><i class="fa fa-envelope-o" role="img"/> Email</dt>
+                            <dd><t t-esc="state.employee.work_email or '(Chưa có dữ liệu)'"/></dd>
+                        </div>
+                        <div class="vd-contact-row">
+                            <dt><i class="fa fa-phone" role="img"/> Di động</dt>
+                            <dd><t t-esc="state.employee.work_phone or '(Chưa có dữ liệu)'"/></dd>
+                        </div>
+                    </dl>
+                </section>
+
             </div>
         </div>
     </t>
+
 </templates>

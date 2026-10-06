@@ -1,0 +1,393 @@
+// Dashboard VNPT HRM. Màu lấy từ biến của theme nên tự đổi theo màu chủ đạo / dark mode.
+
+.vd {
+    --vd-bg: #{$o-webclient-background-color};
+    --vd-card: #{$o-view-background-color};
+    --vd-text: #{$o-gray-900};
+    --vd-muted: #{$o-gray-600};
+    --vd-border: #{$o-gray-200};
+    --vd-primary: #{$o-brand-primary};
+    --vd-success: #{$o-success};
+    --vd-info: #{$o-info};
+    --vd-warning: #{$o-warning};
+    --vd-danger: #{$o-danger};
+
+    height: 100%;
+    overflow: auto;
+    padding: 20px;
+    background: var(--vd-bg);
+    color: var(--vd-text);
+
+    @include media-breakpoint-down(md) {
+        padding: 12px;
+    }
+}
+
+// Màu theo ngữ nghĩa, dùng cho KPI và cảnh báo.
+@each $tone in (primary, success, info, warning, danger) {
+    .vd .vd-tone-#{$tone} {
+        --tone: var(--vd-#{$tone});
+    }
+}
+
+.vd-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+    max-width: 1480px;
+    margin: 0 auto;
+}
+
+.vd-card {
+    grid-column: span 12;
+    min-width: 0;
+    padding: 20px;
+    background: var(--vd-card);
+    border: 1px solid var(--vd-border);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.vd-clickable {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08);
+    }
+}
+
+.vd-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+
+    h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+}
+
+.vd-card-hint {
+    font-size: 12px;
+    color: var(--vd-muted);
+}
+
+.vd-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 120px;
+    color: var(--vd-muted);
+    font-size: 13px;
+
+    .fa {
+        font-size: 24px;
+    }
+}
+
+// ---- Lời chào -----------------------------------------------------------
+
+.vd-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: #fff;
+    border: 0;
+    background: linear-gradient(120deg, var(--vd-primary), #{darken($o-brand-primary, 14%)});
+
+    .vd-hero-date {
+        font-size: 13px;
+        opacity: 0.85;
+        text-transform: capitalize;
+    }
+
+    .vd-hero-title {
+        margin: 4px 0;
+        font-size: 26px;
+        font-weight: 700;
+    }
+
+    .vd-hero-sub {
+        margin: 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .vd-hero-avatar img {
+        display: block;
+        width: 84px;
+        height: 84px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.2);
+    }
+}
+
+// ---- KPI ----------------------------------------------------------------
+
+.vd-kpi {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    grid-column: span 6;
+
+    .vd-kpi-icon {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        font-size: 20px;
+        color: var(--tone);
+        background: color-mix(in srgb, var(--tone) 14%, transparent);
+    }
+
+    .vd-kpi-value {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .vd-kpi-label {
+        margin-top: 2px;
+        font-size: 13px;
+        color: var(--vd-muted);
+    }
+}
+
+// ---- Truy cập nhanh -----------------------------------------------------
+
+.vd-quick-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
+}
+
+.vd-quick-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--vd-text);
+    text-align: center;
+    background: transparent;
+    border: 1px solid var(--vd-border);
+    border-radius: 12px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+
+    img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+
+    &:hover,
+    &:focus-visible {
+        background: color-mix(in srgb, var(--vd-primary) 8%, transparent);
+        border-color: var(--vd-primary);
+        transform: translateY(-2px);
+    }
+}
+
+// ---- Cảnh báo -----------------------------------------------------------
+
+.vd-alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vd-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--vd-border);
+    border-radius: 12px;
+
+    .vd-alert-icon {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        color: var(--tone);
+        background: color-mix(in srgb, var(--tone) 14%, transparent);
+    }
+
+    .vd-alert-label {
+        flex: 1;
+        font-size: 14px;
+    }
+
+    .vd-alert-count {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--tone);
+    }
+
+    .vd-alert-go {
+        color: var(--vd-muted);
+    }
+}
+
+// ---- Biểu đồ ------------------------------------------------------------
+
+.vd-chart {
+    position: relative;
+    height: 260px;
+}
+
+// ---- Sinh nhật ----------------------------------------------------------
+
+.vd-birthday-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.vd-person {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img {
+        flex: none;
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .vd-person-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .vd-person-name {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .vd-person-sub {
+        font-size: 12px;
+        color: var(--vd-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .vd-person-action {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        color: var(--vd-warning);
+        background: color-mix(in srgb, var(--vd-warning) 16%, transparent);
+    }
+}
+
+// ---- Thông tin liên hệ --------------------------------------------------
+
+.vd-contact-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 0;
+}
+
+.vd-contact-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    dt {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--vd-muted);
+    }
+
+    dd {
+        margin: 0;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+}
+
+// ---- Bố cục theo chiều rộng --------------------------------------------
+
+@include media-breakpoint-up(md) {
+    .vd-kpi {
+        grid-column: span 6;
+    }
+
+    .vd-quick,
+    .vd-alerts {
+        grid-column: span 6;
+    }
+
+    .vd-chart-hires {
+        grid-column: span 7;
+    }
+
+    .vd-chart-contracts {
+        grid-column: span 5;
+    }
+
+    .vd-chart-departments {
+        grid-column: span 7;
+    }
+
+    .vd-birthdays {
+        grid-column: span 5;
+    }
+
+    .vd-contact {
+        grid-column: span 12;
+    }
+}
+
+@include media-breakpoint-up(xl) {
+    .vd-kpi {
+        grid-column: span 3;
+    }
+
+    .vd-quick {
+        grid-column: span 8;
+    }
+
+    .vd-alerts {
+        grid-column: span 4;
+    }
+}
