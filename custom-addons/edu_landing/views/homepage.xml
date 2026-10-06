@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Trang chủ trung tâm Anh ngữ.
+        Nội dung là MẪU: tên trung tâm, số liệu, giáo viên, học viên, hotline, lời cảm nhận.
+        Ảnh là ảnh minh hoạ từ Unsplash (xem static/src/img/CREDITS.txt), KHÔNG phải người thật
+        của trung tâm. Thay bằng thông tin và ảnh thật trước khi công bố.
+        Các khối nằm trong vùng oe_structure nên vẫn sửa được bằng trình dựng kéo thả của Website.
+    -->
+    <template id="homepage" inherit_id="website.homepage" name="Trang chủ trung tâm Anh ngữ">
+        <xpath expr="//div[@id='wrap']" position="replace">
+            <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
+            <div id="wrap" class="oe_structure edu-landing">
+
+                <!-- ============ HERO ============ -->
+                <section class="edu-hero" id="gioi-thieu">
+                    <img class="edu-hero-img" t-att-src="img + 'hero.jpg'" alt="" fetchpriority="high"/>
+                    <div class="container edu-hero-content">
+                        <span class="edu-hero-kicker">Dẫn lối nhân tài</span>
+                        <h1 class="edu-display edu-hero-title">Khai phóng tiềm năng</h1>
+                        <p class="edu-hero-sub">
+                            Nền tảng học thuật tiếng Anh vững chắc, nuôi dưỡng sự tò mò và khát vọng lớn
+                            cho học viên từ 3 tuổi.
+                        </p>
+                        <div class="edu-hero-actions">
+                            <a href="#dang-ky" class="btn edu-btn edu-btn-sec">Nhận tư vấn miễn phí</a>
+                            <a href="#chuong-trinh" class="btn edu-btn edu-btn-outline-light">Câu chuyện của chúng tôi</a>
+                        </div>
+                    </div>
+
+                    <!-- Tìm khoá học theo độ tuổi -->
+                    <div class="container edu-finder-wrap">
+                        <div class="edu-finder">
+                            <div class="edu-finder-label">
+                                <i class="fa fa-search" role="img" aria-label=""/>
+                                <span>Tìm khoá học theo độ tuổi</span>
+                            </div>
+                            <div class="edu-chips" role="group" aria-label="Chọn độ tuổi">
+                                <button type="button" class="edu-chip" data-age="3-5">3 - 5 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="6-10">6 - 10 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="11-14">11 - 14 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="15-18">15 - 18 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="19-21">19 - 21+ tuổi</button>
+                            </div>
+                            <a href="#chuong-trinh" class="btn edu-btn edu-btn-pri edu-finder-go">Tìm khoá học</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ SỐ LIỆU (nền gradient xanh) ============ -->
+                <section class="edu-snum" id="thanh-tich">
+                    <div class="container">
+                        <header class="edu-head edu-head-light">
+                            <span class="edu-head-sub">15 năm</span>
+                            <h2 class="edu-display">Một khát vọng</h2>
+                        </header>
+                        <div class="edu-snum-hl">
+                            <strong class="edu-display edu-count" data-target="1500" data-suffix=" tỷ+">1.500 tỷ+</strong>
+                            <span>học bổng từ các đại học top 100 thế giới</span>
+                        </div>
+                        <div class="row g-4 edu-snum-row">
+                            <div class="col-6 col-lg">
+                                <div class="edu-snum-item">
+                                    <i class="fa fa-university" role="img" aria-label=""/>
+                                    <strong class="edu-display edu-count" data-target="50000" data-suffix="+">50.000+</strong>
+                                    <span>học viên đạt điểm đầu vào đại học</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg">
+                                <div class="edu-snum-item">
+                                    <i class="fa fa-certificate" role="img" aria-label=""/>
+                                    <strong class="edu-display edu-count" data-target="90" data-suffix="%">90%</strong>
+                                    <span>đạt mục tiêu Cambridge</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg">
+                                <div class="edu-snum-item">
+                                    <i class="fa fa-trophy" role="img" aria-label=""/>
+                                    <strong class="edu-display edu-count" data-target="12000" data-suffix="+">12.000+</strong>
+                                    <span>học viên IELTS 6.0+</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg">
+                                <div class="edu-snum-item">
+                                    <i class="fa fa-star" role="img" aria-label=""/>
+                                    <strong class="edu-display edu-count" data-target="8000" data-suffix="+">8.000+</strong>
+                                    <span>học viên IELTS 6.5+</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg">
+                                <div class="edu-snum-item">
+                                    <i class="fa fa-rocket" role="img" aria-label=""/>
+                                    <strong class="edu-display edu-count" data-target="4000" data-suffix="+">4.000+</strong>
+                                    <span>học viên IELTS 7.0+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ CHƯƠNG TRÌNH (thẻ ảnh đứng) ============ -->
+                <section class="edu-course" id="chuong-trinh">
+                    <div class="container">
+                        <header class="edu-head">
+                            <span class="edu-head-sub">Giáo dục chất lượng</span>
+                            <h2 class="edu-display">Cho mọi lứa tuổi</h2>
+                        </header>
+                        <div class="row g-3 g-lg-4">
+                            <div class="col-6 col-xl-3">
+                                <a href="#dang-ky" class="edu-course-item" data-ages="3-5" data-level="Tiếng Anh mầm non">
+                                    <img t-att-src="img + 'prog_kinder.jpg'" alt="" loading="lazy"/>
+                                    <div class="edu-course-body">
+                                        <span class="edu-course-tag">3 - 5 tuổi</span>
+                                        <h3 class="edu-display">Mầm non</h3>
+                                        <p>Làm quen tiếng Anh qua trò chơi, khoa học và sáng tạo.</p>
+                                        <span class="edu-course-target">Mục tiêu: Pre-Starters</span>
+                                        <span class="edu-course-more">Xem chi tiết <i class="fa fa-arrow-right" role="img" aria-label=""/></span>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6 col-xl-3">
+                                <a href="#dang-ky" class="edu-course-item" data-ages="6-10" data-level="Tiếng Anh tiểu học">
+                                    <img t-att-src="img + 'prog_primary.jpg'" alt="" loading="lazy"/>
+                                    <div class="edu-course-body">
+                                        <span class="edu-course-tag">6 - 10 tuổi</span>
+                                        <h3 class="edu-display">Tiểu học</h3>
+                                        <p>Giáo viên bản ngữ, học theo dự án, lộ trình chuẩn Cambridge.</p>
+                                        <span class="edu-course-target">Mục tiêu: Cambridge Flyers</span>
+                                        <span class="edu-course-more">Xem chi tiết <i class="fa fa-arrow-right" role="img" aria-label=""/></span>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6 col-xl-3">
+                                <a href="#dang-ky" class="edu-course-item" data-ages="11-14" data-level="Tiếng Anh thiếu niên">
+                                    <img t-att-src="img + 'prog_teen.jpg'" alt="" loading="lazy"/>
+                                    <div class="edu-course-body">
+                                        <span class="edu-course-tag">11 - 14 tuổi</span>
+                                        <h3 class="edu-display">Thiếu niên</h3>
+                                        <p>Tư duy phản biện, kỹ năng thuyết trình và nghiên cứu.</p>
+                                        <span class="edu-course-target">Mục tiêu: IELTS 5.5+</span>
+                                        <span class="edu-course-more">Xem chi tiết <i class="fa fa-arrow-right" role="img" aria-label=""/></span>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6 col-xl-3">
+                                <a href="#dang-ky" class="edu-course-item" data-ages="15-18 19-21" data-level="IELTS / SAT">
+                                    <img t-att-src="img + 'prog_ielts.jpg'" alt="" loading="lazy"/>
+                                    <div class="edu-course-body">
+                                        <span class="edu-course-tag">15 tuổi trở lên</span>
+                                        <h3 class="edu-display">IELTS - SAT</h3>
+                                        <p>Chiến lược đạt band mục tiêu, tư duy học thuật cho du học.</p>
+                                        <span class="edu-course-target">Mục tiêu: IELTS 7.0+ · SAT 1250+</span>
+                                        <span class="edu-course-more">Xem chi tiết <i class="fa fa-arrow-right" role="img" aria-label=""/></span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ GIÁO VIÊN ============ -->
+                <section class="edu-smem" id="giao-vien">
+                    <div class="container">
+                        <div class="edu-smem-head">
+                            <header class="edu-head edu-head-left">
+                                <span class="edu-head-sub">Đội ngũ</span>
+                                <h2 class="edu-display">Giáo viên xuất sắc</h2>
+                            </header>
+                            <ul class="edu-smem-badges">
+                                <li><i class="fa fa-check-circle" role="img" aria-label=""/> <strong>100%</strong> có chứng chỉ giảng dạy quốc tế</li>
+                                <li><i class="fa fa-check-circle" role="img" aria-label=""/> Tuyển chọn từ <strong>top 3%</strong> thị trường</li>
+                            </ul>
+                        </div>
+                        <div class="row g-3 g-lg-4">
+                            <div class="col-6 col-lg-3">
+                                <article class="edu-smem-item">
+                                    <img t-att-src="img + 'teacher_1.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
+                                    <div class="edu-smem-body">
+                                        <span class="edu-smem-pos">Trưởng bộ môn IELTS</span>
+                                        <h3 class="edu-display">Họ tên giáo viên</h3>
+                                        <span class="edu-smem-cert">IELTS 8.5</span>
+                                    </div>
+                                </article>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <article class="edu-smem-item">
+                                    <img t-att-src="img + 'teacher_2.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
+                                    <div class="edu-smem-body">
+                                        <span class="edu-smem-pos">Quản lý đào tạo</span>
+                                        <h3 class="edu-display">Họ tên giáo viên</h3>
+                                        <span class="edu-smem-cert">CELTA</span>
+                                    </div>
+                                </article>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <article class="edu-smem-item">
+                                    <img t-att-src="img + 'teacher_3.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
+                                    <div class="edu-smem-body">
+                                        <span class="edu-smem-pos">Giáo viên tiểu học</span>
+                                        <h3 class="edu-display">Họ tên giáo viên</h3>
+                                        <span class="edu-smem-cert">TESOL</span>
+                                    </div>
+                                </article>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <article class="edu-smem-item">
+                                    <img t-att-src="img + 'teacher_4.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
+                                    <div class="edu-smem-body">
+                                        <span class="edu-smem-pos">Giáo viên SAT</span>
+                                        <h3 class="edu-display">Họ tên giáo viên</h3>
+                                        <span class="edu-smem-cert">SAT 1550</span>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ GIÁO TRÌNH (băng chạy) ============ -->
+                <section class="edu-brd">
+                    <div class="container">
+                        <header class="edu-head edu-head-light">
+                            <span class="edu-head-sub">Giáo trình</span>
+                            <h2 class="edu-display">Chuẩn quốc tế</h2>
+                            <p class="edu-head-lead">Tài liệu nghiên cứu theo chuẩn Cambridge, cập nhật liên tục.</p>
+                        </header>
+                    </div>
+                    <div class="edu-brd-track" aria-hidden="true">
+                        <div class="edu-brd-row">
+                            <span>Cambridge English</span><span>Oxford University Press</span><span>Pearson</span>
+                            <span>National Geographic Learning</span><span>Macmillan</span><span>British Council</span>
+                            <span>Cambridge English</span><span>Oxford University Press</span><span>Pearson</span>
+                            <span>National Geographic Learning</span><span>Macmillan</span><span>British Council</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ HỌC VIÊN TIÊU BIỂU (tab lọc) ============ -->
+                <section class="edu-stu">
+                    <div class="container">
+                        <header class="edu-head">
+                            <span class="edu-head-sub">Mở rộng cơ hội</span>
+                            <h2 class="edu-display">Cho 50.000+ học viên</h2>
+                        </header>
+                        <div class="edu-stu-tabs" role="tablist" aria-label="Lọc thành tích">
+                            <button type="button" class="edu-stu-tab is-active" role="tab" aria-selected="true" data-filter="all">Tất cả</button>
+                            <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="ielts">IELTS</button>
+                            <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="cambridge">Cambridge</button>
+                            <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="sat">SAT</button>
+                        </div>
+                        <div class="row g-3 g-lg-4">
+                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="ielts">
+                                <article class="edu-stu-item">
+                                    <div class="edu-stu-img">
+                                        <img t-att-src="img + 'student_1.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
+                                        <span class="edu-stu-score"><small>IELTS</small><b class="edu-display">8.0</b></span>
+                                    </div>
+                                    <h3>Tên học viên</h3>
+                                    <p>Trường đang theo học</p>
+                                </article>
+                            </div>
+                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="sat">
+                                <article class="edu-stu-item">
+                                    <div class="edu-stu-img">
+                                        <img t-att-src="img + 'student_2.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
+                                        <span class="edu-stu-score"><small>SAT</small><b class="edu-display">1520</b></span>
+                                    </div>
+                                    <h3>Tên học viên</h3>
+                                    <p>Trường đang theo học</p>
+                                </article>
+                            </div>
+                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="cambridge">
+                                <article class="edu-stu-item">
+                                    <div class="edu-stu-img">
+                                        <img t-att-src="img + 'student_3.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
+                                        <span class="edu-stu-score"><small>Flyers</small><b class="edu-display">15/15</b></span>
+                                    </div>
+                                    <h3>Tên học viên</h3>
+                                    <p>Trường đang theo học</p>
+                                </article>
+                            </div>
+                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="ielts">
+                                <article class="edu-stu-item">
+                                    <div class="edu-stu-img">
+                                        <img t-att-src="img + 'student_4.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
+                                        <span class="edu-stu-score"><small>IELTS</small><b class="edu-display">8.5</b></span>
+                                    </div>
+                                    <h3>Tên học viên</h3>
+                                    <p>Trường đang theo học</p>
+                                </article>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ CẢM NHẬN ============ -->
+                <section class="edu-fm">
+                    <div class="container">
+                        <header class="edu-head">
+                            <span class="edu-head-sub">Cảm nhận</span>
+                            <h2 class="edu-display">Phụ huynh và học viên</h2>
+                        </header>
+                        <div class="row g-4">
+                            <div class="col-lg-4">
+                                <figure class="edu-fm-item">
+                                    <blockquote>Nội dung cảm nhận của phụ huynh. Thay bằng lời chia sẻ thật.</blockquote>
+                                    <figcaption><strong>Họ và tên</strong><span>Phụ huynh học viên</span></figcaption>
+                                </figure>
+                            </div>
+                            <div class="col-lg-4">
+                                <figure class="edu-fm-item">
+                                    <blockquote>Nội dung cảm nhận của học viên. Thay bằng lời chia sẻ thật.</blockquote>
+                                    <figcaption><strong>Họ và tên</strong><span>Học viên IELTS</span></figcaption>
+                                </figure>
+                            </div>
+                            <div class="col-lg-4">
+                                <figure class="edu-fm-item">
+                                    <blockquote>Nội dung cảm nhận của phụ huynh. Thay bằng lời chia sẻ thật.</blockquote>
+                                    <figcaption><strong>Họ và tên</strong><span>Phụ huynh học viên</span></figcaption>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ FORM ĐĂNG KÝ (tạo lead trong CRM) ============ -->
+                <section class="edu-register s_website_form" id="dang-ky" data-vcss="001" data-snippet="s_website_form">
+                    <img class="edu-register-bg" t-att-src="img + 'cta.jpg'" alt="" loading="lazy"/>
+                    <div class="container">
+                        <div class="row align-items-center g-5">
+                            <div class="col-lg-5 edu-register-intro">
+                                <span class="edu-head-sub">Bắt đầu ngay</span>
+                                <h2 class="edu-display">Khai phóng tiềm năng học thuật</h2>
+                                <p>Để lại thông tin, chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ.</p>
+                                <a href="tel:19000000" class="edu-register-hotline">
+                                    <i class="fa fa-phone" role="img" aria-label=""/> Hotline: 1900 0000
+                                </a>
+                            </div>
+                            <div class="col-lg-7">
+                                <div class="edu-register-card">
+                                    <form action="/website/form/" method="post" enctype="multipart/form-data"
+                                          class="o_mark_required" data-mark="*" data-pre-fill="true"
+                                          data-model_name="crm.lead" data-success-mode="redirect"
+                                          data-success-page="/contactus-thank-you">
+                                        <div class="s_website_form_rows row s_col_no_bgcolor">
+
+                                            <div data-name="Field" class="s_website_form_field col-12 s_website_form_dnone">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px"/>
+                                                    <div class="col-sm">
+                                                        <input type="hidden" class="form-control s_website_form_input" name="name" value="Đăng ký tư vấn từ website"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_required" data-type="char">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-contact-name">
+                                                        <span class="s_website_form_label_content">Họ và tên</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <input id="edu-contact-name" class="form-control s_website_form_input" type="text" name="contact_name" required="1" autocomplete="name"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_required" data-type="tel">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-phone">
+                                                        <span class="s_website_form_label_content">Số điện thoại</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <input id="edu-phone" class="form-control s_website_form_input" type="tel" name="phone" required="1" autocomplete="tel"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_custom s_website_form_required" data-type="char">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-level">
+                                                        <span class="s_website_form_label_content">Trình độ / chương trình</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <select id="edu-level" class="form-select s_website_form_input" name="Chương trình quan tâm" required="1">
+                                                            <option value="">Chọn chương trình</option>
+                                                            <option value="Tiếng Anh mầm non">Tiếng Anh mầm non</option>
+                                                            <option value="Tiếng Anh tiểu học">Tiếng Anh tiểu học</option>
+                                                            <option value="Tiếng Anh thiếu niên">Tiếng Anh thiếu niên</option>
+                                                            <option value="IELTS / SAT">IELTS / SAT</option>
+                                                            <option value="Chưa xác định">Tôi chưa biết, cần tư vấn</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_custom s_website_form_required" data-type="char">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-branch">
+                                                        <span class="s_website_form_label_content">Cơ sở học</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <select id="edu-branch" class="form-select s_website_form_input" name="Cơ sở học" required="1">
+                                                            <option value="">Chọn cơ sở</option>
+                                                            <option value="Cơ sở 1">Cơ sở 1</option>
+                                                            <option value="Cơ sở 2">Cơ sở 2</option>
+                                                            <option value="Học online">Học online</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-12" data-type="email">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-email">
+                                                        <span class="s_website_form_label_content">Email (không bắt buộc)</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <input id="edu-email" class="form-control s_website_form_input" type="email" name="email_from" autocomplete="email"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-0 py-2 col-12 s_website_form_submit" data-name="Submit Button">
+                                                <div style="width: 200px;" class="s_website_form_label"/>
+                                                <a href="#" role="button" class="btn edu-btn edu-btn-sec w-100 s_website_form_send">Nhận tư vấn miễn phí</a>
+                                                <span id="s_website_form_result"/>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Thanh liên hệ cố định trên điện thoại -->
+                <div class="edu-sticky-cta d-lg-none">
+                    <a href="#chuong-trinh" class="edu-sticky-course"><i class="fa fa-book me-1" role="img" aria-label=""/> Khoá học</a>
+                    <a href="#dang-ky" class="edu-sticky-reg"><i class="fa fa-phone me-1" role="img" aria-label=""/> Tư vấn ngay</a>
+                </div>
+
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

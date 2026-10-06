@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Chân trang. priority=30 để chạy sau footer mặc định (footer_custom, priority 16). -->
+    <template id="footer" inherit_id="website.layout" name="Chân trang trung tâm Anh ngữ" priority="30">
+        <xpath expr="//div[@id='footer']" position="replace">
+            <div id="footer" class="oe_structure oe_structure_solo edu-footer" t-ignore="true" t-if="not no_footer">
+                <section class="edu-footer-main">
+                    <div class="container">
+                        <div class="row g-4">
+                            <div class="col-lg-4">
+                                <h5 class="edu-footer-brand">Tên trung tâm</h5>
+                                <!-- Ảnh trên trang là ảnh minh hoạ từ Unsplash, xem static/src/img/CREDITS.txt. -->
+                                <p>Trung tâm Anh ngữ dẫn lối nhân tài. Nền tảng học thuật vững chắc cho mọi lứa tuổi.</p>
+                                <ul class="list-unstyled edu-footer-contact">
+                                    <li><i class="fa fa-map-marker fa-fw me-2" role="img" aria-label="Địa chỉ"/>Địa chỉ trụ sở, thành phố</li>
+                                    <li><i class="fa fa-phone fa-fw me-2" role="img" aria-label="Hotline"/><a href="tel:19000000">1900 0000</a></li>
+                                    <li><i class="fa fa-envelope fa-fw me-2" role="img" aria-label="Email"/><a href="mailto:info@example.com">info@example.com</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <h5>Chương trình</h5>
+                                <ul class="list-unstyled">
+                                    <li><a href="/#chuong-trinh">Tiếng Anh mầm non</a></li>
+                                    <li><a href="/#chuong-trinh">Tiếng Anh tiểu học</a></li>
+                                    <li><a href="/#chuong-trinh">Tiếng Anh thiếu niên</a></li>
+                                    <li><a href="/#chuong-trinh">IELTS và SAT</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <h5>Về chúng tôi</h5>
+                                <ul class="list-unstyled">
+                                    <li><a href="/#gioi-thieu">Giới thiệu</a></li>
+                                    <li><a href="/#giao-vien">Đội ngũ giáo viên</a></li>
+                                    <li><a href="/#thanh-tich">Thành tích</a></li>
+                                    <li><a href="/contactus">Liên hệ</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-4">
+                                <h5>Đăng ký tư vấn</h5>
+                                <p>Để lại thông tin để được tư vấn lộ trình học miễn phí.</p>
+                                <a href="/#dang-ky" class="btn edu-btn edu-btn-accent">Nhận tư vấn miễn phí</a>
+                                <div class="s_social_media text-start o_not_editable mt-3" data-snippet="s_social_media" data-name="Social Media" contenteditable="false">
+                                    <h5 class="s_social_media_title d-none" contenteditable="true">Theo dõi chúng tôi</h5>
+                                    <a href="/website/social/facebook" class="s_social_media_facebook" target="_blank" aria-label="Facebook">
+                                        <i class="fa fa-facebook rounded-circle shadow-sm o_editable_media"/>
+                                    </a>
+                                    <a href="/website/social/youtube" class="s_social_media_youtube" target="_blank" aria-label="YouTube">
+                                        <i class="fa fa-youtube rounded-circle shadow-sm o_editable_media"/>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

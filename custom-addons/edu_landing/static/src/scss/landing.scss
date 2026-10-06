@@ -1,0 +1,1008 @@
+// Landing page trung tâm Anh ngữ.
+// Phong cách tham khảo yola.vn: tiêu đề display in hoa (Bebas Neue), nền xanh #325d9e
+// chuyển dần sang trắng, thẻ ảnh đứng có lớp phủ tối, điểm nhấn cam.
+// Bebas Neue thay cho "SVN-Bebas Neue Pro" (font thương mại); Be Vietnam Pro cho chữ thường.
+// Font nạp bằng thẻ <link> trong views/assets.xml. Không dùng @import ở đây: khi gộp bundle,
+// Odoo cắt URL tại dấu ";" (wght@400;500...) làm hỏng toàn bộ file CSS.
+
+.edu-landing,
+#footer.edu-footer {
+    --edu-pri: #325d9e;          // xanh nền chính
+    --edu-pri-light: #56a3f7;    // xanh nhấn
+    --edu-pri-text: #2a6fc2;     // xanh đậm hơn cho chữ trên nền trắng (đạt AA)
+    --edu-sec: #e4862c;          // cam
+    --edu-sec-btn: #b85a06;      // cam đậm cho nút có chữ trắng (đạt AA)
+    --edu-sec-btn-hover: #9a4a04;
+    --edu-ielts: #e31738;        // đỏ huy hiệu điểm
+    --edu-ink: #1a2c50;          // chữ chính
+    --edu-muted: #4f5d78;
+    --edu-line: #dde3ee;
+    --edu-bg: #eef6fe;           // nền xanh nhạt
+    --edu-white: #fff;
+    --edu-rs: 12px;
+    --edu-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+    --edu-body: 'Be Vietnam Pro', system-ui, sans-serif;
+}
+
+.edu-landing {
+    font-family: var(--edu-body);
+    color: var(--edu-ink);
+
+    > section {
+        position: relative;
+        padding: 96px 0;
+
+        @media (max-width: 767.98px) {
+            padding: 56px 0;
+        }
+    }
+
+    h1, h2, h3 {
+        color: inherit;
+    }
+}
+
+.edu-display {
+    font-family: var(--edu-display);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+// ---- Tiêu đề khối: dòng nhỏ + dòng lớn ---------------------------------
+
+.edu-head {
+    margin: 0 auto 48px;
+    text-align: center;
+    color: var(--edu-ink);
+
+    .edu-head-sub {
+        display: block;
+        margin-bottom: 4px;
+        font-family: var(--edu-display);
+        font-size: clamp(24px, 2.4vw, 34px);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--edu-pri-text);
+    }
+
+    h2 {
+        margin: 0;
+        font-size: clamp(44px, 6vw, 84px);
+    }
+
+    .edu-head-lead {
+        max-width: 640px;
+        margin: 14px auto 0;
+        font-size: 17px;
+        color: var(--edu-muted);
+    }
+
+    &.edu-head-light {
+        color: #fff;
+
+        .edu-head-sub {
+            color: #fde680;
+        }
+
+        .edu-head-lead {
+            color: rgba(255, 255, 255, 0.92);
+        }
+    }
+
+    &.edu-head-left {
+        margin: 0;
+        text-align: left;
+    }
+}
+
+// ---- Nút -----------------------------------------------------------------
+
+.edu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 12px 28px;
+    font-family: var(--edu-body);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(16, 24, 40, 0.22);
+    }
+
+    &.edu-btn-sec {
+        color: #fff;
+        background: var(--edu-sec-btn);
+
+        &:hover,
+        &:focus-visible {
+            color: #fff;
+            background: var(--edu-sec-btn-hover);
+        }
+    }
+
+    &.edu-btn-pri {
+        color: #fff;
+        background: var(--edu-pri);
+
+        &:hover,
+        &:focus-visible {
+            color: #fff;
+            background: #24477c;
+        }
+    }
+
+    &.edu-btn-outline-light {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.9);
+        // Nền tối mờ phía sau chữ để không phụ thuộc vào độ sáng của ảnh.
+        background: rgba(14, 30, 60, 0.45);
+        backdrop-filter: blur(4px);
+
+        &:hover,
+        &:focus-visible {
+            color: var(--edu-pri);
+            background: #fff;
+        }
+    }
+}
+
+// ---- Hero: ảnh full khung, lớp phủ xanh từ trên xuống -------------------
+
+.edu-landing .edu-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    // unquote: để trình duyệt tự tính min(); hàm min() của Sass không trộn được vh và px.
+    min-height: unquote("min(88vh, 820px)");
+    padding: 72px 0 0;
+    overflow: hidden;
+    color: #fff;
+    background: var(--edu-pri);
+
+    .edu-hero-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 30%;
+    }
+
+    // Lớp phủ: xanh đặc phía trên để chữ dễ đọc, nhạt dần xuống dưới, tối nhẹ ở đáy cho bộ lọc.
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        // Lớp đầu: xanh thương hiệu nhạt dần như yola. Lớp sau: dải tối ở giữa giữ tương phản AA
+        // cho chữ trắng kể cả khi ảnh phía dưới rất sáng.
+        background:
+            linear-gradient(180deg, rgba(50, 93, 158, 0.97) 0%, rgba(50, 93, 158, 0.88) 45%, rgba(50, 93, 158, 0.35) 72%, rgba(10, 20, 40, 0.6) 100%),
+            linear-gradient(180deg, rgba(14, 30, 60, 0) 25%, rgba(14, 30, 60, 0.42) 52%, rgba(14, 30, 60, 0) 75%);
+    }
+
+    .edu-hero-content,
+    .edu-finder-wrap {
+        position: relative;
+        z-index: 1;
+    }
+
+    .edu-hero-content {
+        text-align: center;
+    }
+
+    .edu-hero-kicker {
+        display: inline-block;
+        margin-bottom: 8px;
+        font-family: var(--edu-display);
+        font-size: clamp(26px, 3vw, 40px);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #fde680;
+    }
+
+    .edu-hero-title {
+        margin: 0 0 18px;
+        font-size: clamp(64px, 11vw, 150px);
+        color: #fff;
+        text-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .edu-hero-sub {
+        max-width: 640px;
+        margin: 0 auto 28px;
+        font-size: 18px;
+        line-height: 1.6;
+        color: #fff;
+    }
+
+    .edu-hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+}
+
+// Bộ lọc khoá học: thanh ngang trắng dưới đáy hero
+.edu-finder-wrap {
+    padding-top: 56px;
+    padding-bottom: 32px;
+}
+
+.edu-finder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 20px;
+    padding: 16px 16px 16px 24px;
+    color: var(--edu-ink);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+
+    .edu-finder-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        white-space: nowrap;
+
+        .fa {
+            color: var(--edu-pri-text);
+        }
+    }
+
+    .edu-chips {
+        flex: 1;
+    }
+
+    .edu-finder-go {
+        min-height: 48px;
+    }
+
+    @media (max-width: 767.98px) {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 18px;
+
+        .edu-finder-go {
+            width: 100%;
+        }
+    }
+}
+
+.edu-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.edu-chip {
+    min-height: 44px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--edu-pri-text);
+    background: #fff;
+    border: 1px solid var(--edu-pri-text);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover,
+    &:focus-visible,
+    &.is-active {
+        color: #fff;
+        background: var(--edu-pri-text);
+    }
+}
+
+// ---- Số liệu: nền xanh nhạt dần xuống ---------------------------------
+
+.edu-landing .edu-snum {
+    color: #fff;
+    background: linear-gradient(180deg, var(--edu-pri) 0%, var(--edu-pri) 55%, #4f80c4 100%);
+
+    .edu-head {
+        margin-bottom: 24px;
+    }
+}
+
+.edu-snum-hl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 48px;
+    text-align: center;
+
+    strong {
+        font-size: clamp(64px, 9vw, 120px);
+        color: #fde680;
+        font-variant-numeric: tabular-nums;
+    }
+
+    span {
+        font-size: 19px;
+        font-weight: 600;
+    }
+}
+
+.edu-snum-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    padding: 20px 12px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+
+    .fa {
+        margin-bottom: 4px;
+        font-size: 28px;
+        color: #fde680;
+    }
+
+    strong {
+        font-size: clamp(44px, 4.4vw, 60px);
+        font-variant-numeric: tabular-nums;
+    }
+
+    span {
+        font-size: 15px;
+        color: #fff;
+    }
+}
+
+// ---- Chương trình: thẻ ảnh đứng 400/640, lớp phủ tối -------------------
+
+.edu-landing .edu-course {
+    background: #fff;
+}
+
+.edu-course-item {
+    position: relative;
+    display: block;
+    aspect-ratio: 400 / 640;
+    overflow: hidden;
+    color: #fff;
+    text-decoration: none;
+    border-radius: var(--edu-rs);
+    box-shadow: 0 10px 24px rgba(16, 24, 40, 0.14);
+    transition: transform 0.25s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+
+    img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0.88) 85%);
+    }
+
+    &:hover,
+    &:focus-visible {
+        color: #fff;
+        transform: translateY(-6px);
+
+        img {
+            transform: scale(1.06);
+        }
+    }
+
+    &.is-dimmed {
+        opacity: 0.35;
+    }
+
+    &.is-match {
+        box-shadow: 0 0 0 4px var(--edu-sec), 0 14px 28px rgba(16, 24, 40, 0.2);
+    }
+}
+
+.edu-course-body {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 22px;
+
+    h3 {
+        position: relative;
+        margin: 0;
+        padding-bottom: 10px;
+        font-size: clamp(34px, 3.4vw, 52px);
+
+        &::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 48px;
+            height: 3px;
+            background: #fff;
+        }
+    }
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.92);
+    }
+
+    @media (max-width: 575.98px) {
+        gap: 6px;
+        padding: 14px;
+
+        p {
+            display: none;
+        }
+    }
+}
+
+.edu-course-tag {
+    align-self: flex-start;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 999px;
+}
+
+.edu-course-target {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fde680;
+}
+
+.edu-course-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+// ---- Giáo viên: thẻ ảnh có tên in hoa phủ lên ảnh ----------------------
+
+.edu-landing .edu-smem {
+    background: var(--edu-bg);
+}
+
+.edu-smem-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px 40px;
+    margin-bottom: 40px;
+}
+
+.edu-smem-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        font-size: 15px;
+        color: var(--edu-ink);
+        background: #fff;
+        border-radius: 999px;
+        box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
+    }
+
+    .fa {
+        color: var(--edu-pri-text);
+    }
+
+    strong {
+        color: var(--edu-pri-text);
+    }
+}
+
+.edu-smem-item {
+    position: relative;
+    aspect-ratio: 600 / 760;
+    overflow: hidden;
+    border-radius: var(--edu-rs);
+    background: #0f1d36;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.85) 90%);
+    }
+}
+
+.edu-smem-body {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px;
+    color: #fff;
+
+    h3 {
+        margin: 0;
+        font-size: clamp(26px, 2.6vw, 38px);
+    }
+
+    @media (max-width: 575.98px) {
+        padding: 12px;
+    }
+}
+
+.edu-smem-pos {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.edu-smem-cert {
+    align-self: flex-start;
+    margin-top: 6px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--edu-sec-btn);
+    border-radius: 999px;
+}
+
+// ---- Giáo trình: băng chữ chạy trên nền xanh ---------------------------
+
+.edu-landing .edu-brd {
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(180deg, var(--edu-pri) 0%, #4f80c4 100%);
+
+    .edu-head {
+        margin-bottom: 40px;
+    }
+}
+
+.edu-brd-track {
+    overflow: hidden;
+    // Mờ hai mép trái phải như yola.
+    mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+}
+
+.edu-brd-row {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    animation: edu-marquee 40s linear infinite;
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        min-height: 88px;
+        padding: 0 32px;
+        font-family: var(--edu-display);
+        font-size: 30px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: var(--edu-ink);
+        background: #fff;
+        border-radius: var(--edu-rs);
+    }
+}
+
+@keyframes edu-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+// ---- Học viên tiêu biểu: thẻ ảnh 260/332 + huy hiệu điểm đỏ -------------
+
+.edu-landing .edu-stu {
+    background: #fff;
+}
+
+.edu-stu-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: -16px 0 40px;
+}
+
+.edu-stu-tab {
+    min-height: 44px;
+    padding: 8px 22px;
+    font-weight: 700;
+    color: var(--edu-pri-text);
+    background: #fff;
+    border: 1px solid var(--edu-pri-text);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover,
+    &:focus-visible,
+    &.is-active {
+        color: #fff;
+        background: var(--edu-pri-text);
+    }
+}
+
+.edu-stu-col.is-hidden {
+    display: none;
+}
+
+.edu-stu-item {
+    h3 {
+        margin: 12px 0 2px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--edu-ink);
+    }
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--edu-muted);
+    }
+}
+
+.edu-stu-img {
+    position: relative;
+    aspect-ratio: 260 / 332;
+    overflow: hidden;
+    border-radius: var(--edu-rs);
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.edu-stu-score {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 64px;
+    padding: 6px 10px 4px;
+    color: #fff;
+    background: var(--edu-ielts);
+    border-radius: 8px;
+    box-shadow: 0 6px 14px rgba(227, 23, 56, 0.35);
+
+    small {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    b {
+        font-size: 36px;
+    }
+}
+
+// ---- Cảm nhận -----------------------------------------------------------
+
+.edu-landing .edu-fm {
+    background: var(--edu-bg);
+}
+
+.edu-fm-item {
+    position: relative;
+    height: 100%;
+    margin: 0;
+    padding: 32px 28px 28px;
+    background: #fff;
+    border-radius: var(--edu-rs);
+    box-shadow: 0 2px 10px rgba(16, 24, 40, 0.06);
+
+    &::before {
+        content: "\201C";
+        position: absolute;
+        top: 6px;
+        right: 22px;
+        font-family: var(--edu-display);
+        font-size: 96px;
+        line-height: 1;
+        color: var(--edu-pri-light);
+        opacity: 0.35;
+    }
+
+    blockquote {
+        margin: 0 0 20px;
+        font-size: 17px;
+        line-height: 1.65;
+        color: var(--edu-ink);
+    }
+
+    figcaption {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-top: 16px;
+        border-top: 1px solid var(--edu-line);
+
+        strong {
+            color: var(--edu-ink);
+        }
+
+        span {
+            font-size: 14px;
+            color: var(--edu-muted);
+        }
+    }
+}
+
+// ---- Form đăng ký: ảnh nền + lớp phủ xanh ------------------------------
+
+.edu-landing .edu-register {
+    overflow: hidden;
+    color: #fff;
+    background: var(--edu-pri);
+
+    .edu-register-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(50, 93, 158, 0.97) 0%, rgba(50, 93, 158, 0.9) 45%, rgba(50, 93, 158, 0.7) 100%);
+    }
+
+    > .container {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+.edu-register-intro {
+    .edu-head-sub {
+        display: block;
+        margin-bottom: 6px;
+        font-family: var(--edu-display);
+        font-size: 30px;
+        text-transform: uppercase;
+        color: #fde680;
+    }
+
+    h2 {
+        margin: 0 0 16px;
+        font-size: clamp(44px, 5vw, 72px);
+        color: #fff;
+    }
+
+    p {
+        margin-bottom: 24px;
+        font-size: 17px;
+        color: #fff;
+    }
+}
+
+.edu-register-hotline {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 10px 20px;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 999px;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--edu-pri);
+        background: #fff;
+    }
+}
+
+.edu-register-card {
+    padding: 36px;
+    color: var(--edu-ink);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.3);
+
+    @media (max-width: 767.98px) {
+        padding: 22px 16px;
+    }
+
+    .s_website_form_label {
+        // Nhãn xếp trên ô nhập thay vì cột cố định 200px.
+        width: 100% !important;
+        margin-bottom: 4px;
+        font-weight: 600;
+        color: var(--edu-ink);
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 50px;
+        border-color: var(--edu-line);
+        border-radius: 10px;
+
+        &:focus {
+            border-color: var(--edu-pri-text);
+            box-shadow: 0 0 0 3px rgba(42, 111, 194, 0.2);
+        }
+    }
+}
+
+// ---- Thanh cố định (điện thoại) -----------------------------------------
+
+.edu-sticky-cta {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1030;
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fff;
+    border-top: 1px solid var(--edu-line);
+    box-shadow: 0 -4px 16px rgba(16, 24, 40, 0.12);
+
+    a {
+        display: inline-flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        font-weight: 700;
+        text-decoration: none;
+        text-transform: uppercase;
+        border-radius: 999px;
+    }
+
+    .edu-sticky-course {
+        color: var(--edu-pri-text);
+        border: 2px solid var(--edu-pri-text);
+    }
+
+    .edu-sticky-reg {
+        color: #fff;
+        background: var(--edu-sec-btn);
+    }
+}
+
+// ---- Chân trang ---------------------------------------------------------
+
+// Dùng #footer để thắng rule màu link của theme website.
+#footer.edu-footer {
+    font-family: var(--edu-body);
+    color: rgba(255, 255, 255, 0.88);
+    background: var(--edu-ink);
+
+    .edu-footer-main {
+        padding: 64px 0 40px;
+    }
+
+    h5 {
+        margin-bottom: 16px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .edu-footer-brand {
+        font-family: var(--edu-display);
+        font-size: 34px;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    a:not(.btn) {
+        color: rgba(255, 255, 255, 0.88);
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            color: #fde680;
+            text-decoration: underline;
+        }
+    }
+
+    li {
+        margin-bottom: 10px;
+    }
+
+    .edu-btn {
+        text-decoration: none;
+    }
+}
+
+// Chừa chỗ để thanh cố định không che chân trang trên điện thoại.
+@media (max-width: 991.98px) {
+    #footer.edu-footer {
+        padding-bottom: 72px;
+    }
+}
+
+// ---- Giảm chuyển động ---------------------------------------------------
+
+@media (prefers-reduced-motion: reduce) {
+    .edu-brd-row {
+        animation: none;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: auto;
+    }
+
+    .edu-course-item,
+    .edu-course-item img,
+    .edu-btn,
+    .edu-chip {
+        transition: none;
+    }
+
+    .edu-course-item:hover,
+    .edu-course-item:hover img,
+    .edu-btn:hover {
+        transform: none;
+    }
+}

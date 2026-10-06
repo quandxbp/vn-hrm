@@ -1,0 +1,21 @@
+Ảnh tạm cho landing page, tải từ Unsplash (giấy phép Unsplash License: dùng miễn phí,
+cả mục đích thương mại, không bắt buộc ghi nguồn nhưng nên ghi).
+https://unsplash.com/license
+
+Đây là ảnh minh hoạ, KHÔNG phải giáo viên / học viên thật của trung tâm.
+Hãy thay bằng ảnh thật (có sự đồng ý của người trong ảnh) trước khi công bố.
+
+hero.jpg          https://unsplash.com/photos/photo-1588075592405-d3d4f0846961
+prog_kinder.jpg   https://unsplash.com/photos/photo-1588075592446-265fd1e6e76f
+prog_primary.jpg  https://unsplash.com/photos/photo-1636202339022-7d67f7447e3a
+prog_teen.jpg     https://unsplash.com/photos/photo-1522202176988-66273c2fd55f
+prog_ielts.jpg    https://unsplash.com/photos/photo-1571260899304-425eee4c7efc
+teacher_1.jpg     https://unsplash.com/photos/photo-1758685847747-597ce085906e
+teacher_2.jpg     https://unsplash.com/photos/photo-1758685848426-fcff62c9fd64
+teacher_3.jpg     https://unsplash.com/photos/photo-1590650213165-c1fef80648c4
+teacher_4.jpg     https://unsplash.com/photos/photo-1574281570877-bd815ebb50a4
+student_1.jpg     https://unsplash.com/photos/photo-1514369118554-e20d93546b30
+student_2.jpg     https://unsplash.com/photos/photo-1593698054469-2bb6fdf4b512
+student_3.jpg     https://unsplash.com/photos/photo-1554721299-e0b8aa7666ce
+student_4.jpg     https://unsplash.com/photos/photo-1669146894279-509f5de45390
+cta.jpg           https://unsplash.com/photos/photo-1761208662734-fb46f1398551

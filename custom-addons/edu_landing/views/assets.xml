@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Nạp font Google qua <link> trong <head>. Không đặt @import trong SCSS vì Odoo gộp bundle
+         và làm hỏng URL có dấu ";" (wght@400;500...). -->
+    <template id="fonts" inherit_id="website.layout" name="Font cho landing page">
+        <xpath expr="//head/meta[last()]" position="after">
+            <link rel="preconnect" href="https://fonts.googleapis.com"/>
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
+        </xpath>
+    </template>
+
+</odoo>
