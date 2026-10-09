@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name' : 'VNPT HRM: Trang chủ',
+    'name' : 'Trung tâm GVNN: Trang chủ',
     'version' : '1.0',
-    'summary': 'VNPT HRM Dashboard',
+    'summary': 'Dashboard trung tâm GVNN',
     'sequence': -1,
-    'description': """VNPT HRM Dashboard""",
+    'description': """Dashboard trung tâm GVNN""",
     'category': 'OWL',
-    'depends' : ['vnpt_hrm'],
+    'depends' : ['edu_gvnn'],
     'data': [
         'views/menuitems.xml',
     ],

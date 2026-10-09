@@ -11,7 +11,9 @@ export class DashboardChart extends Component {
     static props = {
         type: { type: String }, // "bar" | "hbar" | "doughnut"
         labels: { type: Array },
-        values: { type: Array },
+        values: { type: Array, optional: true },
+        // Nhiều cột cho mỗi nhãn: [{ label, values, tone }]. Nếu có thì bỏ qua `values`.
+        datasets: { type: Array, optional: true },
         tones: { type: Array, optional: true }, // primary | success | info | warning | danger | muted
         datasetLabel: { type: String, optional: true },
     };
@@ -29,8 +31,9 @@ export class DashboardChart extends Component {
         const muted = css("--vd-muted");
         const border = css("--vd-border");
 
+        const values = this.props.values || [];
         const tones = this.props.tones?.length ? this.props.tones : ["primary"];
-        const colors = this.props.values.map((_, i) => css(`--vd-${tones[i % tones.length]}`));
+        const colors = values.map((_, i) => css(`--vd-${tones[i % tones.length]}`));
 
         const isDoughnut = this.props.type === "doughnut";
         const horizontal = this.props.type === "hbar";
@@ -47,21 +50,33 @@ export class DashboardChart extends Component {
             border: { display: false },
         };
 
+        const grouped = !!this.props.datasets?.length;
+        const datasets = grouped
+            ? this.props.datasets.map((ds) => ({
+                  label: ds.label,
+                  data: ds.values,
+                  backgroundColor: css(`--vd-${ds.tone || "primary"}`),
+                  borderRadius: 4,
+                  maxBarThickness: 18,
+                  borderWidth: 0,
+              }))
+            : [
+                  {
+                      label: this.props.datasetLabel || "",
+                      data: values,
+                      backgroundColor: colors,
+                      borderRadius: isDoughnut ? 0 : 6,
+                      maxBarThickness: 34,
+                      borderWidth: isDoughnut ? 3 : 0,
+                      borderColor: css("--vd-card"),
+                  },
+              ];
+
         this.chart = new Chart(this.canvas.el, {
             type: isDoughnut ? "doughnut" : "bar",
             data: {
                 labels: this.props.labels,
-                datasets: [
-                    {
-                        label: this.props.datasetLabel || "",
-                        data: this.props.values,
-                        backgroundColor: colors,
-                        borderRadius: isDoughnut ? 0 : 6,
-                        maxBarThickness: 34,
-                        borderWidth: isDoughnut ? 3 : 0,
-                        borderColor: css("--vd-card"),
-                    },
-                ],
+                datasets,
             },
             options: {
                 responsive: true,
@@ -69,7 +84,7 @@ export class DashboardChart extends Component {
                 indexAxis: horizontal ? "y" : "x",
                 cutout: isDoughnut ? "68%" : undefined,
                 plugins: {
-                    legend: isDoughnut
+                    legend: isDoughnut || grouped
                         ? {
                               position: "bottom",
                               labels: { color: muted, usePointStyle: true, boxWidth: 8, padding: 14 },

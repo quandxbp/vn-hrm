@@ -3,7 +3,7 @@
 
     <t t-name="vnpt_hrm_dashboard.Dashboard">
         <div class="vd">
-            <div class="vd-grid">
+            <div class="vd-grid" t-if="state.data">
 
                 <!-- Lời chào -->
                 <section class="vd-card vd-hero">
@@ -12,148 +12,152 @@
                         <h1 class="vd-hero-title">
                             <t t-esc="greeting"/><t t-if="firstName">, <span t-esc="firstName"/></t>
                         </h1>
-                        <p class="vd-hero-sub" t-if="state.employee.id">
-                            <t t-if="state.employee.job_title" t-esc="state.employee.job_title"/>
-                            <t t-if="state.employee.job_title and state.employee.department_name"> · </t>
-                            <t t-if="state.employee.department_name" t-esc="state.employee.department_name"/>
+                        <p class="vd-hero-sub">
+                            Trung tâm GVNN
+                            <t t-if="state.data.week"> · <span t-esc="state.data.week.name"/></t>
                         </p>
-                        <p class="vd-hero-sub" t-else="">Tài khoản chưa được liên kết với hồ sơ nhân sự.</p>
-                    </div>
-                    <div class="vd-hero-avatar">
-                        <img t-if="state.employee.id"
-                             t-att-src="'/web/image?model=hr.employee.public&amp;id=' + state.employee.id + '&amp;field=image_1024'"
-                             alt="Ảnh đại diện"/>
-                        <img t-else="" src="/vnpt_hrm_dashboard/static/images/avatar_placeholder.png" alt="Ảnh đại diện"/>
                     </div>
                 </section>
 
-                <!-- Chỉ số tổng quan (quản lý nhân sự) -->
-                <t t-foreach="kpis" t-as="kpi" t-key="kpi.key">
-                    <section t-attf-class="vd-card vd-kpi vd-tone-{{ kpi.tone }} {{ kpi.onClick ? 'vd-clickable' : '' }}"
-                             t-on-click="kpi.onClick">
-                        <span class="vd-kpi-icon"><i t-attf-class="fa {{ kpi.icon }}" role="img"/></span>
-                        <div class="vd-kpi-body">
-                            <div class="vd-kpi-value" t-esc="kpi.value"/>
-                            <div class="vd-kpi-label" t-esc="kpi.label"/>
-                        </div>
-                    </section>
-                </t>
+                <!-- Chỉ số tổng quan -->
+                <div class="vd-kpis">
+                    <t t-foreach="kpis" t-as="kpi" t-key="kpi.key">
+                        <section t-attf-class="vd-card vd-kpi vd-tone-{{ kpi.tone }} {{ kpi.onClick ? 'vd-clickable' : '' }}"
+                                 t-on-click="kpi.onClick">
+                            <span class="vd-kpi-icon"><i t-attf-class="fa {{ kpi.icon }}" role="img"/></span>
+                            <div class="vd-kpi-body">
+                                <div class="vd-kpi-value" t-esc="kpi.value"/>
+                                <div class="vd-kpi-label" t-esc="kpi.label"/>
+                            </div>
+                        </section>
+                    </t>
+                </div>
 
                 <!-- Truy cập nhanh -->
                 <section class="vd-card vd-quick">
                     <header class="vd-card-head"><h2>Truy cập nhanh</h2></header>
                     <div class="vd-quick-list">
                         <t t-foreach="quickLinks" t-as="link" t-key="link.key">
-                            <button type="button" class="vd-quick-item" t-on-click="link.onClick">
-                                <img t-att-src="link.icon" alt=""/>
+                            <button type="button" class="vd-quick-item" t-on-click="() => this.openAction(link.xmlid)">
+                                <span class="vd-quick-icon"><i t-attf-class="fa {{ link.icon }}" role="img"/></span>
                                 <span t-esc="link.label"/>
                             </button>
                         </t>
                     </div>
                 </section>
 
-                <!-- Cảnh báo nhân sự -->
-                <section class="vd-card vd-alerts" t-if="perms.isContractManager">
-                    <header class="vd-card-head"><h2>Cảnh báo nhân sự</h2></header>
-                    <ul class="vd-alert-list">
-                        <t t-foreach="alertItems" t-as="alert" t-key="alert.key">
-                            <li t-attf-class="vd-alert vd-tone-{{ alert.tone }} vd-clickable" t-on-click="alert.onClick">
-                                <span class="vd-alert-icon"><i t-attf-class="fa {{ alert.icon }}" role="img"/></span>
-                                <span class="vd-alert-label" t-esc="alert.label"/>
-                                <span class="vd-alert-count" t-esc="alert.count"/>
+                <!-- Cảnh báo tuần -->
+                <section class="vd-card vd-alerts">
+                    <header class="vd-card-head">
+                        <h2>Cảnh báo tuần</h2>
+                        <span class="vd-card-hint" t-if="state.data.week" t-esc="state.data.week.name"/>
+                    </header>
+                    <t t-if="state.data.week">
+                        <ul class="vd-alert-list">
+                            <t t-foreach="alertItems" t-as="alert" t-key="alert.key">
+                                <li t-attf-class="vd-alert vd-tone-{{ alert.tone }} vd-clickable" t-on-click="alert.onClick">
+                                    <span class="vd-alert-icon"><i t-attf-class="fa {{ alert.icon }}" role="img"/></span>
+                                    <span class="vd-alert-label" t-esc="alert.label"/>
+                                    <span class="vd-alert-count" t-esc="alert.count"/>
+                                    <i class="fa fa-angle-right vd-alert-go" role="img"/>
+                                </li>
+                            </t>
+                            <li class="vd-alert vd-tone-warning vd-clickable" t-on-click="openSessionWarnings">
+                                <span class="vd-alert-icon"><i class="fa fa-flag" role="img"/></span>
+                                <span class="vd-alert-label">Buổi học có cảnh báo</span>
+                                <span class="vd-alert-count" t-esc="state.data.alerts.session_warnings"/>
                                 <i class="fa fa-angle-right vd-alert-go" role="img"/>
                             </li>
-                        </t>
-                    </ul>
-                </section>
-
-                <!-- Biểu đồ -->
-                <t t-if="state.stats">
-                    <section class="vd-card vd-chart-hires">
-                        <header class="vd-card-head">
-                            <h2>Nhân sự mới theo tháng</h2>
-                            <span class="vd-card-hint">6 tháng gần nhất</span>
-                        </header>
-                        <DashboardChart type="'bar'" labels="hiresChart.labels" values="hiresChart.values"
-                                        tones="['primary']" datasetLabel="'Nhân sự mới'"/>
-                    </section>
-
-                    <section class="vd-card vd-chart-contracts">
-                        <header class="vd-card-head"><h2>Hợp đồng</h2></header>
-                        <t t-if="hasData(contractChart)">
-                            <DashboardChart type="'doughnut'" labels="contractChart.labels"
-                                            values="contractChart.values" tones="contractChart.tones"/>
-                        </t>
-                        <div class="vd-empty" t-else="">Chưa có dữ liệu hợp đồng</div>
-                    </section>
-
-                    <section class="vd-card vd-chart-departments">
-                        <header class="vd-card-head">
-                            <h2>Nhân sự theo phòng ban</h2>
-                            <span class="vd-card-hint">Top 8</span>
-                        </header>
-                        <t t-if="hasData(departmentChart)">
-                            <DashboardChart type="'hbar'" labels="departmentChart.labels"
-                                            values="departmentChart.values"
-                                            tones="['primary', 'info', 'success']"/>
-                        </t>
-                        <div class="vd-empty" t-else="">Chưa có dữ liệu phòng ban</div>
-                    </section>
-                </t>
-
-                <!-- Sinh nhật -->
-                <section class="vd-card vd-birthdays">
-                    <header class="vd-card-head">
-                        <h2>Sinh nhật hôm nay</h2>
-                        <span class="vd-card-hint" t-if="state.birthdayEmpls.length" t-esc="state.birthdayEmpls.length"/>
-                    </header>
-                    <ul class="vd-birthday-list" t-if="state.birthdayEmpls.length">
-                        <t t-foreach="state.birthdayEmpls" t-as="person" t-key="person.id">
-                            <li class="vd-person">
-                                <img t-att-src="'/web/image?model=hr.employee.public&amp;id=' + person.id + '&amp;field=image_128'"
-                                     alt=""/>
-                                <div class="vd-person-text">
-                                    <div class="vd-person-name" t-esc="person.name"/>
-                                    <div class="vd-person-sub" t-esc="person.job_title or ''"/>
-                                </div>
-                                <a t-if="person.work_email" class="vd-person-action"
-                                   t-att-href="'mailto:' + person.work_email" title="Gửi lời chúc">
-                                    <i class="fa fa-birthday-cake" role="img"/>
-                                </a>
-                            </li>
-                        </t>
-                    </ul>
+                        </ul>
+                    </t>
                     <div class="vd-empty" t-else="">
-                        <i class="fa fa-smile-o" role="img"/>
-                        <span>Hôm nay không có ai sinh nhật</span>
+                        <i class="fa fa-calendar" role="img"/>
+                        <span>Chưa có tuần nào. Hãy tạo tuần trong Cấu hình hoặc import dữ liệu.</span>
                     </div>
                 </section>
 
-                <!-- Thông tin liên hệ -->
-                <section class="vd-card vd-contact" t-if="state.employee.id">
-                    <header class="vd-card-head"><h2>Thông tin của tôi</h2></header>
-                    <dl class="vd-contact-list">
-                        <div class="vd-contact-row" t-if="state.employee.code">
-                            <dt><i class="fa fa-id-badge" role="img"/> Mã nhân viên</dt>
-                            <dd t-esc="state.employee.code"/>
+                <!-- Học viên cần xử lý -->
+                <section class="vd-card vd-priority" t-if="state.data.week">
+                    <header class="vd-card-head">
+                        <h2>Học viên cần xử lý</h2>
+                        <span class="vd-card-hint">Tối đa 8 học viên ưu tiên cao</span>
+                    </header>
+                    <t t-if="state.data.priority_list.length">
+                        <div class="vd-table-wrap">
+                        <table class="vd-table">
+                            <thead>
+                                <tr>
+                                    <th>Học viên</th>
+                                    <th>Mức độ</th>
+                                    <th>Lý do</th>
+                                    <th class="vd-num">Số dư</th>
+                                    <th>Hành động đề xuất</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.data.priority_list" t-as="row" t-key="row.id">
+                                    <tr>
+                                        <td t-esc="row.student"/>
+                                        <td>
+                                            <span t-attf-class="vd-pill vd-tone-{{ priorityTone(row.priority) }}"
+                                                  t-esc="priorityLabel(row.priority)"/>
+                                        </td>
+                                        <td>
+                                            <t t-if="row.absent_streak">Nghỉ <t t-esc="row.absent_streak"/> tuần</t>
+                                            <t t-if="row.absent_streak and row.fee_warning"> · </t>
+                                            <t t-if="row.fee_warning" t-esc="feeLabel(row.fee_warning)"/>
+                                        </td>
+                                        <td class="vd-num" t-esc="money(row.balance)"/>
+                                        <td t-esc="row.action"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
                         </div>
-                        <div class="vd-contact-row">
-                            <dt><i class="fa fa-building-o" role="img"/> Đơn vị</dt>
-                            <dd><t t-esc="state.employee.department_name or '(Chưa có dữ liệu)'"/></dd>
-                        </div>
-                        <div class="vd-contact-row">
-                            <dt><i class="fa fa-briefcase" role="img"/> Vị trí</dt>
-                            <dd><t t-esc="state.employee.job_title or '(Chưa có dữ liệu)'"/></dd>
-                        </div>
-                        <div class="vd-contact-row">
-                            <dt><i class="fa fa-envelope-o" role="img"/> Email</dt>
-                            <dd><t t-esc="state.employee.work_email or '(Chưa có dữ liệu)'"/></dd>
-                        </div>
-                        <div class="vd-contact-row">
-                            <dt><i class="fa fa-phone" role="img"/> Di động</dt>
-                            <dd><t t-esc="state.employee.work_phone or '(Chưa có dữ liệu)'"/></dd>
-                        </div>
-                    </dl>
+                    </t>
+                    <div class="vd-empty" t-else="">
+                        <i class="fa fa-smile-o" role="img"/>
+                        <span>Không có học viên nào cần xử lý</span>
+                    </div>
+                </section>
+
+                <!-- Biểu đồ tài chính (Quản lý) -->
+                <section class="vd-card vd-chart-money" t-if="state.data.finance">
+                    <header class="vd-card-head">
+                        <h2>Thu chi theo tháng</h2>
+                        <span class="vd-card-hint">12 tháng gần nhất</span>
+                    </header>
+                    <t t-if="hasMonthData">
+                        <DashboardChart type="'bar'" labels="monthChart.labels" datasets="monthChart.datasets"/>
+                    </t>
+                    <div class="vd-empty" t-else="">Chưa có dữ liệu thu chi</div>
+                </section>
+
+                <!-- Biểu đồ theo năm (Quản lý) -->
+                <section class="vd-card vd-chart-year" t-if="state.data.finance">
+                    <header class="vd-card-head">
+                        <h2>Thu chi theo năm</h2>
+                    </header>
+                    <t t-if="hasYearData">
+                        <DashboardChart type="'bar'" labels="yearChart.labels" datasets="yearChart.datasets"/>
+                    </t>
+                    <div class="vd-empty" t-else="">Chưa có dữ liệu thu chi</div>
+                </section>
+
+                <!-- Biểu đồ loại cảnh báo -->
+                <section class="vd-card vd-chart-alert" t-if="state.data.week">
+                    <header class="vd-card-head">
+                        <h2>Loại cảnh báo</h2>
+                        <span class="vd-card-hint" t-esc="state.data.week.name"/>
+                    </header>
+                    <t t-if="alertChart.hasData">
+                        <DashboardChart type="'doughnut'" labels="alertChart.labels" values="alertChart.values"
+                                        tones="alertChart.tones"/>
+                    </t>
+                    <div class="vd-empty" t-else="">
+                        <i class="fa fa-smile-o" role="img"/>
+                        <span>Tuần này chưa có cảnh báo nào</span>
+                    </div>
                 </section>
 
             </div>

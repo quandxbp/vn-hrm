@@ -8,73 +8,49 @@ import { DashboardChart } from "./chart/dashboard_chart";
 
 const { DateTime } = luxon;
 
-const CONTRACT_STATE_TONES = { draft: "info", open: "success", close: "muted" };
+const PRIORITY_LABELS = {
+    red_now: "Đỏ - liên hệ ngay",
+    red: "Đỏ",
+    yellow: "Vàng",
+};
+const PRIORITY_TONES = { red_now: "danger", red: "danger", yellow: "warning" };
+const FEE_LABELS = { out: "Hết học phí", low: "Gần hết học phí" };
+const money = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
 
-export class OwlHrmDashboard extends Component {
+export class OwlGvnnDashboard extends Component {
     static template = "vnpt_hrm_dashboard.Dashboard";
     static components = { DashboardChart };
 
     setup() {
         this.orm = useService("orm");
         this.actionService = useService("action");
-
-        this.perms = {};
-        this.state = useState({
-            employee: {},
-            birthdayEmpls: [],
-            stats: null,
-            alerts: {
-                expiredContracts: 0,
-                nearlyExpiredContracts: 0,
-                salaryIncrease: 0,
-            },
-            salaryIncreaseContracts: [],
-            nearlyExpiredContracts: [],
-        });
-
-        onWillStart(() => this.loadData());
-    }
-
-    async loadData() {
-        const user = this.env.services.user;
-        const [employee, isHrManager, isContractManager, isInsuranceManager, isRecruitmentManager] =
-            await Promise.all([
-                this.orm.call("hr.employee", "get_current_employee_data", [0, user.userId]),
-                user.hasGroup("hr.group_hr_user"),
-                user.hasGroup("hr_contract.group_hr_contract_employee_manager"),
-                user.hasGroup("vnpt_hrm.group_hr_insurance_user"),
-                user.hasGroup("hr_recruitment.group_hr_recruitment_interviewer"),
+        this.state = useState({ data: null });
+        onWillStart(async () => {
+            const [data] = await Promise.all([
+                this.orm.call("edu.dashboard", "get_data", []),
+                loadBundle("web.chartjs_lib"),
             ]);
-        this.state.employee = employee;
-        this.perms = { isHrManager, isContractManager, isInsuranceManager, isRecruitmentManager };
-
-        await Promise.all([
-            this.loadBirthdays(),
-            isContractManager ? this.loadAlerts() : null,
-            isHrManager ? this.loadStats() : null,
-        ]);
-    }
-
-    async loadBirthdays() {
-        this.state.birthdayEmpls = (await this.orm.call("hr.employee", "get_employee_birthdays", [0])) || [];
-    }
-
-    async loadAlerts() {
-        const alerts = await this.orm.call("hr.employee", "get_manager_alerts", [0]);
-        this.state.alerts = alerts.counts;
-        this.state.salaryIncreaseContracts = alerts.salaryIncrease;
-        this.state.nearlyExpiredContracts = alerts.nearlyExpiredContracts;
-    }
-
-    async loadStats() {
-        const [stats] = await Promise.all([
-            this.orm.call("hr.employee", "get_dashboard_stats", []),
-            loadBundle("web.chartjs_lib"),
-        ]);
-        this.state.stats = stats && stats.total !== undefined ? stats : null;
+            this.state.data = data;
+        });
     }
 
     // ---- Hiển thị -----------------------------------------------------
+
+    money(value) {
+        return money.format(value || 0) + " đ";
+    }
+
+    priorityLabel(key) {
+        return PRIORITY_LABELS[key] || key;
+    }
+
+    priorityTone(key) {
+        return PRIORITY_TONES[key] || "muted";
+    }
+
+    feeLabel(key) {
+        return FEE_LABELS[key] || "";
+    }
 
     get greeting() {
         const hour = new Date().getHours();
@@ -88,7 +64,7 @@ export class OwlHrmDashboard extends Component {
     }
 
     get firstName() {
-        const name = this.state.employee.name;
+        const name = this.state.data?.user_name;
         return name ? name.trim().split(/\s+/).pop() : "";
     }
 
@@ -96,213 +72,170 @@ export class OwlHrmDashboard extends Component {
         return DateTime.now().setLocale("vi").toFormat("cccc, dd/MM/yyyy");
     }
 
-    get totalAlerts() {
-        const { expiredContracts, nearlyExpiredContracts, salaryIncrease } = this.state.alerts;
-        return expiredContracts + nearlyExpiredContracts + salaryIncrease;
-    }
-
-    get quickLinks() {
-        const { isHrManager, isContractManager, isInsuranceManager, isRecruitmentManager } = this.perms;
-        const links = [];
-        if (this.state.employee.id) {
-            links.push({
-                key: "profile",
-                label: "Hồ sơ cá nhân",
-                icon: "/vnpt_hrm/static/description/icon_ho_so_nhan_su.png",
-                onClick: () => this.openPersonalProfile(),
-            });
-        }
-        links.push(
-            isHrManager
-                ? {
-                      key: "employees",
-                      label: "Nhân sự",
-                      icon: "/hr/static/description/icon.png",
-                      onClick: () => this.actionService.doAction("hr.open_view_employee_list_my"),
-                  }
-                : {
-                      key: "directory",
-                      label: "Danh bạ nhân sự",
-                      icon: "/hr/static/description/icon.png",
-                      onClick: () => this.actionService.doAction("hr.hr_employee_public_action"),
-                  },
-            {
-                key: "leave",
-                label: "Nghỉ phép",
-                icon: "/hr_holidays/static/description/icon.png",
-                onClick: () => this.actionService.doAction("hr_holidays.hr_leave_action_new_request"),
-            },
-            {
-                key: "attendance",
-                label: "Chấm công",
-                icon: "/hr_attendance/static/description/icon.png",
-                onClick: () => this.actionService.doAction("hr_attendance.hr_attendance_action"),
-            }
-        );
-        if (isContractManager) {
-            links.push({
-                key: "contract",
-                label: "Hợp đồng",
-                icon: "/vnpt_hrm/static/description/icon_contract.png",
-                onClick: () => this.openContract(),
-            });
-        }
-        if (isInsuranceManager) {
-            links.push({
-                key: "insurance",
-                label: "Bảo hiểm",
-                icon: "/vnpt_hrm/static/description/icon_bao_hiem.png",
-                onClick: () => this.actionService.doAction("vnpt_hrm.hr_insurance_action"),
-            });
-        }
-        if (isRecruitmentManager) {
-            links.push({
-                key: "recruitment",
-                label: "Tuyển dụng",
-                icon: "/hr_recruitment/static/description/icon.png",
-                onClick: () => this.actionService.doAction("hr_recruitment.action_hr_job"),
-            });
-        }
-        return links;
-    }
-
     get kpis() {
-        const stats = this.state.stats;
-        if (!stats) {
-            return [];
-        }
+        const { data } = this.state;
         const kpis = [
             {
-                key: "total",
-                label: "Tổng nhân sự",
-                value: stats.total,
-                icon: "fa-users",
+                key: "studying",
+                label: "Học viên đang học",
+                value: data.studying,
+                icon: "fa-graduation-cap",
                 tone: "primary",
-                onClick: () => this.actionService.doAction("hr.open_view_employee_list_my"),
-            },
-            {
-                key: "new",
-                label: "Tuyển mới tháng này",
-                value: stats.newThisMonth,
-                icon: "fa-user-plus",
-                tone: "success",
-            },
-            {
-                key: "leave",
-                label: "Đang nghỉ phép hôm nay",
-                value: stats.onLeaveToday,
-                icon: "fa-plane",
-                tone: "info",
+                onClick: () => this.openAction("edu_gvnn.action_edu_student"),
             },
         ];
-        if (this.perms.isContractManager) {
-            kpis.push({
-                key: "alerts",
-                label: "Cảnh báo cần xử lý",
-                value: this.totalAlerts,
-                icon: "fa-bell",
-                tone: this.totalAlerts ? "warning" : "success",
-            });
+        if (data.finance) {
+            const f = data.finance;
+            kpis.push(
+                {
+                    key: "income",
+                    label: `Tiền thu năm ${f.year}`,
+                    value: this.money(f.income),
+                    icon: "fa-money",
+                    tone: "success",
+                },
+                {
+                    key: "cost",
+                    label: `Tổng chi năm ${f.year}`,
+                    value: this.money(f.cost),
+                    icon: "fa-credit-card",
+                    tone: "warning",
+                },
+                {
+                    key: "flow",
+                    label: "Dòng tiền sau chi",
+                    value: this.money(f.cash_flow),
+                    icon: "fa-line-chart",
+                    tone: f.cash_flow >= 0 ? "info" : "danger",
+                },
+                {
+                    key: "balance",
+                    label: "Số dư học phí",
+                    value: this.money(f.balance),
+                    icon: "fa-bank",
+                    tone: "primary",
+                }
+            );
         }
         return kpis;
     }
 
     get alertItems() {
-        const alerts = this.state.alerts;
+        const a = this.state.data.alerts;
+        const item = (key, label, count, icon, tone, filter) => ({
+            key,
+            label,
+            count,
+            icon,
+            tone,
+            onClick: () => this.openAlerts(label, filter),
+        });
         return [
-            {
-                key: "nearly",
-                label: "Hợp đồng gần hết hạn",
-                count: alerts.nearlyExpiredContracts,
-                icon: "fa-hourglass-half",
-                tone: "warning",
-                onClick: () => this.openNearlyExpiredContracts(),
-            },
-            {
-                key: "expired",
-                label: "Hợp đồng hết hạn",
-                count: alerts.expiredContracts,
-                icon: "fa-file-text-o",
-                tone: "danger",
-                onClick: () => this.openExpiredContracts(),
-            },
-            {
-                key: "salary",
-                label: "Cảnh báo nâng lương",
-                count: alerts.salaryIncrease,
-                icon: "fa-line-chart",
-                tone: "info",
-                onClick: () => this.openSalaryIncreaseContracts(),
-            },
+            item("red", "Ưu tiên đỏ", a.red, "fa-exclamation-circle", "danger", [["priority", "in", ["red_now", "red"]]]),
+            item("absent", "Nghỉ trong tuần", a.absent, "fa-user-times", "warning", [["absent", "=", true]]),
+            item("absent_3w", "Nghỉ nhiều tuần liên tiếp", a.absent_3w, "fa-calendar-times-o", "danger", [["absent_3w", "=", true]]),
+            item("fee_out", "Hết học phí", a.fee_out, "fa-battery-empty", "danger", [["fee_warning", "=", "out"]]),
+            item("fee_low", "Gần hết học phí", a.fee_low, "fa-battery-quarter", "warning", [["fee_warning", "=", "low"]]),
+            item("suggest_stop", "Đề xuất ngưng học", a.suggest_stop, "fa-stop-circle-o", "info", [["suggest_stop", "=", true]]),
         ];
     }
 
-    get hiresChart() {
-        const rows = this.state.stats?.hiresByMonth || [];
-        return { labels: rows.map((r) => r.label), values: rows.map((r) => r.count) };
+    get quickLinks() {
+        const links = [
+            { key: "session", label: "Buổi học", icon: "fa-calendar-check-o", xmlid: "edu_gvnn.action_edu_session" },
+            { key: "student", label: "Học viên", icon: "fa-users", xmlid: "edu_gvnn.action_edu_student" },
+            { key: "payment", label: "Thu học phí", icon: "fa-money", xmlid: "edu_gvnn.action_edu_tuition_payment" },
+            { key: "alert", label: "Cảnh báo tuần", icon: "fa-bell", xmlid: "edu_gvnn.action_edu_week_alert_wizard" },
+            { key: "export", label: "Xuất điểm danh", icon: "fa-file-excel-o", xmlid: "edu_gvnn.action_edu_export_week_wizard" },
+        ];
+        if (this.state.data.is_manager) {
+            links.push(
+                { key: "payroll", label: "Kỳ lương", icon: "fa-calculator", xmlid: "edu_gvnn.action_edu_payroll_period" },
+                { key: "finance", label: "Tài chính", icon: "fa-bar-chart", xmlid: "edu_gvnn.action_edu_report_finance" }
+            );
+        }
+        return links;
     }
 
-    get departmentChart() {
-        const rows = this.state.stats?.byDepartment || [];
-        return { labels: rows.map((r) => r.label), values: rows.map((r) => r.count) };
-    }
-
-    get contractChart() {
-        const rows = this.state.stats?.contractsByState || [];
+    get monthChart() {
+        const months = this.state.data.finance?.months || [];
         return {
-            labels: rows.map((r) => r.label),
-            values: rows.map((r) => r.count),
-            tones: rows.map((r) => CONTRACT_STATE_TONES[r.key] || "muted"),
+            labels: months.map((m) => m.label),
+            datasets: [
+                { label: "Tiền thu", values: months.map((m) => m.income), tone: "primary" },
+                { label: "Tổng chi", values: months.map((m) => m.cost), tone: "warning" },
+                { label: "Dòng tiền", values: months.map((m) => m.flow), tone: "success" },
+            ],
         };
     }
 
-    hasData(chart) {
-        return chart.values.some((value) => value > 0);
+    get hasMonthData() {
+        return this.monthChart.datasets.some((ds) => ds.values.some((v) => v));
+    }
+
+    get yearChart() {
+        const years = this.state.data.finance?.years || [];
+        return {
+            labels: years.map((y) => y.label),
+            datasets: [
+                { label: "Tiền thu", values: years.map((y) => y.income), tone: "primary" },
+                { label: "Tổng chi", values: years.map((y) => y.cost), tone: "warning" },
+                { label: "Dòng tiền", values: years.map((y) => y.flow), tone: "success" },
+            ],
+        };
+    }
+
+    get hasYearData() {
+        return this.yearChart.datasets.some((ds) => ds.values.some((v) => v));
+    }
+
+    get alertChart() {
+        const a = this.state.data.alerts;
+        const rows = [
+            ["Nghỉ trong tuần", a.absent, "warning"],
+            ["Nghỉ nhiều tuần", a.absent_3w, "danger"],
+            ["Hết học phí", a.fee_out, "danger"],
+            ["Gần hết học phí", a.fee_low, "warning"],
+            ["Đề xuất ngưng học", a.suggest_stop, "info"],
+            ["Buổi có cảnh báo", a.session_warnings, "muted"],
+        ];
+        return {
+            labels: rows.map((r) => r[0]),
+            values: rows.map((r) => r[1]),
+            tones: rows.map((r) => r[2]),
+            hasData: rows.some((r) => r[1]),
+        };
     }
 
     // ---- Hành động ----------------------------------------------------
 
-    openContract() {
-        this.actionService.doAction("hr_contract.action_hr_contract");
+    openAction(xmlid) {
+        this.actionService.doAction(xmlid);
     }
 
-    openExpiredContracts() {
-        this.actionService.doAction("vnpt_hrm.action_close_hr_contract");
-    }
-
-    openSalaryIncreaseContracts() {
+    openAlerts(name, filter) {
+        const week = this.state.data.week;
         this.actionService.doAction({
-            name: "Hợp đồng cảnh báo tăng lương",
+            name: `${name} - ${week.name}`,
             type: "ir.actions.act_window",
-            res_model: "hr.contract",
-            views: [[false, "list"], [false, "form"]],
-            domain: [["id", "in", this.state.salaryIncreaseContracts]],
+            res_model: "edu.week.alert",
+            views: [[false, "list"]],
+            domain: [["week_id", "=", week.id], ...filter],
             target: "current",
         });
     }
 
-    openNearlyExpiredContracts() {
+    openSessionWarnings() {
+        const week = this.state.data.week;
         this.actionService.doAction({
-            name: "Hợp đồng gần hết hạn",
+            name: `Buổi có cảnh báo - ${week.name}`,
             type: "ir.actions.act_window",
-            res_model: "hr.contract",
+            res_model: "edu.session",
             views: [[false, "list"], [false, "form"]],
-            domain: [["id", "in", this.state.nearlyExpiredContracts]],
+            domain: [["week_id", "=", week.id], ["state", "=", "done"], ["warning", "!=", "ok"]],
             target: "current",
         });
-    }
-
-    async openPersonalProfile() {
-        try {
-            const action = await this.orm.call("hr.employee", "action_open_current_employee_info", [
-                this.state.employee.id,
-                this.state.employee.name,
-            ]);
-            this.actionService.doAction(action);
-        } catch (error) {
-            console.error("Không thể lấy thông tin :", error);
-        }
     }
 }
 
-registry.category("actions").add("owl.vnpt_hrm_dashboard", OwlHrmDashboard);
+registry.category("actions").add("owl.vnpt_hrm_dashboard", OwlGvnnDashboard);

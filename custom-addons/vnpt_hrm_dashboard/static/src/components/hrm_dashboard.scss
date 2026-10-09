@@ -1,4 +1,4 @@
-// Dashboard VNPT HRM. Màu lấy từ biến của theme nên tự đổi theo màu chủ đạo / dark mode.
+// Dashboard trung tâm GVNN. Màu lấy từ biến của theme nên tự đổi theo màu chủ đạo / dark mode.
 
 .vd {
     --vd-bg: #{$o-webclient-background-color};
@@ -23,7 +23,7 @@
     }
 }
 
-// Màu theo ngữ nghĩa, dùng cho KPI và cảnh báo.
+// Màu theo ngữ nghĩa, dùng cho KPI, cảnh báo và nhãn mức độ.
 @each $tone in (primary, success, info, warning, danger) {
     .vd .vd-tone-#{$tone} {
         --tone: var(--vd-#{$tone});
@@ -86,6 +86,7 @@
     min-height: 120px;
     color: var(--vd-muted);
     font-size: 13px;
+    text-align: center;
 
     .fa {
         font-size: 24px;
@@ -95,10 +96,6 @@
 // ---- Lời chào -----------------------------------------------------------
 
 .vd-hero {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
     color: #fff;
     border: 0;
     background: linear-gradient(120deg, var(--vd-primary), #{darken($o-brand-primary, 14%)});
@@ -110,6 +107,7 @@
     }
 
     .vd-hero-title {
+        color: inherit; // h1 của theme có màu riêng, trên nền xanh sẽ mất tương phản
         margin: 4px 0;
         font-size: 26px;
         font-weight: 700;
@@ -120,25 +118,23 @@
         font-size: 14px;
         opacity: 0.9;
     }
-
-    .vd-hero-avatar img {
-        display: block;
-        width: 84px;
-        height: 84px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid rgba(255, 255, 255, 0.6);
-        background: rgba(255, 255, 255, 0.2);
-    }
 }
 
 // ---- KPI ----------------------------------------------------------------
+
+// Số thẻ KPI thay đổi theo quyền (Giáo vụ 1 thẻ, Quản lý 5 thẻ) nên tự chia cột theo bề rộng.
+.vd-kpis {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
 
 .vd-kpi {
     display: flex;
     align-items: center;
     gap: 14px;
-    grid-column: span 6;
+    grid-column: auto; // ghi đè span 12 của .vd-card, nếu không mỗi thẻ chiếm cả hàng
 
     .vd-kpi-icon {
         flex: none;
@@ -154,7 +150,7 @@
     }
 
     .vd-kpi-value {
-        font-size: 28px;
+        font-size: 22px;
         font-weight: 700;
         line-height: 1.1;
     }
@@ -170,7 +166,7 @@
 
 .vd-quick-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
     gap: 10px;
 }
 
@@ -189,11 +185,16 @@
     border-radius: 12px;
     transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 
-    img {
+    .vd-quick-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 40px;
         height: 40px;
-        object-fit: contain;
+        font-size: 18px;
+        color: var(--vd-primary);
         border-radius: 10px;
+        background: color-mix(in srgb, var(--vd-primary) 12%, transparent);
     }
 
     &:hover,
@@ -219,7 +220,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 10px 12px;
     border: 1px solid var(--vd-border);
     border-radius: 12px;
 
@@ -228,8 +229,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
         border-radius: 10px;
         color: var(--tone);
         background: color-mix(in srgb, var(--tone) 14%, transparent);
@@ -251,143 +252,77 @@
     }
 }
 
+// ---- Bảng học viên ưu tiên ---------------------------------------------
+
+.vd-table-wrap {
+    overflow-x: auto;
+}
+
+.vd-table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: 8px 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--vd-border);
+    }
+
+    th {
+        font-weight: 600;
+        color: var(--vd-muted);
+    }
+
+    .vd-num {
+        text-align: right;
+        white-space: nowrap;
+    }
+}
+
+.vd-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--tone, var(--vd-muted));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tone, var(--vd-muted)) 14%, transparent);
+}
+
 // ---- Biểu đồ ------------------------------------------------------------
 
 .vd-chart {
     position: relative;
-    height: 260px;
-}
-
-// ---- Sinh nhật ----------------------------------------------------------
-
-.vd-birthday-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 300px;
-    margin: 0;
-    padding: 0;
-    overflow-y: auto;
-    list-style: none;
-}
-
-.vd-person {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    img {
-        flex: none;
-        width: 40px;
-        height: 40px;
-        object-fit: cover;
-        border-radius: 50%;
-    }
-
-    .vd-person-text {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .vd-person-name {
-        font-size: 14px;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .vd-person-sub {
-        font-size: 12px;
-        color: var(--vd-muted);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .vd-person-action {
-        flex: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        color: var(--vd-warning);
-        background: color-mix(in srgb, var(--vd-warning) 16%, transparent);
-    }
-}
-
-// ---- Thông tin liên hệ --------------------------------------------------
-
-.vd-contact-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin: 0;
-}
-
-.vd-contact-row {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-
-    dt {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--vd-muted);
-    }
-
-    dd {
-        margin: 0;
-        font-size: 14px;
-        overflow-wrap: anywhere;
-    }
+    height: 300px;
 }
 
 // ---- Bố cục theo chiều rộng --------------------------------------------
 
 @include media-breakpoint-up(md) {
-    .vd-kpi {
-        grid-column: span 6;
+    .vd-quick {
+        grid-column: span 7;
     }
 
-    .vd-quick,
     .vd-alerts {
-        grid-column: span 6;
-    }
-
-    .vd-chart-hires {
-        grid-column: span 7;
-    }
-
-    .vd-chart-contracts {
         grid-column: span 5;
     }
 
-    .vd-chart-departments {
-        grid-column: span 7;
-    }
-
-    .vd-birthdays {
-        grid-column: span 5;
-    }
-
-    .vd-contact {
+    .vd-priority {
         grid-column: span 12;
     }
-}
 
-@include media-breakpoint-up(xl) {
-    .vd-kpi {
-        grid-column: span 3;
-    }
-
-    .vd-quick {
+    .vd-chart-money {
         grid-column: span 8;
     }
 
-    .vd-alerts {
+    .vd-chart-year {
         grid-column: span 4;
+    }
+
+    .vd-chart-alert {
+        grid-column: span 6;
     }
 }
