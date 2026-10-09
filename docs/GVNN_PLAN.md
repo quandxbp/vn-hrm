@@ -9,7 +9,7 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 **Bước tiếp theo:** các giai đoạn 1-8 đã xong. Còn lại chỉ là việc của người dùng và một câu hỏi:
 1. Người dùng import dữ liệu thật vào DB `gvnn` (Cấu hình > Import Excel), đối chiếu theo bảng ở mục 5, rồi chạy "Cảnh báo tuần" và chốt các kỳ lương sau khi đối soát.
 2. Quyết định về lương `STEPHAN` tháng 8-9 (xem mục 5) và rà soát ~298 buổi "Giờ dạy = 0".
-3. Hỏi người dùng có xoá các module `vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll` và `required-addons/hr_payroll` không (mục Tiến độ, dòng cuối). Chưa xoá.
+3. Quyết định về các DB cũ `test`, `edu`, `edu2`, `edu3` và đặt `dbfilter = ^gvnn$` trong `config/odoo.conf` để tránh lỗi 403 của `gvnn` khi DB khác được nạp trước (xem *Lỗi đã biết* trong `CLAUDE.md`).
 - Đã gỡ `vnpt_hrm_attendance` khỏi DB `gvnn` ngày 2026-10-09: module rỗng, `auto_install: True` nên được cài kèm, không module nào phụ thuộc. Sau lần `-u` kế tiếp nó vẫn ở trạng thái chưa cài. Nếu tạo DB mới và nó tự cài lại, gỡ bằng `button_immediate_uninstall()`.
 - **DB `gvnn` hiện chưa có dữ liệu import.** Mọi lần thử đều rollback. Người dùng tự import qua menu Cấu hình > Import Excel (cần restart web để nhận code, đã làm ngày 2026-10-09), sau đó đối chiếu theo bảng ở mục 5.
 - Tiêu đề tab trình duyệt vẫn là "VNPT HRM - Trang chủ" vì `vnpt_base` đặt `web.base.title` mặc định. Đổi tại Thiết lập nếu muốn.
@@ -277,4 +277,4 @@ Dữ liệu cần biết: có 298 buổi trạng thái `done` mang cảnh báo "
 - [x] GĐ7: Viết lại `vnpt_hrm_dashboard` thành dashboard GVNN
 - [x] GĐ8: Tạo DB `gvnn`, cài `edu_gvnn`, `vnpt_hrm_dashboard`, `muk_theme/*`, `edu_landing`, `vnpt_base` và kiểm tra lỗi
   - `command: -u vnpt_base` trong `docker-compose.yml` giữ nguyên: nâng cấp `vnpt_base` mỗi lần khởi động chạy sạch (đã xem log), không ảnh hưởng `gvnn`.
-- [ ] (Sau này) xoá các module thừa `vnpt_hrm*`, `required-addons/hr_payroll`. Người dùng đã nói chưa xoá.
+- [x] Xoá các module thừa `vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll`, `required-addons/hr_payroll`. Người dùng đã đồng ý ngày 2026-10-09. Trước khi xoá đã kiểm tra: không manifest nào phụ thuộc, không code nào tham chiếu, thư mục sạch (chỉ lệch `.pyc`), DB `gvnn` không cài. Sau khi xoá `gvnn` vẫn nâng cấp và đăng nhập bình thường.

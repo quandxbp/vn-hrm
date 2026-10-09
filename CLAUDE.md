@@ -21,10 +21,12 @@ docker compose logs -f web
   - `edu_gvnn`: nghiệp vụ GVNN (giáo viên và đơn giá, lớp, học viên, buổi học, thu học phí, kỳ lương, cảnh báo tuần, báo cáo tài chính, import/export Excel). Phụ thuộc `base`, `mail`, `web`, `vnpt_base`; không dùng `hr` hay `account`.
   - `vnpt_hrm_dashboard`: dashboard GVNN (client action OWL `owl.vnpt_hrm_dashboard`, model `edu.dashboard`), trang chủ sau khi đăng nhập. Phụ thuộc `edu_gvnn`.
   - `vnpt_base`: nền dùng chung (đăng nhập, tiêu đề, địa chỉ VN). Còn dùng.
-  - `vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll`: mã HRM cũ, **không còn dùng** và chưa xoá. Không cài chúng trên DB `gvnn`, và không để module mới phụ thuộc vào chúng. Hỏi người dùng trước khi xoá.
+  - Các module HRM cũ (`vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll`) đã bị xoá ngày 2026-10-09 theo yêu cầu của người dùng. Còn trong lịch sử git (commit `7083bfa` trở về trước) nếu cần khôi phục.
   - `muk_theme/*`: theme backend MuK, đã chỉnh sửa (sidebar, navbar, màu).
   - `edu_landing`: landing page Website, chỉ cần `website` + `website_crm` (Community).
-- `required-addons/`: addon Enterprise (`hr_payroll`, license OEEL-1), mount vào `/mnt/enterprise`. Chỉ phục vụ HRM cũ, GVNN không dùng.
+- `required-addons/`: hiện trống (chỉ còn `.DS_Store`). `hr_payroll` (Enterprise, OEEL-1) đã xoá cùng HRM cũ. Thư mục vẫn được mount vào `/mnt/enterprise` và nằm trong `addons_path`, nên giữ lại.
+- DB đang dùng là `gvnn`. Các DB cũ: `test` có cài `vnpt_hrm`, `hr_payroll`, `vnpt_hrm_attendance`; `edu`, `edu2`, `edu3` chỉ có `vnpt_hrm_attendance` (rỗng). Sau khi xoá module, log báo "Some modules are not loaded" khi nạp các DB này. Trang đăng nhập của chúng vẫn mở, chưa kiểm tra xa hơn. Chỉ `gvnn` còn được đảm bảo chạy.
+- **Lỗi đã biết khi có nhiều DB:** nếu một DB khác được nạp trước `gvnn` sau khi khởi động server, `/web/login?db=gvnn` trả 403 (`AccessError` đọc `website.menu`). Mở `gvnn` trước thì bình thường. Lỗi vẫn xảy ra khi các module HRM cũ còn nguyên, nên không do việc xoá chúng. Chưa rõ nguyên nhân gốc; nghi do `website` cần `dbfilter` khi có nhiều DB. Cách tránh: đặt `dbfilter = ^gvnn$` trong `config/odoo.conf` (chưa đặt, vì làm vậy các DB khác sẽ không truy cập được qua web).
 - `config/odoo.conf`: mount vào `/etc/odoo`.
 
 ## Lệnh thường dùng
