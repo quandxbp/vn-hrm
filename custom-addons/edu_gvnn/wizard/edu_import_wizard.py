@@ -2,7 +2,7 @@
 import base64
 import re
 from collections import Counter, defaultdict
-from datetime import timedelta
+from datetime import date as Date, timedelta
 from types import SimpleNamespace
 
 import xlrd
@@ -50,6 +50,13 @@ class EduImportWizard(models.TransientModel):
 
     # ---------- đọc file ----------
     def _date(self, book, value):
+        if isinstance(value, str):
+            # Một số ô trong file gốc lưu ngày dạng chữ, ví dụ "28/7/2026" (ngày/tháng/năm).
+            match = re.match(r'^\s*(\d{1,2})/(\d{1,2})/(\d{4})\s*$', value)
+            try:
+                return Date(int(match.group(3)), int(match.group(2)), int(match.group(1))) if match else False
+            except ValueError:
+                return False
         number = _num(value)
         if not number or number <= 0:
             return False
@@ -101,7 +108,7 @@ class EduImportWizard(models.TransientModel):
                 'row': r + 1,
                 'stt': int(v[0]) if _num(v[0]) else None,
                 'week': int(v[1]) if _num(v[1]) else None,
-                'date': date,
+                'date': date, 'text_date': isinstance(v[3], str),
                 'teacher': TEACHER_ALIASES.get(teacher, teacher),
                 'students': [normalize_name(_text(x)) for x in v[6:9] if _text(x)],
                 'classes': [normalize_name(c) for c in re.split(r'\+', _text(v[9])) if c.strip()],
@@ -330,6 +337,10 @@ class EduImportWizard(models.TransientModel):
     def _import_sessions(self, rows, log):
         Session = self.env['edu.session'].with_context(tracking_disable=True)
         wanted = [r for r in rows if self._in_range(r['date'])]
+        text_dates = [r['row'] for r in wanted if r['text_date']]
+        if text_dates:
+            log.append('Có %s dòng điểm danh lưu ngày dạng chữ (ví dụ dòng %s), đã đọc thành ngày/tháng/năm.' % (
+                len(text_dates), text_dates[0]))
         self._st().week_map = self._weeks(wanted, log)
         existing = set(Session.search([('import_key', '!=', False)]).mapped('import_key'))
         created = skipped = failed = 0

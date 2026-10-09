@@ -6,7 +6,8 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 
 ## 0. Bắt đầu từ đây
 
-**Bước tiếp theo:** Giai đoạn 6 (wizard import Excel, import từ 01/01/2026, đối chiếu mục 5). **Lưu ý:** `wizard/edu_import_wizard.py` (455 dòng) và `views/import_views.xml` đã có sẵn nhưng **chưa có test nào**, nên chưa coi là xong. Việc cần làm: đọc code, viết script test như GĐ3-5, sửa lỗi, rồi mới đánh `[x]`. Cần người dùng upload file `TỔNG HỢP_GVNN.xlsx` qua wizard để đối chiếu mục 5 (file nằm ở gốc repo, chưa theo dõi bởi git).
+**Bước tiếp theo:** Giai đoạn 7 (viết lại `vnpt_hrm_dashboard` thành dashboard GVNN, bỏ phụ thuộc HR). Trong working tree đang có thay đổi chưa commit ở `vnpt_hrm_dashboard` (kể cả file mới `models/edu_dashboard.py`) không phải của các phiên GVNN trước; đọc `git diff` và hỏi người dùng trước khi ghi đè.
+- **DB `gvnn` hiện chưa có dữ liệu import.** Mọi lần thử đều rollback. Người dùng tự import qua menu Cấu hình > Import Excel (cần restart web để nhận code, đã làm ngày 2026-10-09), sau đó đối chiếu theo bảng ở mục 5.
 - `edu.class.session_count` vẫn chưa làm.
 
 **Quy tắc làm việc:**
@@ -21,8 +22,11 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 - 2026-10-09: làm xong **Giai đoạn 3** (phiếu thu/chi, số buổi tuỳ chọn, giảm giá, hoàn tiền, in phiếu, số dư và cảnh báo học phí). Test bằng Odoo shell: 28/28 đạt (mặc định 20 buổi = 2.000.000 đ, đổi buổi ↔ tiền, giảm giá, hoàn tiền, trừ học phí theo mặt/vắng, ngưỡng out/low, số dư đầu kỳ bỏ phiếu cũ, Giáo vụ không được hoàn tiền, render PDF phiếu thu/chi). Đổi nhãn `edu.student.attendee_ids` thành "Lượt tham dự" để hết cảnh báo trùng nhãn. Đã đặt lại sequence phiếu thu/chi về 1 sau test.
 - 2026-10-09: commit GĐ1-3 (`c5af31b`, kèm code nháp GĐ4-6). Làm xong **Giai đoạn 4** (kỳ lương). Test bằng Odoo shell: 51/51 đạt (tính lương theo GV, buổi huỷ/vắng không tính, đối soát Agency lệch/khớp, chốt/khoá, chặn tạo-sửa-xoá buổi và HV trong tháng đã chốt, chặn chuyển buổi vào tháng đã chốt, chặn thêm/sửa/xoá đơn giá có hiệu lực trong tháng đã chốt, chỉ Admin mở khoá, ghi chatter, kỳ trùng tháng, render PDF đối soát Agency và lương GV trực tiếp). Đã thêm `period_id`/`locked` (tính, không lưu) vào `edu.session`.
 - 2026-10-09: commit GĐ4 (`523b60f`). Làm xong **Giai đoạn 5** (cảnh báo tuần, chi phí khác, báo cáo tài chính, export tuần). Code đã có sẵn từ trước, chỉ thêm nút "Xuất điểm danh tuần" trên danh sách buổi học (`display="always"`) và đổi thứ tự nạp `alert_report_views.xml` lên trước `session_views.xml` trong manifest. Test bằng Odoo shell: 47/47 đạt (ưu tiên đỏ/vàng/ổn, nghỉ 3 tuần, đề xuất ngưng ≥ 4 tuần, buổi huỷ/vắng/testing không tính giờ, chạy lại không trùng và giữ ghi chú liên hệ, nút Ngưng học, SQL view tài chính khớp tổng thu/lương/chi phí khác/doanh thu, Giáo vụ không xem được báo cáo tài chính, xlsx 1 sheet `2.ĐIỂM DANH` đúng cột và dữ liệu). Chạy lại t3/t4/t5: 28 + 51 + 47 đều đạt.
+- 2026-10-09: làm xong **Giai đoạn 6** (wizard import). Chạy thử trên file Excel thật (rollback, DB không đổi), khoảng 16 giây cho cả file. Sửa 1 lỗi: 20 dòng điểm danh có ngày lưu dạng chữ (`28/7/2026`) bị bỏ sót, nay đọc được và ghi vào log. Kiểm tra: chạy lại lần 2 không tạo thêm bản ghi nào; import theo khoảng 01/06-31/08 rồi chạy tiếp đến hết file không tạo trùng (886 buổi, 63 phiếu) và cho tổng số dư 60.918.333, đúng bằng Excel. Con số này khác 61.118.333 của lần import từ 01/01 vì buổi hủy 01/03/2026 nằm trước mốc 01/06 nên được gộp vào số dư đầu kỳ theo cách của Excel; chỉ import danh mục và học viên thì không tạo buổi hay phiếu; file sai trả về lỗi dễ hiểu; Giáo vụ không dùng được wizard. Đối chiếu mục 5: mọi chênh lệch đều có nguyên nhân (bảng trong mục 5), trừ 9,5 giờ GV.
 
 **Phát hiện kỹ thuật (cần nhớ):**
+- File gốc có ô ngày lưu dạng chữ (`28/7/2026`) và tên GV thừa dấu cách (`STEPHAN `). Excel xử lý hai trường hợp này sai (bỏ dòng, báo thiếu đơn giá); importer xử lý đúng nên tổng lệch so với Excel.
+- Máy host (Python 3.9) có `openpyxl` 3.1.5, đọc được công thức của file Excel khi cần; container thì không. Khi in tiếng Việt ra console Windows phải đặt `PYTHONIOENCODING=utf-8`.
 - `edu.student.name` bị viết hoa toàn bộ (`T5 A - AMY`); xlsx export và khớp tên khi import đều dùng dạng này.
 - `message_post` báo "Unable to send message, please configure the sender's email address" khi người dùng không có email (ví dụ admin mặc định). Dùng `sudo().message_post(..., author_id=env.user.partner_id.id)`, xem `EduPayrollPeriod._log`.
 - Field tính không lưu phụ thuộc bản ghi khác (như `edu.session.period_id`) không tự xoá cache khi kỳ lương đổi trong cùng giao dịch. Gọi `invalidate_model([...])`, xem `_invalidate_sessions`.
@@ -229,6 +233,27 @@ Lương theo tháng năm 2026:
 
 Có thể lệch nhỏ vì hệ thống mới không tính buổi đã hủy và HV vắng (Excel vẫn tính). Khi lệch phải ghi rõ nguyên nhân.
 
+### Kết quả đối chiếu thật (import file Excel ngày 2026-10-08, từ 01/01/2026, 2026-10-09)
+
+| Chỉ số | Excel | Hệ thống | Nguyên nhân lệch |
+|---|---|---|---|
+| HV đăng ký / còn học | 188 / 84 | 188 / 84 | khớp |
+| Thu năm 2026 | 292.898.333 | 292.898.333 | khớp |
+| Số buổi 2026 | 2.227 | 2.247 | +20 dòng có ngày lưu dạng chữ `28/7/2026` (dòng 5199-5219), Excel bỏ sót, hệ thống đọc được |
+| Số dư HV còn học | 60.918.333 | 61.118.333 | +200.000: buổi hủy dòng 3873 (01/03/2026, GV BELLA, HV Oliver và Andy), Excel vẫn trừ tiền |
+| Công nợ dự kiến | 64.091.666 | 64.291.666 | cùng +200.000 ở trên |
+| Lương T1, T2, T4, T5, T6 | | | khớp (lệch dưới 1 đ do làm tròn) |
+| Lương T3 | 18.577.500 | 18.675.000 | +97.500 = +165.000 (GV `LURICH` gộp vào `LUIRICH`, Excel không có đơn giá) − 67.500 (buổi hủy của BELLA, Excel vẫn trả) |
+| Lương T7 | 13.997.500 | 15.262.500 | +1.265.000 đúng bằng 20 dòng ngày dạng chữ ở trên |
+| Lương T8 | 14.311.667 | 16.231.667 | +1.920.000: GV `STEPHAN ` (thừa dấu cách) bị Excel báo "chưa có đơn giá" nên trả 0, hệ thống bỏ dấu cách và dùng đơn giá 240.000 |
+| Lương T9 | 7.946.250 | 8.786.250 | +840.000, cùng nguyên nhân STEPHAN |
+| Lương 2026 | 130.939.708 | 135.062.208 | tổng +4.122.500 = 97.500 + 1.265.000 + 1.920.000 + 840.000 |
+| Giờ GV 2026 | 1.069,075 | 1.078,575 | lệch 9,5 giờ, **chưa tách riêng nguyên nhân** |
+
+**Việc người dùng cần quyết định:** Excel có đang trả lương cho STEPHAN tháng 8 và 9 không (2.760.000 đ)? Excel đang ghi 0 vì lỗi dấu cách. Nếu thực tế chưa trả thì xem lại trước khi chốt lương hai tháng này.
+
+Dữ liệu cần biết: có 298 buổi trạng thái `done` mang cảnh báo "Giờ dạy = 0", ngày đến 26/09/2026. Phần lớn (khoảng 286) là dòng Excel để trống cột giờ HV và giờ GV, nên không trừ tiền HV và không tính lương. Khoảng 11 buổi có giờ HV nhưng giờ GV trống, nên HV bị trừ tiền còn GV không có lương. Giáo vụ nên rà soát cả hai nhóm.
+
 ## 6. Tiến độ
 
 - [x] Phân tích file Excel và chốt các quyết định (mục 1, 2)
@@ -238,7 +263,7 @@ Có thể lệch nhỏ vì hệ thống mới không tính buổi đã hủy và
 - [x] GĐ3: Thu học phí (số buổi tuỳ chọn, giảm giá, hoàn tiền), in phiếu thu/chi, số dư, cảnh báo học phí
 - [x] GĐ4: Kỳ lương (tính, chốt, khoá, mở khoá cho Admin), in bảng đối soát Agency và bảng lương GV trực tiếp
 - [x] GĐ5: Cảnh báo tuần (đề xuất ngưng học), chi phí khác, báo cáo tài chính (SQL view), export điểm danh tuần ra xlsx
-- [ ] GĐ6: Wizard import Excel, import từ 01/01/2026, đối chiếu với mục 5
+- [x] GĐ6: Wizard import Excel, import từ 01/01/2026, đối chiếu với mục 5
 - [ ] GĐ7: Viết lại `vnpt_hrm_dashboard` thành dashboard GVNN
 - [ ] GĐ8: Tạo DB `gvnn`, cài `edu_gvnn`, `vnpt_hrm_dashboard`, `muk_theme/*`, `edu_landing`, `vnpt_base` và kiểm tra lỗi
   - Sửa `command: -u vnpt_base` trong `docker-compose.yml` nếu cần.
