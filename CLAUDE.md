@@ -1,6 +1,8 @@
 # vn-hrm
 
-Odoo 17 HRM cho VNPT, chạy bằng Docker. Kèm addon `edu_landing` (landing page trung tâm tiếng Anh) dùng chung server.
+Odoo 17 chạy bằng Docker. Hiện dùng cho trung tâm luyện nói tiếng Anh với giáo viên nước ngoài (GVNN): module `edu_gvnn` thay file `TỔNG HỢP_GVNN.xlsx`, kèm `edu_landing` (landing page) dùng chung server. Phần HRM của VNPT là mã cũ, không còn dùng cho GVNN.
+
+> **Trạng thái:** `edu_gvnn` đã làm xong giai đoạn 1-8 và đang chạy trên DB `gvnn` (chưa có dữ liệu, chờ người dùng import file Excel). Đọc [docs/GVNN_PLAN.md](docs/GVNN_PLAN.md) trước khi sửa: có nghiệp vụ đã chốt, bảng đối chiếu với Excel và các phát hiện kỹ thuật. Cập nhật file đó khi nghiệp vụ hoặc tiến độ thay đổi.
 
 ## Chạy
 
@@ -16,11 +18,13 @@ docker compose logs -f web
 ## Cấu trúc
 
 - `custom-addons/`: code của dự án (mount vào `/mnt/extra-addons`).
-  - `vnpt_base`, `vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll`: nghiệp vụ HRM.
-  - `vnpt_hrm_dashboard`: client action OWL `owl.vnpt_hrm_dashboard`, trang chủ sau khi đăng nhập.
+  - `edu_gvnn`: nghiệp vụ GVNN (giáo viên và đơn giá, lớp, học viên, buổi học, thu học phí, kỳ lương, cảnh báo tuần, báo cáo tài chính, import/export Excel). Phụ thuộc `base`, `mail`, `web`, `vnpt_base`; không dùng `hr` hay `account`.
+  - `vnpt_hrm_dashboard`: dashboard GVNN (client action OWL `owl.vnpt_hrm_dashboard`, model `edu.dashboard`), trang chủ sau khi đăng nhập. Phụ thuộc `edu_gvnn`.
+  - `vnpt_base`: nền dùng chung (đăng nhập, tiêu đề, địa chỉ VN). Còn dùng.
+  - `vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll`: mã HRM cũ, **không còn dùng** và chưa xoá. Không cài chúng trên DB `gvnn`, và không để module mới phụ thuộc vào chúng. Hỏi người dùng trước khi xoá.
   - `muk_theme/*`: theme backend MuK, đã chỉnh sửa (sidebar, navbar, màu).
   - `edu_landing`: landing page Website, chỉ cần `website` + `website_crm` (Community).
-- `required-addons/`: addon Enterprise (`hr_payroll`, license OEEL-1), mount vào `/mnt/enterprise`.
+- `required-addons/`: addon Enterprise (`hr_payroll`, license OEEL-1), mount vào `/mnt/enterprise`. Chỉ phục vụ HRM cũ, GVNN không dùng.
 - `config/odoo.conf`: mount vào `/etc/odoo`.
 
 ## Lệnh thường dùng

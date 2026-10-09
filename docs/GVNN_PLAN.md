@@ -6,7 +6,11 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 
 ## 0. Bắt đầu từ đây
 
-**Bước tiếp theo:** Giai đoạn 8 (hoàn tất DB `gvnn`). DB `gvnn` đã tạo và đã cài `edu_gvnn`, `vnpt_hrm_dashboard`, `muk_theme/*`, `edu_landing`, `vnpt_base`; chưa còn việc cài đặt nào. Còn lại: sửa `command: -u vnpt_base` trong `docker-compose.yml` nếu cần, cập nhật `CLAUDE.md` cho đúng dự án GVNN, và gỡ `vnpt_hrm_attendance` đang được cài thừa trên `gvnn` (không module nào phụ thuộc nó, `depends` rỗng). Sau đó hỏi người dùng có xoá các module `vnpt_hrm*` và `required-addons/hr_payroll` không.
+**Bước tiếp theo:** các giai đoạn 1-8 đã xong. Còn lại chỉ là việc của người dùng và một câu hỏi:
+1. Người dùng import dữ liệu thật vào DB `gvnn` (Cấu hình > Import Excel), đối chiếu theo bảng ở mục 5, rồi chạy "Cảnh báo tuần" và chốt các kỳ lương sau khi đối soát.
+2. Quyết định về lương `STEPHAN` tháng 8-9 (xem mục 5) và rà soát ~298 buổi "Giờ dạy = 0".
+3. Hỏi người dùng có xoá các module `vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll` và `required-addons/hr_payroll` không (mục Tiến độ, dòng cuối). Chưa xoá.
+- Đã gỡ `vnpt_hrm_attendance` khỏi DB `gvnn` ngày 2026-10-09: module rỗng, `auto_install: True` nên được cài kèm, không module nào phụ thuộc. Sau lần `-u` kế tiếp nó vẫn ở trạng thái chưa cài. Nếu tạo DB mới và nó tự cài lại, gỡ bằng `button_immediate_uninstall()`.
 - **DB `gvnn` hiện chưa có dữ liệu import.** Mọi lần thử đều rollback. Người dùng tự import qua menu Cấu hình > Import Excel (cần restart web để nhận code, đã làm ngày 2026-10-09), sau đó đối chiếu theo bảng ở mục 5.
 - Tiêu đề tab trình duyệt vẫn là "VNPT HRM - Trang chủ" vì `vnpt_base` đặt `web.base.title` mặc định. Đổi tại Thiết lập nếu muốn.
 - `edu.class.session_count` vẫn chưa làm.
@@ -25,6 +29,7 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 - 2026-10-09: commit GĐ4 (`523b60f`). Làm xong **Giai đoạn 5** (cảnh báo tuần, chi phí khác, báo cáo tài chính, export tuần). Code đã có sẵn từ trước, chỉ thêm nút "Xuất điểm danh tuần" trên danh sách buổi học (`display="always"`) và đổi thứ tự nạp `alert_report_views.xml` lên trước `session_views.xml` trong manifest. Test bằng Odoo shell: 47/47 đạt (ưu tiên đỏ/vàng/ổn, nghỉ 3 tuần, đề xuất ngưng ≥ 4 tuần, buổi huỷ/vắng/testing không tính giờ, chạy lại không trùng và giữ ghi chú liên hệ, nút Ngưng học, SQL view tài chính khớp tổng thu/lương/chi phí khác/doanh thu, Giáo vụ không xem được báo cáo tài chính, xlsx 1 sheet `2.ĐIỂM DANH` đúng cột và dữ liệu). Chạy lại t3/t4/t5: 28 + 51 + 47 đều đạt.
 - 2026-10-09: làm xong **Giai đoạn 6** (wizard import). Chạy thử trên file Excel thật (rollback, DB không đổi), khoảng 16 giây cho cả file. Sửa 1 lỗi: 20 dòng điểm danh có ngày lưu dạng chữ (`28/7/2026`) bị bỏ sót, nay đọc được và ghi vào log. Kiểm tra: chạy lại lần 2 không tạo thêm bản ghi nào; import theo khoảng 01/06-31/08 rồi chạy tiếp đến hết file không tạo trùng (886 buổi, 63 phiếu) và cho tổng số dư 60.918.333, đúng bằng Excel. Con số này khác 61.118.333 của lần import từ 01/01 vì buổi hủy 01/03/2026 nằm trước mốc 01/06 nên được gộp vào số dư đầu kỳ theo cách của Excel; chỉ import danh mục và học viên thì không tạo buổi hay phiếu; file sai trả về lỗi dễ hiểu; Giáo vụ không dùng được wizard. Đối chiếu mục 5: mọi chênh lệch đều có nguyên nhân (bảng trong mục 5), trừ 9,5 giờ GV.
 - 2026-10-09: làm xong **Giai đoạn 7** (dashboard GVNN), tiếp tục từ bản viết dở có sẵn trong working tree (backend `edu.dashboard`, OWL, SCSS). `vnpt_hrm_dashboard` nay chỉ phụ thuộc `edu_gvnn`, đã xoá `hr_employee.py`. Bổ sung biểu đồ thu chi theo năm và biểu đồ loại cảnh báo. Kiểm tra bằng Chrome headless trên DB tạm `gvnn_ui` (đã xoá) có dữ liệu import thật: 5 thẻ KPI, 7 bộ đếm cảnh báo, bảng 8 học viên ưu tiên, 3 biểu đồ, không lỗi console, không cuộn ngang, click cảnh báo mở đúng danh sách; Giáo vụ không thấy số liệu tài chính. Đã chạy lại t3/t4/t5 (28 + 51 + 47) và `-u` không lỗi.
+- 2026-10-09: làm xong **Giai đoạn 8**. DB `gvnn` có 41 module cài (`edu_gvnn`, `vnpt_hrm_dashboard`, `muk_web_*`, `edu_landing`, `vnpt_base` cùng phụ thuộc), `-u edu_gvnn,vnpt_hrm_dashboard` không lỗi, bundle `web.assets_frontend` và `web.assets_backend` không có `css_error_message`, landing page và 5 menu neo vẫn nguyên, user mới có trang chủ mặc định là dashboard. `hr`, `vnpt_hrm` chưa từng được cài. Gỡ `vnpt_hrm_attendance` (rỗng) khỏi `gvnn`. Cập nhật `CLAUDE.md` cho đúng dự án GVNN. Test t3/t4/t5 (28 + 51 + 47) đạt trên trạng thái cuối; DB không còn dữ liệu hay user thử.
 
 **Phát hiện kỹ thuật (cần nhớ):**
 - `edu.week.alert` là ảnh chụp lúc tạo nên có thể cũ so với học viên (nhiều học viên lệch số dư/cảnh báo học phí sau khi import). Dashboard gọi `_generate(week)` mỗi lần mở để số liệu khớp. Danh sách cảnh báo mở từ menu vẫn là bản đã tạo, cần chạy lại "Cảnh báo tuần" để cập nhật.
@@ -270,6 +275,6 @@ Dữ liệu cần biết: có 298 buổi trạng thái `done` mang cảnh báo "
 - [x] GĐ5: Cảnh báo tuần (đề xuất ngưng học), chi phí khác, báo cáo tài chính (SQL view), export điểm danh tuần ra xlsx
 - [x] GĐ6: Wizard import Excel, import từ 01/01/2026, đối chiếu với mục 5
 - [x] GĐ7: Viết lại `vnpt_hrm_dashboard` thành dashboard GVNN
-- [ ] GĐ8: Tạo DB `gvnn`, cài `edu_gvnn`, `vnpt_hrm_dashboard`, `muk_theme/*`, `edu_landing`, `vnpt_base` và kiểm tra lỗi
-  - Sửa `command: -u vnpt_base` trong `docker-compose.yml` nếu cần.
+- [x] GĐ8: Tạo DB `gvnn`, cài `edu_gvnn`, `vnpt_hrm_dashboard`, `muk_theme/*`, `edu_landing`, `vnpt_base` và kiểm tra lỗi
+  - `command: -u vnpt_base` trong `docker-compose.yml` giữ nguyên: nâng cấp `vnpt_base` mỗi lần khởi động chạy sạch (đã xem log), không ảnh hưởng `gvnn`.
 - [ ] (Sau này) xoá các module thừa `vnpt_hrm*`, `required-addons/hr_payroll`. Người dùng đã nói chưa xoá.
