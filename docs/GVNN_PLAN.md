@@ -6,7 +6,7 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 
 ## 0. Bắt đầu từ đây
 
-**Bước tiếp theo:** Giai đoạn 5 (cảnh báo tuần, chi phí khác, báo cáo tài chính, export tuần). **Lưu ý:** thư mục `edu_gvnn` đã có sẵn code viết trước cho GĐ5 và GĐ6 (`edu_week_alert`, `edu_other_expense`, `edu_report_finance`, `edu_export_week_wizard`, `edu_week_alert_wizard`, `edu_import_wizard`, các view tương ứng) và module vẫn nâng cấp được không lỗi. Nhưng **chưa có test nào** cho các phần này, nên chưa coi là xong. Việc cần làm ở mỗi giai đoạn là đọc code có sẵn, viết script test như GĐ3/GĐ4, sửa lỗi, rồi mới đánh `[x]`.
+**Bước tiếp theo:** Giai đoạn 6 (wizard import Excel, import từ 01/01/2026, đối chiếu mục 5). **Lưu ý:** `wizard/edu_import_wizard.py` (455 dòng) và `views/import_views.xml` đã có sẵn nhưng **chưa có test nào**, nên chưa coi là xong. Việc cần làm: đọc code, viết script test như GĐ3-5, sửa lỗi, rồi mới đánh `[x]`. Cần người dùng upload file `TỔNG HỢP_GVNN.xlsx` qua wizard để đối chiếu mục 5 (file nằm ở gốc repo, chưa theo dõi bởi git).
 - `edu.class.session_count` vẫn chưa làm.
 
 **Quy tắc làm việc:**
@@ -20,8 +20,10 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 - 2026-10-08: làm xong **Giai đoạn 2** (buổi học, điểm danh, tính lương, cảnh báo buổi, chặn sửa đơn giá đã dùng). Test bằng Odoo shell: 31/31 kiểm tra đạt (lương, trừ học phí theo mặt/vắng, nghỉ buổi, testing, trùng buổi, đơn giá đổi, quyền Giáo vụ).
 - 2026-10-09: làm xong **Giai đoạn 3** (phiếu thu/chi, số buổi tuỳ chọn, giảm giá, hoàn tiền, in phiếu, số dư và cảnh báo học phí). Test bằng Odoo shell: 28/28 đạt (mặc định 20 buổi = 2.000.000 đ, đổi buổi ↔ tiền, giảm giá, hoàn tiền, trừ học phí theo mặt/vắng, ngưỡng out/low, số dư đầu kỳ bỏ phiếu cũ, Giáo vụ không được hoàn tiền, render PDF phiếu thu/chi). Đổi nhãn `edu.student.attendee_ids` thành "Lượt tham dự" để hết cảnh báo trùng nhãn. Đã đặt lại sequence phiếu thu/chi về 1 sau test.
 - 2026-10-09: commit GĐ1-3 (`c5af31b`, kèm code nháp GĐ4-6). Làm xong **Giai đoạn 4** (kỳ lương). Test bằng Odoo shell: 51/51 đạt (tính lương theo GV, buổi huỷ/vắng không tính, đối soát Agency lệch/khớp, chốt/khoá, chặn tạo-sửa-xoá buổi và HV trong tháng đã chốt, chặn chuyển buổi vào tháng đã chốt, chặn thêm/sửa/xoá đơn giá có hiệu lực trong tháng đã chốt, chỉ Admin mở khoá, ghi chatter, kỳ trùng tháng, render PDF đối soát Agency và lương GV trực tiếp). Đã thêm `period_id`/`locked` (tính, không lưu) vào `edu.session`.
+- 2026-10-09: commit GĐ4 (`523b60f`). Làm xong **Giai đoạn 5** (cảnh báo tuần, chi phí khác, báo cáo tài chính, export tuần). Code đã có sẵn từ trước, chỉ thêm nút "Xuất điểm danh tuần" trên danh sách buổi học (`display="always"`) và đổi thứ tự nạp `alert_report_views.xml` lên trước `session_views.xml` trong manifest. Test bằng Odoo shell: 47/47 đạt (ưu tiên đỏ/vàng/ổn, nghỉ 3 tuần, đề xuất ngưng ≥ 4 tuần, buổi huỷ/vắng/testing không tính giờ, chạy lại không trùng và giữ ghi chú liên hệ, nút Ngưng học, SQL view tài chính khớp tổng thu/lương/chi phí khác/doanh thu, Giáo vụ không xem được báo cáo tài chính, xlsx 1 sheet `2.ĐIỂM DANH` đúng cột và dữ liệu). Chạy lại t3/t4/t5: 28 + 51 + 47 đều đạt.
 
 **Phát hiện kỹ thuật (cần nhớ):**
+- `edu.student.name` bị viết hoa toàn bộ (`T5 A - AMY`); xlsx export và khớp tên khi import đều dùng dạng này.
 - `message_post` báo "Unable to send message, please configure the sender's email address" khi người dùng không có email (ví dụ admin mặc định). Dùng `sudo().message_post(..., author_id=env.user.partner_id.id)`, xem `EduPayrollPeriod._log`.
 - Field tính không lưu phụ thuộc bản ghi khác (như `edu.session.period_id`) không tự xoá cache khi kỳ lương đổi trong cùng giao dịch. Gọi `invalidate_model([...])`, xem `_invalidate_sessions`.
 - Khi render PDF trong shell, log có cảnh báo `wkhtmltopdf ... ContentNotFoundError`. Vô hại, PDF vẫn được tạo (đã kiểm tra bằng `%PDF`).
@@ -235,7 +237,7 @@ Có thể lệch nhỏ vì hệ thống mới không tính buổi đã hủy và
 - [x] GĐ2: `edu.session` (lesson/testing, Nghỉ buổi học/Khôi phục) và attendee (nút Đánh nghỉ), tính lương, cảnh báo buổi. **Chưa làm:** `period_id`/khoá theo kỳ lương (GĐ4), `import_key` (GĐ6).
 - [x] GĐ3: Thu học phí (số buổi tuỳ chọn, giảm giá, hoàn tiền), in phiếu thu/chi, số dư, cảnh báo học phí
 - [x] GĐ4: Kỳ lương (tính, chốt, khoá, mở khoá cho Admin), in bảng đối soát Agency và bảng lương GV trực tiếp
-- [ ] GĐ5: Cảnh báo tuần (đề xuất ngưng học), chi phí khác, báo cáo tài chính (SQL view), export điểm danh tuần ra xlsx
+- [x] GĐ5: Cảnh báo tuần (đề xuất ngưng học), chi phí khác, báo cáo tài chính (SQL view), export điểm danh tuần ra xlsx
 - [ ] GĐ6: Wizard import Excel, import từ 01/01/2026, đối chiếu với mục 5
 - [ ] GĐ7: Viết lại `vnpt_hrm_dashboard` thành dashboard GVNN
 - [ ] GĐ8: Tạo DB `gvnn`, cài `edu_gvnn`, `vnpt_hrm_dashboard`, `muk_theme/*`, `edu_landing`, `vnpt_base` và kiểm tra lỗi

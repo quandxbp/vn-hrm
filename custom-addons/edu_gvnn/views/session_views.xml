@@ -6,6 +6,10 @@
         <field name="arch" type="xml">
             <tree decoration-muted="state == 'cancel'" decoration-danger="state == 'done' and warning != 'ok'"
                   decoration-info="session_type == 'testing' and state == 'done'">
+                <header>
+                    <button name="%(action_edu_export_week_wizard)d" type="action" display="always"
+                            string="Xuất điểm danh tuần"/>
+                </header>
                 <field name="date"/>
                 <field name="weekday"/>
                 <field name="week_id"/>
