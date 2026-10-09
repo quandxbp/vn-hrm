@@ -98,7 +98,8 @@ class EduPayrollPeriod(models.Model):
             period._get_sessions().with_context(edu_payroll_internal=True).write({'paid': True})
             period.write({'state': 'locked', 'locked_by': self.env.user.id,
                           'locked_date': fields.Datetime.now()})
-            period.message_post(body='Đã chốt lương, khoá các buổi học trong tháng.')
+            period._invalidate_sessions()
+            period._log('Đã chốt lương, khoá các buổi học trong tháng.')
         return True
 
     def action_unlock(self):
@@ -109,12 +110,23 @@ class EduPayrollPeriod(models.Model):
                 continue
             period._get_sessions().with_context(edu_payroll_internal=True).write({'paid': False})
             period.write({'state': 'open', 'locked_by': False, 'locked_date': False})
-            period.message_post(body='Admin %s đã mở khoá kỳ lương.' % self.env.user.name)
+            period._invalidate_sessions()
+            period._log('Admin %s đã mở khoá kỳ lương.' % self.env.user.name)
         return True
+
+    def _log(self, body):
+        """Ghi chatter dưới tên người thao tác; không đòi người dùng phải có email."""
+        self.ensure_one()
+        self.sudo().message_post(body=body, author_id=self.env.user.partner_id.id)
+
+    def _invalidate_sessions(self):
+        """`edu.session.period_id/locked` không lưu: xoá cache khi kỳ lương đổi trong cùng giao dịch."""
+        self.env['edu.session'].invalidate_model(['period_id', 'locked'])
 
     @api.model_create_multi
     def create(self, vals_list):
         periods = super().create(vals_list)
+        periods._invalidate_sessions()
         periods.action_compute()
         return periods
 

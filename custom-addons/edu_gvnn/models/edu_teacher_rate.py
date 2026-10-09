@@ -31,8 +31,20 @@ class EduTeacherRate(models.Model):
                     'Giáo viên %s đã có buổi đã trả lương từ %s, không sửa hoặc xoá đơn giá này. '
                     'Hãy thêm một dòng đơn giá mới.' % (rate.teacher_id.name, rate.date_from))
 
+    @api.model
+    def _check_month_open(self, dates):
+        """Không thêm, sửa, xoá đơn giá có ngày hiệu lực nằm trong tháng đã chốt lương."""
+        Period = self.env['edu.payroll.period'].sudo()
+        for date in filter(None, dates):
+            if Period.search_count([
+                    ('state', '=', 'locked'), ('date_from', '<=', date), ('date_to', '>=', date)]):
+                raise UserError(
+                    'Tháng của ngày %s đã chốt lương, không thêm, sửa hoặc xoá đơn giá có hiệu lực '
+                    'trong tháng này. Hãy thêm đơn giá mới với ngày hiệu lực ở tháng chưa chốt.' % date)
+
     @api.model_create_multi
     def create(self, vals_list):
+        self._check_month_open([v.get('date_from') for v in vals_list])
         rates = super().create(vals_list)
         rates._recompute_sessions()
         return rates
@@ -40,6 +52,7 @@ class EduTeacherRate(models.Model):
     def write(self, vals):
         if {'rate', 'date_from', 'teacher_id'} & set(vals):
             self._check_not_paid()
+            self._check_month_open(self.mapped('date_from') + [vals.get('date_from')])
         old = [(r.teacher_id, r.date_from) for r in self]
         res = super().write(vals)
         for teacher, date_from in old:
@@ -49,6 +62,7 @@ class EduTeacherRate(models.Model):
 
     def unlink(self):
         self._check_not_paid()
+        self._check_month_open(self.mapped('date_from'))
         old = [(r.teacher_id, r.date_from) for r in self]
         res = super().unlink()
         for teacher, date_from in old:

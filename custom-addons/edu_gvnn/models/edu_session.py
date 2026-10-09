@@ -39,6 +39,9 @@ class EduSession(models.Model):
     video_posted = fields.Boolean('Đã đăng video')
     extra_participants = fields.Char('Người tham gia khác')
     paid = fields.Boolean('Đã chốt lương', copy=False, readonly=True)
+    period_id = fields.Many2one(
+        'edu.payroll.period', 'Kỳ lương', compute='_compute_period', groups='edu_gvnn.group_edu_manager')
+    locked = fields.Boolean('Tháng đã chốt', compute='_compute_period')
     import_key = fields.Char('Khoá import', copy=False, index=True)
 
     _sql_constraints = [
@@ -60,6 +63,15 @@ class EduSession(models.Model):
         Week = self.env['edu.week']
         for rec in self:
             rec.week_id = Week._get_week(rec.date) if rec.date else False
+
+    @api.depends('date', 'paid')
+    def _compute_period(self):
+        Period = self.env['edu.payroll.period'].sudo()
+        for rec in self:
+            period = Period.search([('date_from', '<=', rec.date), ('date_to', '>=', rec.date)], limit=1) \
+                if rec.date else Period
+            rec.period_id = period
+            rec.locked = bool(period) and period.state == 'locked'
 
     @api.depends('date')
     def _compute_weekday(self):
