@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_edu_gvnn" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.edu_gvnn</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="70"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Trung tâm GVNN" string="Trung tâm GVNN" name="edu_gvnn"
+                     groups="edu_gvnn.group_edu_manager">
+                    <block title="Học phí" name="edu_fee_block">
+                        <setting string="Số phút mỗi buổi"
+                                 help="Thời lượng một buổi (block), dùng để quy đổi giờ học ra số buổi.">
+                            <field name="edu_block_minutes"/>
+                        </setting>
+                        <setting string="Đơn giá mỗi buổi (đ)"
+                                 help="Đơn giá mặc định, sửa riêng được cho từng học viên trong từng buổi.">
+                            <field name="edu_block_price"/>
+                        </setting>
+                        <setting string="Số buổi mặc định trên phiếu thu"
+                                 help="Phụ huynh chọn số buổi khi đóng tiền, số này chỉ là giá trị gợi ý.">
+                            <field name="edu_default_blocks"/>
+                        </setting>
+                        <setting string="Ngưỡng hết học phí (đ)"
+                                 help="Số dư nhỏ hơn mức này thì cảnh báo hết học phí.">
+                            <field name="edu_fee_out_threshold"/>
+                        </setting>
+                        <setting string="Ngưỡng gần hết học phí (đ)"
+                                 help="Số dư nhỏ hơn mức này thì cảnh báo gần hết học phí.">
+                            <field name="edu_fee_low_threshold"/>
+                        </setting>
+                    </block>
+                    <block title="Cảnh báo tuần" name="edu_alert_block">
+                        <setting string="Số tuần nghỉ liên tiếp để cảnh báo đỏ">
+                            <field name="edu_absent_weeks"/>
+                        </setting>
+                        <setting string="Số tuần nghỉ để gợi ý ngưng học">
+                            <field name="edu_stop_suggest_weeks"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_edu_config_settings" model="ir.actions.act_window">
+        <field name="name">Thiết lập</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'edu_gvnn', 'bin_size': False}</field>
+    </record>
+</odoo>

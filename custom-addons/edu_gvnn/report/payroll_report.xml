@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_edu_payroll" model="report.paperformat">
+        <field name="name">Bảng lương A4 ngang</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">12</field>
+        <field name="margin_bottom">12</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_spacing">0</field>
+    </record>
+
+    <record id="action_report_edu_payroll_agency" model="ir.actions.report">
+        <field name="name">Bảng đối soát Agency</field>
+        <field name="model">edu.payroll.period</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_gvnn.report_payroll_agency</field>
+        <field name="report_file">edu_gvnn.report_payroll_agency</field>
+        <field name="print_report_name">'Doi soat Agency - %s' % object.name</field>
+        <field name="paperformat_id" ref="paperformat_edu_payroll"/>
+        <field name="binding_model_id" ref="model_edu_payroll_period"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_edu_payroll_direct" model="ir.actions.report">
+        <field name="name">Bảng lương GV trực tiếp</field>
+        <field name="model">edu.payroll.period</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_gvnn.report_payroll_direct</field>
+        <field name="report_file">edu_gvnn.report_payroll_direct</field>
+        <field name="print_report_name">'Luong GV truc tiep - %s' % object.name</field>
+        <field name="paperformat_id" ref="paperformat_edu_payroll"/>
+        <field name="binding_model_id" ref="model_edu_payroll_period"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="payroll_report_body">
+        <div class="page" style="font-size: 12px;">
+            <h3 class="text-center" t-esc="title"/>
+            <p class="text-center">
+                <t t-if="subtitle"><span t-esc="subtitle"/> - </t>
+                Tháng <span t-esc="o.date_from.strftime('%m/%Y')"/>
+                (<span t-esc="o.date_from.strftime('%d/%m/%Y')"/> - <span t-esc="o.date_to.strftime('%d/%m/%Y')"/>)
+            </p>
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Giáo viên</th>
+                        <th class="text-end">Số buổi</th>
+                        <th class="text-end">Số giờ</th>
+                        <th class="text-end">Đơn giá cuối tháng (đ/giờ)</th>
+                        <th class="text-end">Thành tiền (đ)</th>
+                        <t t-if="with_agency">
+                            <th class="text-end">Giờ Agency</th>
+                            <th class="text-end">Tiền Agency (đ)</th>
+                            <th class="text-end">Lệch giờ</th>
+                            <th class="text-end">Lệch tiền (đ)</th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="lines" t-as="line">
+                        <tr>
+                            <td><span t-esc="line_index + 1"/></td>
+                            <td><span t-esc="line.teacher_id.name"/></td>
+                            <td class="text-end"><span t-esc="line.session_count"/></td>
+                            <td class="text-end"><span t-esc="'{:,.2f}'.format(line.hours)"/></td>
+                            <td class="text-end"><span t-esc="'{:,.0f}'.format(line.rate_end_month)"/></td>
+                            <td class="text-end"><span t-esc="'{:,.0f}'.format(line.amount)"/></td>
+                            <t t-if="with_agency">
+                                <td class="text-end"><span t-esc="'{:,.2f}'.format(line.agency_hours)"/></td>
+                                <td class="text-end"><span t-esc="'{:,.0f}'.format(line.agency_amount)"/></td>
+                                <td class="text-end"><span t-esc="'{:,.2f}'.format(line.diff_hours)"/></td>
+                                <td class="text-end"><span t-esc="'{:,.0f}'.format(line.diff_amount)"/></td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2">Tổng</th>
+                        <th class="text-end"><span t-esc="sum(lines.mapped('session_count'))"/></th>
+                        <th class="text-end"><span t-esc="'{:,.2f}'.format(sum(lines.mapped('hours')))"/></th>
+                        <th/>
+                        <th class="text-end"><span t-esc="'{:,.0f}'.format(sum(lines.mapped('amount')))"/></th>
+                        <t t-if="with_agency">
+                            <th class="text-end"><span t-esc="'{:,.2f}'.format(sum(lines.mapped('agency_hours')))"/></th>
+                            <th class="text-end"><span t-esc="'{:,.0f}'.format(sum(lines.mapped('agency_amount')))"/></th>
+                            <th class="text-end"><span t-esc="'{:,.2f}'.format(sum(lines.mapped('diff_hours')))"/></th>
+                            <th class="text-end"><span t-esc="'{:,.0f}'.format(sum(lines.mapped('diff_amount')))"/></th>
+                        </t>
+                    </tr>
+                </tfoot>
+            </table>
+            <t t-foreach="lines.filtered(lambda l: l.session_count)" t-as="line">
+                <div style="page-break-before: always;">
+                    <h5>Chi tiết buổi dạy: <span t-esc="line.teacher_id.name"/> - tháng <span t-esc="o.date_from.strftime('%m/%Y')"/></h5>
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Giờ bắt đầu</th>
+                                <th>Giờ kết thúc</th>
+                                <th>Loại buổi</th>
+                                <th class="text-end">Giờ tính lương</th>
+                                <th class="text-end">Đơn giá (đ/giờ)</th>
+                                <th class="text-end">Thành tiền (đ)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="o._get_sessions(line.teacher_id).filtered(lambda s: s.paid_hours > 0)" t-as="s">
+                                <tr>
+                                    <td><span t-esc="s.date.strftime('%d/%m/%Y')"/></td>
+                                    <td><span t-esc="'%02d:%02d' % (int(s.time_start), round((s.time_start % 1) * 60)) if (s.time_start or s.time_end) else ''"/></td>
+                                    <td><span t-esc="'%02d:%02d' % (int(s.time_end), round((s.time_end % 1) * 60)) if (s.time_start or s.time_end) else ''"/></td>
+                                    <td><span t-field="s.session_type"/></td>
+                                    <td class="text-end"><span t-esc="'{:,.2f}'.format(s.paid_hours)"/></td>
+                                    <td class="text-end"><span t-esc="'{:,.0f}'.format(s.teacher_rate)"/></td>
+                                    <td class="text-end"><span t-esc="'{:,.0f}'.format(s.teacher_amount)"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </div>
+    </template>
+
+    <template id="report_payroll_agency">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lines" t-value="o.line_ids.filtered(lambda l: l.teacher_type == 'agency' and (l.session_count or l.agency_hours or l.agency_amount))"/>
+                <t t-set="title" t-value="'BẢNG ĐỐI SOÁT GIỜ DẠY VÀ LƯƠNG GIÁO VIÊN'"/>
+                <t t-set="subtitle" t-value="', '.join(lines.mapped('agency_id.name'))"/>
+                <t t-set="with_agency" t-value="True"/>
+                <t t-call="edu_gvnn.payroll_report_body"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_payroll_direct">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lines" t-value="o.line_ids.filtered(lambda l: l.teacher_type == 'direct' and l.session_count)"/>
+                <t t-set="title" t-value="'BẢNG LƯƠNG GIÁO VIÊN LÀM VIỆC TRỰC TIẾP'"/>
+                <t t-set="subtitle" t-value="False"/>
+                <t t-set="with_agency" t-value="False"/>
+                <t t-call="edu_gvnn.payroll_report_body"/>
+            </t>
+        </t>
+    </template>
+</odoo>

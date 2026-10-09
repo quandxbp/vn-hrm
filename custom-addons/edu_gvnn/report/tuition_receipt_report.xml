@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_edu_receipt" model="report.paperformat">
+        <field name="name">Phiếu thu A5</field>
+        <field name="format">A5</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">12</field>
+        <field name="margin_bottom">12</field>
+        <field name="margin_left">12</field>
+        <field name="margin_right">12</field>
+        <field name="header_spacing">0</field>
+    </record>
+
+    <record id="action_report_edu_tuition_receipt" model="ir.actions.report">
+        <field name="name">Phiếu thu / chi học phí</field>
+        <field name="model">edu.tuition.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_gvnn.report_tuition_receipt</field>
+        <field name="report_file">edu_gvnn.report_tuition_receipt</field>
+        <field name="print_report_name">'%s' % object.ref</field>
+        <field name="paperformat_id" ref="paperformat_edu_receipt"/>
+        <field name="binding_model_id" ref="model_edu_tuition_payment"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_tuition_receipt">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                <div class="page" style="font-size: 14px;">
+                    <div class="row">
+                        <div class="col-8">
+                            <strong t-esc="o.env.company.name"/>
+                        </div>
+                        <div class="col-4 text-end">
+                            Số: <strong t-field="o.ref"/>
+                        </div>
+                    </div>
+                    <h2 class="text-center mt16 mb4">
+                        <t t-if="o.payment_type == 'refund'">PHIẾU CHI</t>
+                        <t t-else="">PHIẾU THU</t>
+                    </h2>
+                    <p class="text-center mb16">Ngày <span t-field="o.date" t-options="{'format': 'dd/MM/yyyy'}"/></p>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td style="width: 28%">
+                                <t t-if="o.payment_type == 'refund'">Người nhận tiền:</t>
+                                <t t-else="">Người nộp tiền:</t>
+                            </td>
+                            <td><span t-esc="o.payer_name or o.student_id.parent_name or o.student_id.name"/></td>
+                        </tr>
+                        <tr>
+                            <td>Học viên:</td>
+                            <td><span t-field="o.student_id.code"/> - <span t-field="o.student_id.name"/></td>
+                        </tr>
+                        <tr>
+                            <td>Lý do:</td>
+                            <td>
+                                <t t-if="o.payment_type == 'refund'">Hoàn tiền học phí</t>
+                                <t t-else="">Học phí <span t-esc="'%g' % o.blocks"/> buổi</t>
+                                <t t-if="o.note"> (<span t-field="o.note"/>)</t>
+                            </td>
+                        </tr>
+                        <tr t-if="o.discount_amount">
+                            <td>Thành tiền / giảm giá:</td>
+                            <td>
+                                <span t-esc="'{:,.0f}'.format(o.gross_amount)"/> đ
+                                / <span t-esc="'{:,.0f}'.format(o.discount_amount)"/> đ
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Số tiền:</td>
+                            <td><strong t-esc="'{:,.0f}'.format(abs(o.amount))"/> đ
+                                (<span t-field="o.method"/>)</td>
+                        </tr>
+                        <tr>
+                            <td>Bằng chữ:</td>
+                            <td><em t-esc="o.amount_text"/></td>
+                        </tr>
+                    </table>
+                    <div class="row mt32 text-center">
+                        <div class="col-4"><strong>Người lập phiếu</strong><br/><small>(Ký, họ tên)</small></div>
+                        <div class="col-4"><strong>Người nộp / nhận tiền</strong><br/><small>(Ký, họ tên)</small></div>
+                        <div class="col-4"><strong>Quản lý</strong><br/><small>(Ký, họ tên)</small></div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

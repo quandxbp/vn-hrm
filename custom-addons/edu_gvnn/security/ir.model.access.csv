@@ -1,0 +1,27 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edu_teacher_staff,edu.teacher staff,model_edu_teacher,group_edu_staff,1,0,0,0
+access_edu_teacher_manager,edu.teacher manager,model_edu_teacher,group_edu_manager,1,1,1,1
+access_edu_teacher_rate_manager,edu.teacher.rate manager,model_edu_teacher_rate,group_edu_manager,1,1,1,1
+access_edu_class_staff,edu.class staff,model_edu_class,group_edu_staff,1,1,1,0
+access_edu_class_manager,edu.class manager,model_edu_class,group_edu_manager,1,1,1,1
+access_edu_week_staff,edu.week staff,model_edu_week,group_edu_staff,1,0,0,0
+access_edu_week_manager,edu.week manager,model_edu_week,group_edu_manager,1,1,1,1
+access_edu_student_staff,edu.student staff,model_edu_student,group_edu_staff,1,1,1,0
+access_edu_student_manager,edu.student manager,model_edu_student,group_edu_manager,1,1,1,1
+access_edu_expense_category_staff,edu.expense.category staff,model_edu_expense_category,group_edu_staff,1,0,0,0
+access_edu_expense_category_manager,edu.expense.category manager,model_edu_expense_category,group_edu_manager,1,1,1,1
+access_edu_session_staff,edu.session staff,model_edu_session,group_edu_staff,1,1,1,0
+access_edu_session_manager,edu.session manager,model_edu_session,group_edu_manager,1,1,1,1
+access_edu_session_attendee_staff,edu.session.attendee staff,model_edu_session_attendee,group_edu_staff,1,1,1,1
+access_edu_session_attendee_manager,edu.session.attendee manager,model_edu_session_attendee,group_edu_manager,1,1,1,1
+access_edu_tuition_payment_staff,edu.tuition.payment staff,model_edu_tuition_payment,group_edu_staff,1,1,1,0
+access_edu_tuition_payment_manager,edu.tuition.payment manager,model_edu_tuition_payment,group_edu_manager,1,1,1,1
+access_edu_payroll_period_manager,edu.payroll.period manager,model_edu_payroll_period,group_edu_manager,1,1,1,1
+access_edu_payroll_line_manager,edu.payroll.line manager,model_edu_payroll_line,group_edu_manager,1,1,1,1
+access_edu_other_expense_manager,edu.other.expense manager,model_edu_other_expense,group_edu_manager,1,1,1,1
+access_edu_week_alert_staff,edu.week.alert staff,model_edu_week_alert,group_edu_staff,1,1,0,0
+access_edu_week_alert_manager,edu.week.alert manager,model_edu_week_alert,group_edu_manager,1,1,1,1
+access_edu_report_finance_manager,edu.report.finance manager,model_edu_report_finance,group_edu_manager,1,0,0,0
+access_edu_week_alert_wizard_staff,edu.week.alert.wizard staff,model_edu_week_alert_wizard,group_edu_staff,1,1,1,1
+access_edu_export_week_wizard_staff,edu.export.week.wizard staff,model_edu_export_week_wizard,group_edu_staff,1,1,1,1
+access_edu_import_wizard_manager,edu.import.wizard manager,model_edu_import_wizard,group_edu_manager,1,1,1,1

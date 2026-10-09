@@ -1,0 +1,196 @@
+# -*- coding: utf-8 -*-
+from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
+WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+
+
+class EduSession(models.Model):
+    _name = 'edu.session'
+    _description = 'Buổi học'
+    _order = 'date desc, time_start desc, id desc'
+
+    date = fields.Date('Ngày', required=True, default=fields.Date.context_today, index=True)
+    week_id = fields.Many2one(
+        'edu.week', 'Tuần', compute='_compute_week', store=True, readonly=False, index=True)
+    weekday = fields.Selection(
+        [(d, d) for d in WEEKDAYS], string='Thứ', compute='_compute_weekday', store=True)
+    session_type = fields.Selection(
+        [('lesson', 'Buổi học'), ('testing', 'Buổi testing')],
+        string='Loại buổi', required=True, default='lesson', index=True)
+    teacher_id = fields.Many2one('edu.teacher', 'Giáo viên', required=True, index=True)
+    class_ids = fields.Many2many(
+        'edu.class', 'edu_session_class_rel', 'session_id', 'class_id', 'Lớp')
+    time_start = fields.Float('Giờ bắt đầu')
+    time_end = fields.Float('Giờ kết thúc')
+    minutes = fields.Float('Phút', compute='_compute_minutes', store=True, readonly=False)
+    student_hours = fields.Float(
+        'Giờ tính cho HV', compute='_compute_hours', store=True, readonly=False)
+    teacher_hours = fields.Float(
+        'Giờ tính cho GV', compute='_compute_hours', store=True, readonly=False)
+    state = fields.Selection(
+        [('done', 'Đã dạy'), ('cancel', 'Nghỉ buổi học')],
+        string='Trạng thái', required=True, default='done', index=True)
+    attendee_ids = fields.One2many('edu.session.attendee', 'session_id', 'Học viên')
+    student_names = fields.Char('Danh sách học viên', compute='_compute_student_names')
+    completion_note = fields.Char('Hoàn thành / ghi chú nhanh')
+    note = fields.Text('Ghi chú')
+    recording_url = fields.Char('Recording')
+    video_posted = fields.Boolean('Đã đăng video')
+    extra_participants = fields.Char('Người tham gia khác')
+    paid = fields.Boolean('Đã chốt lương', copy=False, readonly=True)
+    import_key = fields.Char('Khoá import', copy=False, index=True)
+
+    _sql_constraints = [
+        ('import_key_uniq', 'unique(import_key)', 'Buổi học này đã được import.'),
+    ]
+    teacher_rate = fields.Float(
+        'Đơn giá GV (đ/giờ)', digits=(16, 0), copy=False, groups='edu_gvnn.group_edu_manager')
+    paid_hours = fields.Float('Giờ tính lương', compute='_compute_paid_hours', store=True)
+    teacher_amount = fields.Float(
+        'Lương buổi (đ)', digits=(16, 2), compute='_compute_teacher_amount', store=True,
+        groups='edu_gvnn.group_edu_manager')
+    warning = fields.Selection(
+        [('ok', 'OK'), ('zero_hours', 'Giờ dạy = 0'), ('no_rate', 'Chưa có đơn giá'),
+         ('duplicate', 'Trùng buổi'), ('no_student', 'Thiếu học viên')],
+        string='Cảnh báo', compute='_compute_warning', store=True, index=True)
+
+    @api.depends('date')
+    def _compute_week(self):
+        Week = self.env['edu.week']
+        for rec in self:
+            rec.week_id = Week._get_week(rec.date) if rec.date else False
+
+    @api.depends('date')
+    def _compute_weekday(self):
+        for rec in self:
+            rec.weekday = WEEKDAYS[rec.date.weekday()] if rec.date else False
+
+    @api.depends('time_start', 'time_end')
+    def _compute_minutes(self):
+        for rec in self:
+            diff = ((rec.time_end - rec.time_start) * 60) % 1440 if (rec.time_start or rec.time_end) else 0
+            rec.minutes = round(diff, 2) if diff > 0 else 30.0
+
+    @api.depends('minutes')
+    def _compute_hours(self):
+        for rec in self:
+            rec.student_hours = rec.teacher_hours = rec.minutes / 60.0
+
+    @api.depends('attendee_ids.student_id', 'attendee_ids.present')
+    def _compute_student_names(self):
+        for rec in self:
+            rec.student_names = ', '.join(
+                a.student_id.name + ('' if a.present else ' (nghỉ)') for a in rec.attendee_ids)
+
+    @api.depends('state', 'session_type', 'teacher_hours', 'attendee_ids.present')
+    def _compute_paid_hours(self):
+        for rec in self:
+            if rec.state != 'done':
+                rec.paid_hours = 0.0
+            elif rec.session_type == 'testing' or any(rec.attendee_ids.mapped('present')):
+                rec.paid_hours = rec.teacher_hours
+            else:
+                rec.paid_hours = 0.0
+
+    @api.depends('paid_hours', 'teacher_rate')
+    def _compute_teacher_amount(self):
+        for rec in self:
+            rec.teacher_amount = rec.paid_hours * rec.teacher_rate
+
+    @api.depends('state', 'session_type', 'date', 'teacher_id', 'time_start', 'time_end',
+                 'teacher_hours', 'teacher_rate', 'attendee_ids')
+    def _compute_warning(self):
+        for rec in self:
+            rid = rec._origin.id
+            if rec.state == 'cancel':
+                rec.warning = 'ok'
+            elif rec.teacher_hours <= 0:
+                rec.warning = 'zero_hours'
+            elif not rec.teacher_rate:
+                rec.warning = 'no_rate'
+            elif (rec.time_start or rec.time_end) and self.search_count(
+                    [('date', '=', rec.date), ('teacher_id', '=', rec.teacher_id.id),
+                     ('time_start', '=', rec.time_start), ('state', '=', 'done')]
+                    + ([('id', '<', rid)] if rid else [])):
+                rec.warning = 'duplicate'
+            elif rec.session_type == 'lesson' and not rec.attendee_ids:
+                rec.warning = 'no_student'
+            else:
+                rec.warning = 'ok'
+
+    @api.depends('date', 'teacher_id')
+    def _compute_display_name(self):
+        for rec in self:
+            rec.display_name = '%s - %s' % (
+                rec.date.strftime('%d/%m/%Y') if rec.date else '', rec.teacher_id.name or '')
+
+    @api.constrains('session_type', 'attendee_ids', 'class_ids')
+    def _check_session_type(self):
+        for rec in self:
+            if rec.session_type == 'lesson' and len(rec.attendee_ids) > 2:
+                raise ValidationError('Buổi học thường chỉ có tối đa 2 học viên.')
+            if rec.session_type == 'testing':
+                if rec.attendee_ids:
+                    raise ValidationError('Buổi testing không nhập học viên, chỉ chọn lớp được test.')
+                if not rec.class_ids:
+                    raise ValidationError('Buổi testing cần chọn lớp được test.')
+
+    @api.onchange('time_start')
+    def _onchange_time_start(self):
+        if self.time_start and not self.time_end:
+            self.time_end = (self.time_start + (self.minutes or 30) / 60.0) % 24
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            self._check_period_open(vals.get('date') or fields.Date.context_today(self))
+        sessions = super().create(vals_list)
+        for session, vals in zip(sessions, vals_list):
+            if 'teacher_rate' not in vals:
+                session._update_teacher_rate()
+        return sessions
+
+    def write(self, vals):
+        if not self.env.context.get('edu_payroll_internal'):
+            self._check_not_locked()
+            if vals.get('date'):
+                self._check_period_open(vals['date'])
+        res = super().write(vals)
+        if ('teacher_id' in vals or 'date' in vals) and 'teacher_rate' not in vals:
+            self.filtered(lambda s: not s.paid)._update_teacher_rate()
+        return res
+
+    def unlink(self):
+        self._check_not_locked()
+        return super().unlink()
+
+    def _check_not_locked(self):
+        if any(self.mapped('paid')):
+            raise UserError('Buổi học thuộc kỳ lương đã chốt, không thể sửa. Admin có thể mở khoá kỳ lương.')
+
+    @api.model
+    def _check_period_open(self, date):
+        if self.env['edu.payroll.period'].sudo().search_count([
+                ('state', '=', 'locked'), ('date_from', '<=', date), ('date_to', '>=', date)]):
+            raise UserError('Tháng của ngày %s đã chốt lương, không thêm hoặc chuyển buổi học vào tháng này.' % date)
+
+    def _update_teacher_rate(self):
+        """Lấy đơn giá của GV tại ngày dạy. Buổi đã trả lương giữ nguyên đơn giá đã lưu."""
+        for rec in self.filtered(lambda s: not s.paid):
+            rate = rec.teacher_id._get_rate(rec.date) if rec.teacher_id and rec.date else 0.0
+            if rec.sudo().teacher_rate != rate:
+                rec.sudo().write({'teacher_rate': rate})
+
+    @api.model
+    def _recompute_rates(self, teacher, date_from):
+        """Tính lại đơn giá cho các buổi chưa trả lương của GV từ `date_from`, khi lịch sử đơn giá đổi."""
+        self.sudo().search([
+            ('teacher_id', '=', teacher.id), ('date', '>=', date_from), ('paid', '=', False),
+        ])._update_teacher_rate()
+
+    def action_cancel(self):
+        self.write({'state': 'cancel'})
+
+    def action_restore(self):
+        self.write({'state': 'done'})

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="param_block_minutes" model="ir.config_parameter">
+        <field name="key">edu_gvnn.block_minutes</field>
+        <field name="value">30</field>
+    </record>
+    <record id="param_block_price" model="ir.config_parameter">
+        <field name="key">edu_gvnn.block_price</field>
+        <field name="value">100000</field>
+    </record>
+    <record id="param_default_blocks" model="ir.config_parameter">
+        <field name="key">edu_gvnn.default_blocks</field>
+        <field name="value">20</field>
+    </record>
+    <record id="param_fee_out_threshold" model="ir.config_parameter">
+        <field name="key">edu_gvnn.fee_out_threshold</field>
+        <field name="value">1</field>
+    </record>
+    <record id="param_fee_low_threshold" model="ir.config_parameter">
+        <field name="key">edu_gvnn.fee_low_threshold</field>
+        <field name="value">300000</field>
+    </record>
+    <record id="param_absent_weeks" model="ir.config_parameter">
+        <field name="key">edu_gvnn.absent_weeks</field>
+        <field name="value">3</field>
+    </record>
+    <record id="param_stop_suggest_weeks" model="ir.config_parameter">
+        <field name="key">edu_gvnn.stop_suggest_weeks</field>
+        <field name="value">4</field>
+    </record>
+</odoo>

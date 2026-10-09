@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cảnh báo tuần -->
+    <record id="view_edu_week_alert_tree" model="ir.ui.view">
+        <field name="name">edu.week.alert.tree</field>
+        <field name="model">edu.week.alert</field>
+        <field name="arch" type="xml">
+            <tree create="0" editable="bottom"
+                  decoration-danger="priority in ('red_now', 'red')" decoration-warning="priority == 'yellow'">
+                <field name="student_id" readonly="1"/>
+                <field name="class_ids" widget="many2many_tags" readonly="1" optional="hide"/>
+                <field name="hours_n0" readonly="1"/>
+                <field name="hours_n1" readonly="1"/>
+                <field name="hours_n2" readonly="1"/>
+                <field name="absent_streak" readonly="1" optional="hide"/>
+                <field name="session_count" readonly="1" optional="hide"/>
+                <field name="last_session_date" readonly="1"/>
+                <field name="fee_warning" readonly="1"/>
+                <field name="balance" readonly="1"/>
+                <field name="remaining_blocks" readonly="1"/>
+                <field name="warning_sessions" readonly="1" optional="hide"/>
+                <field name="suggest_stop" readonly="1"/>
+                <field name="priority" readonly="1"/>
+                <field name="action" readonly="1" optional="hide"/>
+                <field name="contacted"/>
+                <field name="contact_note"/>
+                <field name="student_state" column_invisible="1"/>
+                <button name="action_stop_student" type="object" icon="fa-stop-circle" string="Ngưng học"
+                        invisible="student_state != 'studying'"
+                        confirm="Chuyển học viên sang trạng thái ngưng học?"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_edu_week_alert_search" model="ir.ui.view">
+        <field name="name">edu.week.alert.search</field>
+        <field name="model">edu.week.alert</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="student_id"/>
+                <field name="week_id"/>
+                <filter name="not_ok" string="Cần xử lý" domain="[('priority', '!=', 'ok')]"/>
+                <filter name="red" string="Ưu tiên đỏ" domain="[('priority', 'in', ('red_now', 'red'))]"/>
+                <filter name="yellow" string="Ưu tiên vàng" domain="[('priority', '=', 'yellow')]"/>
+                <separator/>
+                <filter name="absent" string="Nghỉ trong tuần" domain="[('absent', '=', True)]"/>
+                <filter name="absent_3w" string="Nghỉ nhiều tuần liên tiếp" domain="[('absent_3w', '=', True)]"/>
+                <filter name="fee_out" string="Hết học phí" domain="[('fee_warning', '=', 'out')]"/>
+                <filter name="fee_low" string="Gần hết học phí" domain="[('fee_warning', '=', 'low')]"/>
+                <filter name="suggest_stop" string="Đề xuất ngưng học" domain="[('suggest_stop', '=', True)]"/>
+                <filter name="not_contacted" string="Chưa liên hệ" domain="[('contacted', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_edu_week_alert" model="ir.actions.act_window">
+        <field name="name">Danh sách cảnh báo</field>
+        <field name="res_model">edu.week.alert</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <record id="view_edu_week_alert_wizard_form" model="ir.ui.view">
+        <field name="name">edu.week.alert.wizard.form</field>
+        <field name="model">edu.week.alert.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="week_id" options="{'no_create': True}"/>
+                </group>
+                <p class="text-muted">
+                    Tạo hoặc cập nhật cảnh báo cho tất cả học viên đang học trong tuần đã chọn.
+                    Ghi chú liên hệ đã nhập được giữ nguyên.
+                </p>
+                <footer>
+                    <button name="action_generate" type="object" string="Tạo cảnh báo" class="btn-primary"/>
+                    <button string="Đóng" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_edu_week_alert_wizard" model="ir.actions.act_window">
+        <field name="name">Cảnh báo tuần</field>
+        <field name="res_model">edu.week.alert.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Xuất điểm danh tuần -->
+    <record id="view_edu_export_week_wizard_form" model="ir.ui.view">
+        <field name="name">edu.export.week.wizard.form</field>
+        <field name="model">edu.export.week.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="week_id" options="{'no_create': True}"/>
+                </group>
+                <p class="text-muted">
+                    Xuất file Excel gồm một sheet "2.ĐIỂM DANH" với các cột giống file gốc.
+                </p>
+                <footer>
+                    <button name="action_export" type="object" string="Xuất Excel" class="btn-primary"/>
+                    <button string="Đóng" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_edu_export_week_wizard" model="ir.actions.act_window">
+        <field name="name">Xuất điểm danh theo tuần</field>
+        <field name="res_model">edu.export.week.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Chi phí khác -->
+    <record id="view_edu_other_expense_tree" model="ir.ui.view">
+        <field name="name">edu.other.expense.tree</field>
+        <field name="model">edu.other.expense</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="category_id" options="{'no_create': True}"/>
+                <field name="amount" sum="Tổng"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_edu_other_expense_search" model="ir.ui.view">
+        <field name="name">edu.other.expense.search</field>
+        <field name="model">edu.other.expense</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="category_id"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_category" string="Danh mục" context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_edu_other_expense" model="ir.actions.act_window">
+        <field name="name">Chi phí khác</field>
+        <field name="res_model">edu.other.expense</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <!-- Báo cáo tài chính -->
+    <record id="view_edu_report_finance_pivot" model="ir.ui.view">
+        <field name="name">edu.report.finance.pivot</field>
+        <field name="model">edu.report.finance</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="date" type="row" interval="month"/>
+                <field name="income" type="measure"/>
+                <field name="salary" type="measure"/>
+                <field name="other_expense" type="measure"/>
+                <field name="cash_flow" type="measure"/>
+                <field name="revenue" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_edu_report_finance_graph" model="ir.ui.view">
+        <field name="name">edu.report.finance.graph</field>
+        <field name="model">edu.report.finance</field>
+        <field name="arch" type="xml">
+            <graph type="bar">
+                <field name="date" interval="month"/>
+                <field name="income" type="measure"/>
+                <field name="total_cost" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_edu_report_finance_search" model="ir.ui.view">
+        <field name="name">edu.report.finance.search</field>
+        <field name="model">edu.report.finance</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="this_year" string="Năm nay"
+                        domain="[('date', '&gt;=', context_today().strftime('%Y-01-01'))]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_year" string="Năm" context="{'group_by': 'date:year'}"/>
+                    <filter name="group_month" string="Tháng" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_edu_report_finance" model="ir.actions.act_window">
+        <field name="name">Báo cáo tài chính</field>
+        <field name="res_model">edu.report.finance</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="context">{'search_default_this_year': 1}</field>
+    </record>
+
+    <!-- Báo cáo lương GV (phân tích buổi học) -->
+    <record id="view_edu_session_pivot_salary" model="ir.ui.view">
+        <field name="name">edu.session.pivot.salary</field>
+        <field name="model">edu.session</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="teacher_id" type="row"/>
+                <field name="date" type="col" interval="month"/>
+                <field name="paid_hours" type="measure"/>
+                <field name="teacher_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_edu_session_graph_salary" model="ir.ui.view">
+        <field name="name">edu.session.graph.salary</field>
+        <field name="model">edu.session</field>
+        <field name="arch" type="xml">
+            <graph type="bar">
+                <field name="date" interval="month"/>
+                <field name="teacher_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_edu_report_salary" model="ir.actions.act_window">
+        <field name="name">Lương giáo viên</field>
+        <field name="res_model">edu.session</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_edu_session_pivot_salary')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_edu_session_graph_salary')})]"/>
+        <field name="domain">[('state', '=', 'done')]</field>
+        <field name="context">{'search_default_this_month': 1}</field>
+    </record>
+
+    <!-- Báo cáo học phí (phân tích học viên) -->
+    <record id="view_edu_student_pivot" model="ir.ui.view">
+        <field name="name">edu.student.pivot</field>
+        <field name="model">edu.student</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="state" type="row"/>
+                <field name="fee_warning" type="col"/>
+                <field name="total_paid" type="measure"/>
+                <field name="learned_amount" type="measure"/>
+                <field name="balance" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_edu_report_tuition" model="ir.actions.act_window">
+        <field name="name">Học phí</field>
+        <field name="res_model">edu.student</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_edu_student_pivot')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_edu_student_tree')})]"/>
+    </record>
+</odoo>

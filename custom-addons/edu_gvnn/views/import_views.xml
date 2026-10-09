@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edu_import_wizard_form" model="ir.ui.view">
+        <field name="name">edu.import.wizard.form</field>
+        <field name="model">edu.import.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group invisible="result">
+                    <group>
+                        <field name="file" filename="filename"/>
+                        <field name="filename" invisible="1"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="agency_id"/>
+                    </group>
+                    <group string="Nội dung import">
+                        <field name="import_catalog"/>
+                        <field name="import_students"/>
+                        <field name="set_opening"/>
+                        <field name="import_payments"/>
+                        <field name="import_sessions"/>
+                        <field name="create_periods"/>
+                    </group>
+                </group>
+                <group invisible="not result">
+                    <field name="result" nolabel="1" colspan="2" widget="text"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"
+                            invisible="result"
+                            confirm="Import có thể mất vài phút. Có thể chạy lại nhiều lần, dữ liệu đã import sẽ không bị trùng. Tiếp tục?"/>
+                    <button string="Đóng" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_edu_import_wizard" model="ir.actions.act_window">
+        <field name="name">Import Excel</field>
+        <field name="res_model">edu.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_edu_import" name="Import Excel" parent="menu_edu_config_root"
+              action="action_edu_import_wizard" sequence="80"/>
+</odoo>

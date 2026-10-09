@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="expense_category_software" model="edu.expense.category">
+        <field name="name">Phần mềm / Zoom</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="expense_category_marketing" model="edu.expense.category">
+        <field name="name">Marketing</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="expense_category_staff" model="edu.expense.category">
+        <field name="name">Lương giáo vụ</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="expense_category_office" model="edu.expense.category">
+        <field name="name">Mặt bằng / điện nước</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="expense_category_material" model="edu.expense.category">
+        <field name="name">Học liệu</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="expense_category_other" model="edu.expense.category">
+        <field name="name">Khác</field>
+        <field name="sequence">60</field>
+    </record>
+</odoo>

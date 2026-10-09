@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edu_expense_category_tree" model="ir.ui.view">
+        <field name="name">edu.expense.category.tree</field>
+        <field name="model">edu.expense.category</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_edu_expense_category" model="ir.actions.act_window">
+        <field name="name">Danh mục chi phí</field>
+        <field name="res_model">edu.expense.category</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

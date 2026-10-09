@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edu_week_tree" model="ir.ui.view">
+        <field name="name">edu.week.tree</field>
+        <field name="model">edu.week</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="number"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_edu_week" model="ir.actions.act_window">
+        <field name="name">Tuần</field>
+        <field name="res_model">edu.week</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>
