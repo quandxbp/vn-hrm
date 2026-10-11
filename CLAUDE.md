@@ -15,6 +15,25 @@ docker compose logs -f web
 - `docker compose` có `command: -u vnpt_base`, nên mỗi lần web khởi động lại đều nâng cấp `vnpt_base`.
 - Server có nhiều database và `dbfilter` đang trống, nên phải chọn DB bằng `/web/login?db=<tên>` trước khi vào `/`.
 
+## Dựng trên máy mới
+
+Dữ liệu (DB `gvnn`) nằm trong volume Docker của máy cũ, **không có trong git**. Máy mới phải tạo lại DB rồi import lại từ Excel.
+
+1. Cài Docker Desktop và mở nó lên. `git clone https://github.com/quandxbp/vn-hrm.git`, rồi `git checkout feature/edu-gvnn`.
+2. Copy `TỔNG HỢP_GVNN.xlsx` từ máy cũ vào thư mục gốc repo. File này không nằm trong git vì là dữ liệu thật của trung tâm.
+3. `docker compose up -d`, chờ `http://localhost:8069/web/login` trả 200 (30-60 giây).
+4. Tạo DB `gvnn` và cài module:
+   ```sh
+   MSYS_NO_PATHCONV=1 docker compose exec -T web odoo -d gvnn -i edu_gvnn,vnpt_hrm_dashboard,edu_landing,muk_web_theme,muk_web_appsbar,muk_web_chatter,muk_web_colors,muk_web_dialog --without-demo=all --stop-after-init --no-http
+   ```
+5. `docker compose restart web`, rồi vào `http://localhost:8069/web/login?db=gvnn`. DB tạo bằng dòng lệnh có tài khoản `admin` / `admin` mặc định, hãy đổi mật khẩu ngay.
+6. Import dữ liệu: menu Cấu hình > Import Excel, chọn file ở bước 2, từ 01/01/2026. Đối chiếu kết quả với bảng ở mục 5 của `docs/GVNN_PLAN.md`.
+7. Trước khi sửa code: đọc `docs/GVNN_PLAN.md`. Các script kiểm tra nằm ở `scripts/gvnn_checks/` (xem README trong đó).
+
+**Chưa kiểm chứng:** lệnh ở bước 4 chưa được chạy lại nguyên văn trên một DB trống. Phần `-i edu_gvnn,vnpt_hrm_dashboard` đã cài sạch trên DB tạm, còn `edu_landing` và các module `muk_web_*` đã cài sạch trên `gvnn` ở giai đoạn 1. Nếu bước 4 báo lỗi, đọc log bằng `grep -E " ERROR | CRITICAL |Traceback|ParseError"`.
+
+**Bảo mật:** `config/odoo.conf` nằm trong git và repo GitHub đang để công khai. Master password và mật khẩu DB đều rất ngắn (4 ký tự), cổng Postgres 5432 cũng được mở ra máy chủ. Đừng chạy cấu hình này trên máy có thể truy cập từ ngoài; nên đổi hai mật khẩu đó và đưa file ra khỏi git.
+
 ## Cấu trúc
 
 - `custom-addons/`: code của dự án (mount vào `/mnt/extra-addons`).
