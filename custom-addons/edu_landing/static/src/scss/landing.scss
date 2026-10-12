@@ -156,6 +156,19 @@
         }
     }
 
+    // Nút trên nền footer xanh đậm (#1a2c50): cam sáng tương phản 5,1:1 với nền, chữ navy trên cam
+    // cũng 5,1:1. Không dùng cam đậm của edu-btn-sec vì chỉ đạt 2,96:1 với nền footer nên chìm.
+    &.edu-btn-accent {
+        color: var(--edu-ink);
+        background: var(--edu-sec);
+
+        &:hover,
+        &:focus-visible {
+            color: var(--edu-ink);
+            background: #fde680;
+        }
+    }
+
     &.edu-btn-outline-light {
         color: #fff;
         border-color: rgba(255, 255, 255, 0.9);
@@ -168,6 +181,72 @@
             color: var(--edu-pri);
             background: #fff;
         }
+    }
+}
+
+// ---- Thanh menu: cao theo độ rộng màn hình, logo to --------------------
+// --edu-nav-h là chiều cao thanh menu; logo cao bằng nó trừ phần đệm. Mốc theo breakpoint Bootstrap
+// của Odoo (576 / 992 / 1200 / 1400). Dưới 992px Odoo dùng thanh menu riêng cho điện thoại.
+
+:root {
+    --edu-nav-h: 2.2rem;
+}
+
+@media (min-width: 576px) {
+    :root {
+        --edu-nav-h: 2.7rem;
+    }
+}
+
+@media (min-width: 992px) {
+    :root {
+        --edu-nav-h: 3.5rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    :root {
+        --edu-nav-h: 4.5rem;
+    }
+}
+
+@media (min-width: 1400px) {
+    :root {
+        --edu-nav-h: 5.3rem;
+    }
+}
+
+#wrapwrap > header {
+    // Khi header dính và thu nhỏ lúc cuộn, giữ thanh gọn để không che nội dung.
+    &.o_header_is_scrolled {
+        --edu-nav-h: 2.2rem;
+    }
+
+    .navbar {
+        min-height: var(--edu-nav-h);
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .o_main_nav {
+        align-items: center;
+        min-height: var(--edu-nav-h);
+    }
+
+    // Logo cao 1,23 lần --edu-nav-h (= 1,5 lần mức 0,82 trước đó), nên cao hơn --edu-nav-h.
+    // Khung logo dùng min-height thay vì height cố định để thanh menu giãn ra ôm vừa logo,
+    // không cắt logo hay đè lên hero.
+    .navbar-brand.logo {
+        display: flex;
+        align-items: center;
+        min-height: var(--edu-nav-h);
+        padding: 0.3rem 0;
+    }
+
+    .navbar-brand img.edu-nav-logo {
+        width: auto;
+        max-width: none;
+        height: calc(var(--edu-nav-h) * 1.23);
     }
 }
 
@@ -227,7 +306,11 @@
 
     .edu-hero-title {
         margin: 0 0 18px;
-        font-size: clamp(64px, 11vw, 150px);
+        // Cỡ chữ vừa một dòng trên màn rộng. Font dự phòng Oswald rộng hơn Bebas nên không để quá 96px.
+        font-size: clamp(44px, 7vw, 96px);
+        // .edu-display đặt line-height 1 làm dấu tiếng Việt xếp chồng sát nhau; nới nhẹ cho hero.
+        line-height: 1.12;
+        text-wrap: balance; // nếu phải xuống dòng (điện thoại), chia hai dòng cân nhau
         color: #fff;
         text-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
     }
@@ -319,6 +402,118 @@
     &.is-active {
         color: #fff;
         background: var(--edu-pri-text);
+    }
+}
+
+// ---- Uy tín + lộ trình CEFR: nền trắng giữa hero và khối số liệu ----------
+
+.edu-landing .edu-cred {
+    padding: 56px 0 64px;
+    background: #fff;
+}
+
+.edu-cred-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 100%;
+    padding: 20px 24px;
+    background: var(--edu-bg);
+    border: 1px solid var(--edu-line);
+    border-radius: var(--edu-rs);
+
+    p {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.45;
+        color: var(--edu-ink);
+    }
+}
+
+.edu-cred-icon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    font-size: 24px;
+    color: #fff;
+    background: var(--edu-pri);
+    border-radius: 50%;
+}
+
+.edu-path {
+    margin-top: 40px;
+    text-align: center;
+
+    .edu-path-lead {
+        max-width: 720px;
+        margin: 0 auto 20px;
+        font-size: 17px;
+        line-height: 1.55;
+        color: var(--edu-muted);
+    }
+}
+
+.edu-path-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 22px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--edu-ink);
+        background: #fff;
+        border: 2px solid var(--edu-pri);
+        border-radius: 999px;
+
+        &.is-goal {
+            color: #fff;
+            background: var(--edu-pri);
+        }
+    }
+
+    // Đường nối giữa các bậc, chỉ để trang trí nên không dùng ký tự.
+    li + li {
+        position: relative;
+        margin-left: 28px;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -28px;
+            width: 28px;
+            height: 2px;
+            background: var(--edu-pri-light);
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        li {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        li + li {
+            margin-left: 18px;
+
+            &::before {
+                left: -18px;
+                width: 18px;
+            }
+        }
     }
 }
 

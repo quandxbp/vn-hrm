@@ -6,8 +6,8 @@
          của Website vì cùng dùng website.option_header_brand_logo. -->
     <template id="header_brand_logo" inherit_id="website.option_header_brand_logo" name="Logo Kim Academy trên menu">
         <xpath expr="//span[@t-field='website.logo']" position="replace">
-            <img src="/vnpt_base/static/src/img/kim-academy-logo.png" alt="Kim Academy" title="Trung tâm Kim Academy"
-                 width="48" height="48" class="edu-nav-logo" style="height: 48px; width: auto;"/>
+            <img src="/vnpt_base/static/src/img/kim-academy-logo.png" alt="Kim Academy Language Center" title="Kim Academy Language Center"
+                 width="160" height="160" class="edu-nav-logo"/>
         </xpath>
     </template>
 

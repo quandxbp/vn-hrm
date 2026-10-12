@@ -9,13 +9,13 @@
                     <div class="container">
                         <div class="row g-4">
                             <div class="col-lg-4">
-                                <h5 class="edu-footer-brand">Trung tâm Kim Academy</h5>
+                                <h5 class="edu-footer-brand">Kim Academy Language Center</h5>
                                 <!-- Ảnh trên trang là ảnh minh hoạ từ Unsplash, xem static/src/img/CREDITS.txt. -->
-                                <p>Trung tâm Anh ngữ dẫn lối nhân tài. Nền tảng học thuật vững chắc cho mọi lứa tuổi.</p>
+                                <p>Lộ trình học tiếng Anh từ Mầm non đến THPT, chuẩn CEFR. Thành viên chính thức của Cơ quan khảo thí MTS UK, đạt chuẩn Exam Preparation Center do Cambridge công nhận.</p>
                                 <ul class="list-unstyled edu-footer-contact">
-                                    <li><i class="fa fa-map-marker fa-fw me-2" role="img" aria-label="Địa chỉ"/>Địa chỉ trụ sở, thành phố</li>
-                                    <li><i class="fa fa-phone fa-fw me-2" role="img" aria-label="Hotline"/><a href="tel:19000000">1900 0000</a></li>
-                                    <li><i class="fa fa-envelope fa-fw me-2" role="img" aria-label="Email"/><a href="mailto:info@example.com">info@example.com</a></li>
+                                    <li><i class="fa fa-map-marker fa-fw me-2" role="img" aria-label="Địa chỉ"/>257 Lý Thường Kiệt, KP Tân Phú 2, P. Bình Phước, TP. Đồng Nai</li>
+                                    <li><i class="fa fa-phone fa-fw me-2" role="img" aria-label="Hotline"/><a href="tel:0766777793">0766.7777.93</a></li>
+                                    <li><i class="fa fa-envelope fa-fw me-2" role="img" aria-label="Email"/><a href="mailto:info@example.com">kimacademy.edu@gmail.com</a></li>
                                 </ul>
                             </div>
                             <div class="col-6 col-lg-2">
@@ -42,10 +42,10 @@
                                 <a href="/#dang-ky" class="btn edu-btn edu-btn-accent">Nhận tư vấn miễn phí</a>
                                 <div class="s_social_media text-start o_not_editable mt-3" data-snippet="s_social_media" data-name="Social Media" contenteditable="false">
                                     <h5 class="s_social_media_title d-none" contenteditable="true">Theo dõi chúng tôi</h5>
-                                    <a href="/website/social/facebook" class="s_social_media_facebook" target="_blank" aria-label="Facebook">
+                                    <a href="https://www.facebook.com/mskim.kimacademy" class="s_social_media_facebook" target="_blank" aria-label="Facebook">
                                         <i class="fa fa-facebook rounded-circle shadow-sm o_editable_media"/>
                                     </a>
-                                    <a href="/website/social/youtube" class="s_social_media_youtube" target="_blank" aria-label="YouTube">
+                                    <a href="https://www.youtube.com/@YURYONG90" class="s_social_media_youtube" target="_blank" aria-label="YouTube">
                                         <i class="fa fa-youtube rounded-circle shadow-sm o_editable_media"/>
                                     </a>
                                 </div>

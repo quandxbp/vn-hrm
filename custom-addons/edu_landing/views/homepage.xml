@@ -3,7 +3,9 @@
 
     <!--
         Trang chủ trung tâm Anh ngữ.
-        Nội dung là MẪU: tên trung tâm, số liệu, giáo viên, học viên, hotline, lời cảm nhận.
+        Thông tin THẬT của trung tâm: tên Kim Academy Language Center, hotline, chứng nhận MTS UK và
+        Cambridge, lộ trình CEFR (khối #uy-tin). Phần còn lại vẫn là MẪU: số liệu, giáo viên, học viên,
+        lời cảm nhận, địa chỉ, email.
         Ảnh là ảnh minh hoạ từ Unsplash (xem static/src/img/CREDITS.txt), KHÔNG phải người thật
         của trung tâm. Thay bằng thông tin và ảnh thật trước khi công bố.
         Các khối nằm trong vùng oe_structure nên vẫn sửa được bằng trình dựng kéo thả của Website.
@@ -44,6 +46,43 @@
                                 <button type="button" class="edu-chip" data-age="19-21">19 - 21+ tuổi</button>
                             </div>
                             <a href="#chuong-trinh" class="btn edu-btn edu-btn-pri edu-finder-go">Tìm khoá học</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ UY TÍN + LỘ TRÌNH CEFR ============ -->
+                <section class="edu-cred" id="uy-tin">
+                    <div class="container">
+                        <header class="edu-head">
+                            <span class="edu-head-sub">Kim Academy Language Center</span>
+                            <h2 class="edu-display">Uy tín được công nhận</h2>
+                        </header>
+                        <div class="row g-3 g-lg-4 justify-content-center">
+                            <div class="col-md-6">
+                                <div class="edu-cred-item">
+                                    <span class="edu-cred-icon"><i class="fa fa-certificate" role="img" aria-label=""/></span>
+                                    <p>Thành viên chính thức của Cơ quan khảo thí MTS UK</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="edu-cred-item">
+                                    <span class="edu-cred-icon"><i class="fa fa-graduation-cap" role="img" aria-label=""/></span>
+                                    <p>Trung tâm đạt chuẩn Exam Preparation Center do Cambridge công nhận</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="edu-path">
+                            <p class="edu-path-lead">
+                                Lộ trình học tiếng Anh tại KIM ACADEMY từ Mầm non đến THPT, chuẩn CEFR
+                            </p>
+                            <ol class="edu-path-list">
+                                <li>Starters</li>
+                                <li>Movers</li>
+                                <li>Flyers</li>
+                                <li>KET</li>
+                                <li>PET</li>
+                                <li class="is-goal">IELTS 6.5+</li>
+                            </ol>
                         </div>
                     </div>
                 </section>
@@ -333,8 +372,8 @@
                                 <span class="edu-head-sub">Bắt đầu ngay</span>
                                 <h2 class="edu-display">Khai phóng tiềm năng học thuật</h2>
                                 <p>Để lại thông tin, chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ.</p>
-                                <a href="tel:19000000" class="edu-register-hotline">
-                                    <i class="fa fa-phone" role="img" aria-label=""/> Hotline: 1900 0000
+                                <a href="tel:0766777793" class="edu-register-hotline">
+                                    <i class="fa fa-phone" role="img" aria-label=""/> Hotline: 0766.7777.93
                                 </a>
                             </div>
                             <div class="col-lg-7">
