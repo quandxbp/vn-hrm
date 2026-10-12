@@ -9,7 +9,7 @@
                     <div class="container">
                         <div class="row g-4">
                             <div class="col-lg-4">
-                                <h5 class="edu-footer-brand">Tên trung tâm</h5>
+                                <h5 class="edu-footer-brand">Trung tâm Kim Academy</h5>
                                 <!-- Ảnh trên trang là ảnh minh hoạ từ Unsplash, xem static/src/img/CREDITS.txt. -->
                                 <p>Trung tâm Anh ngữ dẫn lối nhân tài. Nền tảng học thuật vững chắc cho mọi lứa tuổi.</p>
                                 <ul class="list-unstyled edu-footer-contact">

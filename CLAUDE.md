@@ -42,7 +42,7 @@ Dữ liệu (DB `gvnn`) nằm trong volume Docker của máy cũ, **không có t
   - `vnpt_base`: nền dùng chung (đăng nhập, tiêu đề, địa chỉ VN). Còn dùng.
   - Các module HRM cũ (`vnpt_hrm`, `vnpt_hrm_attendance`, `vnpt_hrm_payroll`) đã bị xoá ngày 2026-10-09 theo yêu cầu của người dùng. Còn trong lịch sử git (commit `7083bfa` trở về trước) nếu cần khôi phục.
   - `muk_theme/*`: theme backend MuK, đã chỉnh sửa (sidebar, navbar, màu).
-  - `edu_landing`: landing page Website, chỉ cần `website` + `website_crm` (Community).
+  - `edu_landing`: landing page Website, cần `website` + `website_crm` (Community) và `vnpt_base` (giữ file logo `vnpt_base/static/src/img/kim-academy-logo.png`, dùng cho menu của landing).
 - `required-addons/`: hiện trống (chỉ còn `.DS_Store`). `hr_payroll` (Enterprise, OEEL-1) đã xoá cùng HRM cũ. Thư mục vẫn được mount vào `/mnt/enterprise` và nằm trong `addons_path`, nên giữ lại.
 - DB đang dùng là `gvnn`. Các DB cũ: `test` có cài `vnpt_hrm`, `hr_payroll`, `vnpt_hrm_attendance`; `edu`, `edu2`, `edu3` chỉ có `vnpt_hrm_attendance` (rỗng). Sau khi xoá module, log báo "Some modules are not loaded" khi nạp các DB này. Trang đăng nhập của chúng vẫn mở, chưa kiểm tra xa hơn. Chỉ `gvnn` còn được đảm bảo chạy.
 - **Lỗi đã biết khi có nhiều DB:** nếu một DB khác được nạp trước `gvnn` sau khi khởi động server, `/web/login?db=gvnn` trả 403 (`AccessError` đọc `website.menu`). Mở `gvnn` trước thì bình thường. Lỗi vẫn xảy ra khi các module HRM cũ còn nguyên, nên không do việc xoá chúng. Chưa rõ nguyên nhân gốc; nghi do `website` cần `dbfilter` khi có nhiều DB. Cách tránh: đặt `dbfilter = ^gvnn$` trong `config/odoo.conf` (chưa đặt, vì làm vậy các DB khác sẽ không truy cập được qua web).

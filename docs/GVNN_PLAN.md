@@ -12,7 +12,7 @@ Nguồn: `TỔNG HỢP_GVNN.xlsx` ở thư mục gốc repo. Đây là sổ qu�
 3. Quyết định về các DB cũ `test`, `edu`, `edu2`, `edu3` và đặt `dbfilter = ^gvnn$` trong `config/odoo.conf` để tránh lỗi 403 của `gvnn` khi DB khác được nạp trước (xem *Lỗi đã biết* trong `CLAUDE.md`).
 - Đã gỡ `vnpt_hrm_attendance` khỏi DB `gvnn` ngày 2026-10-09: module rỗng, `auto_install: True` nên được cài kèm, không module nào phụ thuộc. Sau lần `-u` kế tiếp nó vẫn ở trạng thái chưa cài. Nếu tạo DB mới và nó tự cài lại, gỡ bằng `button_immediate_uninstall()`.
 - **DB `gvnn` hiện chưa có dữ liệu import.** Mọi lần thử đều rollback. Người dùng tự import qua menu Cấu hình > Import Excel (cần restart web để nhận code, đã làm ngày 2026-10-09), sau đó đối chiếu theo bảng ở mục 5.
-- Tiêu đề tab trình duyệt vẫn là "VNPT HRM - Trang chủ" vì `vnpt_base` đặt `web.base.title` mặc định. Đổi tại Thiết lập nếu muốn.
+- Tên hiển thị đã đổi từ "VNPT HRM" sang "KIM ACADEMY" trong source (`vnpt_base`: tiêu đề tab, mô tả module, tên hệ thống ở trang đăng nhập; `web_login_styles`). Tên module kỹ thuật (`vnpt_base`, `vnpt_hrm_dashboard`) và mã định danh XML giữ nguyên. DB đang chạy có thể vẫn còn giá trị cũ trong `ir_config_parameter` (`web.base.title`); DB tạo mới sẽ lấy giá trị mặc định mới.
 - `edu.class.session_count` vẫn chưa làm.
 
 **Quy tắc làm việc:**

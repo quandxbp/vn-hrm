@@ -27,7 +27,7 @@
                             Tiêu đề hiện thị trên thanh tab của trình duyệt
                         </div>
                         <div class="d-block mt-2">
-                            <field name="web_window_title" class="d-block w-50 p-0 m-0" placeholder="VNPT HRM"/>
+                            <field name="web_window_title" class="d-block w-50 p-0 m-0" placeholder="KIM ACADEMY"/>
                         </div>
                     </setting>
 <!--                    <setting id="window" string="Tên hệ thống" >-->
@@ -35,7 +35,7 @@
 <!--                            Tên hệ thống trên trang đăng nhập-->
 <!--                        </div>-->
 <!--                        <div class="d-block mt-2">-->
-<!--                            <field name="web_window_title" class="d-block w-100 p-0 m-0" placeholder="VNPT HRM"/>-->
+<!--                            <field name="web_window_title" class="d-block w-100 p-0 m-0" placeholder="KIM ACADEMY"/>-->
 <!--                        </div>-->
 <!--                    </setting>-->
                     <setting id="locations_approval"

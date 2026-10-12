@@ -9,9 +9,10 @@ Các khối nằm trong vùng oe_structure nên vẫn sửa được bằng trì
 Form đăng ký tạo lead trong CRM.
 """,
     'category': 'Website',
-    'depends': ['website', 'website_crm'],
+    'depends': ['website', 'website_crm', 'vnpt_base'],
     'data': [
         'views/assets.xml',
+        'views/header.xml',
         'views/homepage.xml',
         'views/footer.xml',
     ],

@@ -6,7 +6,7 @@ msgid ""
 "Odoo's chat helps employees collaborate efficiently. I'm here to help you "
 "discover its features."
 msgstr ""
-"Ứng dụng trò chuyện của VNPT HRM giúp nhân viên làm việc hiệu quả. Tôi ở đây để "
+"Ứng dụng trò chuyện của KIM ACADEMY giúp nhân viên làm việc hiệu quả. Tôi ở đây để "
 "giúp bạn khám phá các tính năng của hệ thống này."
 
 #. module: mail_bot

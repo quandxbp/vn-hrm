@@ -20,7 +20,7 @@
                             <div t-attf-class="text-center pb-3 border-bottom {{'mb-3' if form_small else 'mb-4'}}">
                                 <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo"
                                      style="max-height:120px; max-width: 100%; width:auto"/>
-                                <h4 class="bold-text text-primary text-center mt-3">HỆ THỐNG QUẢN TRỊ NGUỒN NHÂN LỰC DOANH NGHIỆP</h4>
+                                <h4 class="bold-text text-primary text-center mt-3">HỆ THỐNG QUẢN LÝ KIM ACADEMY</h4>
                             </div>
                             <t t-out="0"/>
 

@@ -1,9 +1,22 @@
 // Landing page trung tâm Anh ngữ.
 // Phong cách tham khảo yola.vn: tiêu đề display in hoa (Bebas Neue), nền xanh #325d9e
 // chuyển dần sang trắng, thẻ ảnh đứng có lớp phủ tối, điểm nhấn cam.
-// Bebas Neue thay cho "SVN-Bebas Neue Pro" (font thương mại); Be Vietnam Pro cho chữ thường.
-// Font nạp bằng thẻ <link> trong views/assets.xml. Không dùng @import ở đây: khi gộp bundle,
+// Tiêu đề dùng "SVN-Bebas Neue Pro", nạp bằng @font-face bên dưới từ static/src/fonts (xem
+// README.txt trong thư mục đó). Khi chưa có file font, trình duyệt rơi sang Oswald (Google Fonts,
+// có đủ dấu tiếng Việt, dáng gần Bebas). KHÔNG dùng "Bebas Neue" của Google làm dự phòng: bản đó
+// không có ký tự tiếng Việt nên bị lỗi dấu. Be Vietnam Pro cho chữ thường.
+// Font Google nạp bằng thẻ <link> trong views/assets.xml. Không dùng @import ở đây: khi gộp bundle,
 // Odoo cắt URL tại dấu ";" (wght@400;500...) làm hỏng toàn bộ file CSS.
+
+@font-face {
+    font-family: 'SVN-Bebas Neue Pro';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('SVN-Bebas Neue Pro'), local('SVN-BebasNeuePro'),
+         url('/edu_landing/static/src/fonts/SVN-BebasNeuePro.woff2') format('woff2'),
+         url('/edu_landing/static/src/fonts/SVN-BebasNeuePro.ttf') format('truetype');
+}
 
 .edu-landing,
 #footer.edu-footer {
@@ -20,7 +33,7 @@
     --edu-bg: #eef6fe;           // nền xanh nhạt
     --edu-white: #fff;
     --edu-rs: 12px;
-    --edu-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+    --edu-display: 'SVN-Bebas Neue Pro', 'Oswald', 'Arial Narrow', sans-serif;
     --edu-body: 'Be Vietnam Pro', system-ui, sans-serif;
 }
 

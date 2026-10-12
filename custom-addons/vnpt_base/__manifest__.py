@@ -2,11 +2,11 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'VNPT: BASE',
+    'name': 'KIM ACADEMY: BASE',
     'version': '1.0',
-    'summary': 'VNPT: Base',
+    'summary': 'KIM ACADEMY: Base',
     'description': """
-VNPT Base Module
+KIM ACADEMY Base Module
 """,
     'website': ' ',
     'depends': ["base", "web"],

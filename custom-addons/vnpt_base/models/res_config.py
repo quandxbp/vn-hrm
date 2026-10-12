@@ -11,8 +11,8 @@ CONFIG_PARAM_WEB_WINDOW_TITLE = "web.base.title"
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    web_window_title = fields.Char('Tiêu đề của trang',default="VNPT HRM")
-    login_system_title = fields.Char('Tên hệ thống khi đăng nhập',default="HỆ THỐNG QUẢN TRỊ NGUỒN NHÂN LỰC DOANH NGHIỆP")
+    web_window_title = fields.Char('Tiêu đề của trang',default="KIM ACADEMY")
+    login_system_title = fields.Char('Tên hệ thống khi đăng nhập',default="HỆ THỐNG QUẢN LÝ KIM ACADEMY")
 
     orientation = fields.Selection(selection=[('default', 'Mặc định'),
                                               ('left', 'Trái'),
