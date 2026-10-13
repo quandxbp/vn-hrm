@@ -12,8 +12,9 @@
     -->
     <template id="homepage" inherit_id="website.homepage" name="Trang chủ trung tâm Anh ngữ">
         <xpath expr="//div[@id='wrap']" position="replace">
+            <t t-set="title">Kim Academy | Trung tâm Anh ngữ</t>
             <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
-            <div id="wrap" class="oe_structure edu-landing">
+            <div id="wrap" class="oe_structure edu-landing edu-home">
 
                 <!-- ============ HERO ============ -->
                 <section class="edu-hero" id="gioi-thieu">
@@ -27,7 +28,7 @@
                         </p>
                         <div class="edu-hero-actions">
                             <a href="#dang-ky" class="btn edu-btn edu-btn-sec">Nhận tư vấn miễn phí</a>
-                            <a href="#chuong-trinh" class="btn edu-btn edu-btn-outline-light">Câu chuyện của chúng tôi</a>
+                            <a href="/gioi-thieu" class="btn edu-btn edu-btn-outline-light">Câu chuyện của chúng tôi</a>
                         </div>
                     </div>
 
@@ -146,7 +147,7 @@
                             <h2 class="edu-display">Cho mọi lứa tuổi</h2>
                         </header>
                         <div class="row g-3 g-lg-4">
-                            <div class="col-6 col-xl-3">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <a href="#dang-ky" class="edu-course-item" data-ages="3-5" data-level="Tiếng Anh mầm non">
                                     <img t-att-src="img + 'prog_kinder.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
@@ -158,7 +159,7 @@
                                     </div>
                                 </a>
                             </div>
-                            <div class="col-6 col-xl-3">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <a href="#dang-ky" class="edu-course-item" data-ages="6-10" data-level="Tiếng Anh tiểu học">
                                     <img t-att-src="img + 'prog_primary.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
@@ -170,7 +171,7 @@
                                     </div>
                                 </a>
                             </div>
-                            <div class="col-6 col-xl-3">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <a href="#dang-ky" class="edu-course-item" data-ages="11-14" data-level="Tiếng Anh thiếu niên">
                                     <img t-att-src="img + 'prog_teen.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
@@ -182,7 +183,7 @@
                                     </div>
                                 </a>
                             </div>
-                            <div class="col-6 col-xl-3">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <a href="#dang-ky" class="edu-course-item" data-ages="15-18 19-21" data-level="IELTS / SAT">
                                     <img t-att-src="img + 'prog_ielts.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
@@ -211,7 +212,14 @@
                                 <li><i class="fa fa-check-circle" role="img" aria-label=""/> Tuyển chọn từ <strong>top 3%</strong> thị trường</li>
                             </ul>
                         </div>
-                        <div class="row g-3 g-lg-4">
+                        <div class="edu-smem-tabs" role="tablist" aria-label="Chọn đội ngũ giáo viên">
+                            <button type="button" id="edu-teachers-center-tab" class="edu-smem-tab is-active" role="tab" aria-selected="true" aria-controls="edu-teachers-center" data-team="center"><i class="fa fa-building-o" aria-hidden="true"/> Giáo viên tại trung tâm</button>
+                            <button type="button" id="edu-teachers-international-tab" class="edu-smem-tab" role="tab" aria-selected="false" aria-controls="edu-teachers-international" tabindex="-1" data-team="international"><i class="fa fa-globe" aria-hidden="true"/> Giáo viên nước ngoài</button>
+                        </div>
+                        <!-- Hồ sơ và ảnh mẫu, thay bằng thông tin giáo viên thật của từng nhóm. -->
+                        <div class="edu-smem-panel" id="edu-teachers-center" role="tabpanel" aria-labelledby="edu-teachers-center-tab" data-team="center" tabindex="0">
+                            <p class="edu-smem-team-intro">Đội ngũ giảng dạy và đào tạo tại Kim Academy.</p>
+                            <div class="row g-3 g-lg-4 justify-content-center">
                             <div class="col-6 col-lg-3">
                                 <article class="edu-smem-item">
                                     <img t-att-src="img + 'teacher_1.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
@@ -232,6 +240,11 @@
                                     </div>
                                 </article>
                             </div>
+                            </div>
+                        </div>
+                        <div class="edu-smem-panel" id="edu-teachers-international" role="tabpanel" aria-labelledby="edu-teachers-international-tab" data-team="international" tabindex="0">
+                            <p class="edu-smem-team-intro">Khám phá đội ngũ giáo viên nước ngoài đồng hành cùng Kim Academy.</p>
+                            <div class="row g-3 g-lg-4 justify-content-center">
                             <div class="col-6 col-lg-3">
                                 <article class="edu-smem-item">
                                     <img t-att-src="img + 'teacher_3.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
@@ -252,16 +265,17 @@
                                     </div>
                                 </article>
                             </div>
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 <!-- ============ GIÁO TRÌNH (băng chạy) ============ -->
-                <section class="edu-brd">
+                <section class="edu-brd" id="phuong-phap">
                     <div class="container">
                         <header class="edu-head edu-head-light">
-                            <span class="edu-head-sub">Giáo trình</span>
-                            <h2 class="edu-display">Chuẩn quốc tế</h2>
+                            <span class="edu-head-sub">Phương pháp &amp; Lộ trình</span>
+                            <h2 class="edu-display">Giáo trình chuẩn quốc tế</h2>
                             <p class="edu-head-lead">Tài liệu nghiên cứu theo chuẩn Cambridge, cập nhật liên tục.</p>
                         </header>
                     </div>
@@ -276,7 +290,7 @@
                 </section>
 
                 <!-- ============ HỌC VIÊN TIÊU BIỂU (tab lọc) ============ -->
-                <section class="edu-stu">
+                <section class="edu-stu" id="hoc-vien">
                     <div class="container">
                         <header class="edu-head">
                             <span class="edu-head-sub">Mở rộng cơ hội</span>
@@ -289,7 +303,7 @@
                             <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="sat">SAT</button>
                         </div>
                         <div class="row g-3 g-lg-4">
-                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="ielts">
+                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="ielts">
                                 <article class="edu-stu-item">
                                     <div class="edu-stu-img">
                                         <img t-att-src="img + 'student_1.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
@@ -299,7 +313,7 @@
                                     <p>Trường đang theo học</p>
                                 </article>
                             </div>
-                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="sat">
+                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="sat">
                                 <article class="edu-stu-item">
                                     <div class="edu-stu-img">
                                         <img t-att-src="img + 'student_2.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
@@ -309,7 +323,7 @@
                                     <p>Trường đang theo học</p>
                                 </article>
                             </div>
-                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="cambridge">
+                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="cambridge">
                                 <article class="edu-stu-item">
                                     <div class="edu-stu-img">
                                         <img t-att-src="img + 'student_3.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
@@ -319,7 +333,7 @@
                                     <p>Trường đang theo học</p>
                                 </article>
                             </div>
-                            <div class="col-6 col-lg-3 edu-stu-col" data-cat="ielts">
+                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="ielts">
                                 <article class="edu-stu-item">
                                     <div class="edu-stu-img">
                                         <img t-att-src="img + 'student_4.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
@@ -334,7 +348,7 @@
                 </section>
 
                 <!-- ============ CẢM NHẬN ============ -->
-                <section class="edu-fm">
+                <section class="edu-fm" id="cam-nhan">
                     <div class="container">
                         <header class="edu-head">
                             <span class="edu-head-sub">Cảm nhận</span>
@@ -363,119 +377,18 @@
                     </div>
                 </section>
 
-                <!-- ============ FORM ĐĂNG KÝ (tạo lead trong CRM) ============ -->
-                <section class="edu-register s_website_form" id="dang-ky" data-vcss="001" data-snippet="s_website_form">
-                    <img class="edu-register-bg" t-att-src="img + 'cta.jpg'" alt="" loading="lazy"/>
+                <section class="edu-activities" id="hoat-dong">
                     <div class="container">
-                        <div class="row align-items-center g-5">
-                            <div class="col-lg-5 edu-register-intro">
-                                <span class="edu-head-sub">Bắt đầu ngay</span>
-                                <h2 class="edu-display">Khai phóng tiềm năng học thuật</h2>
-                                <p>Để lại thông tin, chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ.</p>
-                                <a href="tel:0766777793" class="edu-register-hotline">
-                                    <i class="fa fa-phone" role="img" aria-label=""/> Hotline: 0766.7777.93
-                                </a>
-                            </div>
-                            <div class="col-lg-7">
-                                <div class="edu-register-card">
-                                    <form action="/website/form/" method="post" enctype="multipart/form-data"
-                                          class="o_mark_required" data-mark="*" data-pre-fill="true"
-                                          data-model_name="crm.lead" data-success-mode="redirect"
-                                          data-success-page="/contactus-thank-you">
-                                        <div class="s_website_form_rows row s_col_no_bgcolor">
-
-                                            <div data-name="Field" class="s_website_form_field col-12 s_website_form_dnone">
-                                                <div class="row s_col_no_resize s_col_no_bgcolor">
-                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px"/>
-                                                    <div class="col-sm">
-                                                        <input type="hidden" class="form-control s_website_form_input" name="name" value="Đăng ký tư vấn từ website"/>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_required" data-type="char">
-                                                <div class="row s_col_no_resize s_col_no_bgcolor">
-                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-contact-name">
-                                                        <span class="s_website_form_label_content">Họ và tên</span>
-                                                        <span class="s_website_form_mark"> *</span>
-                                                    </label>
-                                                    <div class="col-sm">
-                                                        <input id="edu-contact-name" class="form-control s_website_form_input" type="text" name="contact_name" required="1" autocomplete="name"/>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_required" data-type="tel">
-                                                <div class="row s_col_no_resize s_col_no_bgcolor">
-                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-phone">
-                                                        <span class="s_website_form_label_content">Số điện thoại</span>
-                                                        <span class="s_website_form_mark"> *</span>
-                                                    </label>
-                                                    <div class="col-sm">
-                                                        <input id="edu-phone" class="form-control s_website_form_input" type="tel" name="phone" required="1" autocomplete="tel"/>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_custom s_website_form_required" data-type="char">
-                                                <div class="row s_col_no_resize s_col_no_bgcolor">
-                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-level">
-                                                        <span class="s_website_form_label_content">Trình độ / chương trình</span>
-                                                        <span class="s_website_form_mark"> *</span>
-                                                    </label>
-                                                    <div class="col-sm">
-                                                        <select id="edu-level" class="form-select s_website_form_input" name="Chương trình quan tâm" required="1">
-                                                            <option value="">Chọn chương trình</option>
-                                                            <option value="Tiếng Anh mầm non">Tiếng Anh mầm non</option>
-                                                            <option value="Tiếng Anh tiểu học">Tiếng Anh tiểu học</option>
-                                                            <option value="Tiếng Anh thiếu niên">Tiếng Anh thiếu niên</option>
-                                                            <option value="IELTS / SAT">IELTS / SAT</option>
-                                                            <option value="Chưa xác định">Tôi chưa biết, cần tư vấn</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_custom s_website_form_required" data-type="char">
-                                                <div class="row s_col_no_resize s_col_no_bgcolor">
-                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-branch">
-                                                        <span class="s_website_form_label_content">Cơ sở học</span>
-                                                        <span class="s_website_form_mark"> *</span>
-                                                    </label>
-                                                    <div class="col-sm">
-                                                        <select id="edu-branch" class="form-select s_website_form_input" name="Cơ sở học" required="1">
-                                                            <option value="">Chọn cơ sở</option>
-                                                            <option value="Cơ sở 1">Cơ sở 1</option>
-                                                            <option value="Cơ sở 2">Cơ sở 2</option>
-                                                            <option value="Học online">Học online</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div data-name="Field" class="s_website_form_field mb-3 col-12" data-type="email">
-                                                <div class="row s_col_no_resize s_col_no_bgcolor">
-                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-email">
-                                                        <span class="s_website_form_label_content">Email (không bắt buộc)</span>
-                                                    </label>
-                                                    <div class="col-sm">
-                                                        <input id="edu-email" class="form-control s_website_form_input" type="email" name="email_from" autocomplete="email"/>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mb-0 py-2 col-12 s_website_form_submit" data-name="Submit Button">
-                                                <div style="width: 200px;" class="s_website_form_label"/>
-                                                <a href="#" role="button" class="btn edu-btn edu-btn-sec w-100 s_website_form_send">Nhận tư vấn miễn phí</a>
-                                                <span id="s_website_form_result"/>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+                        <header class="edu-head mb-0">
+                            <span class="edu-head-sub">Học viên &amp; Hoạt động</span>
+                            <h2 class="edu-display">Hoạt động lớp học</h2>
+                            <p class="edu-head-lead">Hình ảnh lớp học, sự kiện và hoạt động tại Kim Academy đang được cập nhật.</p>
+                        </header>
                     </div>
                 </section>
+
+                <!-- ============ FORM ĐĂNG KÝ (tạo lead trong CRM) ============ -->
+                <t t-call="edu_landing.registration"/>
 
                 <!-- Thanh liên hệ cố định trên điện thoại -->
                 <div class="edu-sticky-cta d-lg-none">

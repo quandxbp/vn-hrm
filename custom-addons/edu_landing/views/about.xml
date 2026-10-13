@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Nội dung biên soạn riêng cho Kim Academy. Không đưa lịch sử, nhân sự hay số liệu chưa xác nhận. -->
+    <template id="about" name="Giới thiệu Kim Academy">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Giới thiệu Kim Academy</t>
+            <t t-set="meta_description">Tìm hiểu Kim Academy Language Center: định hướng đào tạo, giá trị giáo dục và lộ trình tiếng Anh từ Mầm non đến THPT theo khung CEFR.</t>
+            <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
+            <div id="wrap" class="oe_structure edu-landing edu-about">
+                <section class="ka-about-hero" id="gioi-thieu">
+                    <img class="ka-about-hero-image" t-att-src="img + 'hero.jpg'" alt="" fetchpriority="high"/>
+                    <div class="container ka-about-hero-content">
+                        <nav aria-label="Đường dẫn trang" class="ka-breadcrumb"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Về Kim Academy</span></nav>
+                        <p class="ka-eyebrow">Kim Academy Language Center</p>
+                        <h1 class="edu-display">Từ niềm yêu thích<br/>đến sự tự tin<br/><span>với tiếng Anh.</span></h1>
+                        <p class="ka-about-intro">Đồng hành cùng con trên hành trình học ngôn ngữ,<br class="d-none d-md-block"/> khám phá bản thân và mở rộng thế giới.</p>
+                        <a href="#cau-chuyen" class="ka-discover">Khám phá Kim Academy <span aria-hidden="true">↓</span></a>
+                    </div>
+                </section>
+
+                <section class="ka-story" id="cau-chuyen">
+                    <div class="container">
+                        <div class="row align-items-center g-5">
+                            <div class="col-lg-6">
+                                <div class="ka-story-photo">
+                                    <img t-att-src="img + 'prog_primary.jpg'" alt="Ảnh minh họa hoạt động học tiếng Anh" loading="lazy"/>
+                                    <div class="ka-photo-caption"><span>Niềm tin của chúng tôi</span><strong>Mỗi bước nhỏ hôm nay.<br/>Một thế giới rộng hơn ngày mai.</strong></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 ka-story-copy">
+                                <p class="ka-eyebrow">Câu chuyện Kim Academy</p>
+                                <h2 class="edu-display">Một ngôn ngữ mới.<br/><span>Một thế giới mới.</span></h2>
+                                <p>Với Kim Academy, học tiếng Anh bắt đầu từ sự tò mò: một câu hỏi con muốn đặt ra, một câu chuyện con muốn kể, một người bạn con muốn trò chuyện cùng.</p>
+                                <p>Chúng tôi mong muốn xây dựng một môi trường để học viên mạnh dạn thử, không ngại mắc lỗi và tìm thấy niềm vui trong từng lần tiến bộ. Tiếng Anh từ đó trở thành một phần tự nhiên trong hành trình lớn lên của con.</p>
+                                <p class="ka-story-emphasis">Đích đến là sự tự tin sử dụng những điều đã học trong cuộc sống.</p>
+                                <a class="ka-text-link" href="/#chuong-trinh">Tìm hiểu chương trình học <span aria-hidden="true">→</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-vision" id="dinh-huong">
+                    <div class="container">
+                        <div class="row g-5 align-items-start">
+                            <div class="col-lg-5"><p class="ka-eyebrow">Điều chúng tôi hướng đến</p><h2 class="edu-display">Học để hiểu.<br/>Nói để kết nối.<br/><span>Tự tin để bước xa.</span></h2></div>
+                            <div class="col-lg-6 offset-lg-1 ka-vision-copy">
+                                <p class="ka-vision-lead">Một nền tảng ngôn ngữ vững vàng giúp con có thêm cách để học hỏi và thể hiện chính mình.</p>
+                                <div class="ka-vision-item"><span>01</span><div><h3>Nuôi dưỡng niềm yêu thích</h3><p>Khơi gợi hứng thú với tiếng Anh bằng những chủ đề gần gũi, để việc học trở thành một hành trình con muốn tiếp tục.</p></div></div>
+                                <div class="ka-vision-item"><span>02</span><div><h3>Xây dựng nền tảng bền vững</h3><p>Hướng đến phát triển ngôn ngữ theo từng giai đoạn, phù hợp với độ tuổi và khả năng của học viên.</p></div></div>
+                                <div class="ka-vision-item"><span>03</span><div><h3>Mở rộng khả năng kết nối</h3><p>Khuyến khích con lắng nghe, chia sẻ ý tưởng và chủ động sử dụng tiếng Anh trong những tình huống có ý nghĩa.</p></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-values" id="gia-tri">
+                    <div class="container">
+                        <header class="edu-head"><span class="edu-head-sub">Giá trị giáo dục</span><h2 class="edu-display">Lấy sự trưởng thành<br/>của học viên làm trọng tâm</h2><p class="edu-head-lead">Những điều Kim Academy hướng đến trong hành trình đồng hành cùng học viên và phụ huynh.</p></header>
+                        <div class="row g-4">
+                            <div class="col-md-6 col-xl-3"><article class="ka-value"><span class="ka-value-icon"><i class="fa fa-heart-o" aria-hidden="true"/></span><span class="ka-value-number">01</span><h3>Thấu hiểu</h3><p>Tôn trọng nhịp độ học tập, sự khác biệt và nhu cầu của từng học viên.</p></article></div>
+                            <div class="col-md-6 col-xl-3"><article class="ka-value"><span class="ka-value-icon"><i class="fa fa-comments-o" aria-hidden="true"/></span><span class="ka-value-number">02</span><h3>Khích lệ</h3><p>Tạo động lực để con đặt câu hỏi, thử sức và mạnh dạn bày tỏ ý kiến.</p></article></div>
+                            <div class="col-md-6 col-xl-3"><article class="ka-value"><span class="ka-value-icon"><i class="fa fa-compass" aria-hidden="true"/></span><span class="ka-value-number">03</span><h3>Định hướng</h3><p>Giúp học viên nhìn thấy mục tiêu và hiểu ý nghĩa của mỗi bước học tập.</p></article></div>
+                            <div class="col-md-6 col-xl-3"><article class="ka-value"><span class="ka-value-icon"><i class="fa fa-handshake-o" aria-hidden="true"/></span><span class="ka-value-number">04</span><h3>Đồng hành</h3><p>Cùng phụ huynh quan tâm đến sự tiến bộ và trải nghiệm học của con.</p></article></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-credentials" id="chung-nhan">
+                    <div class="container">
+                        <div class="row g-5 align-items-center">
+                            <div class="col-lg-5"><p class="ka-eyebrow">Chứng nhận &amp; Kết nối</p><h2 class="edu-display">Định hướng quốc tế.<br/><span>Gắn với hành trình của con.</span></h2><p class="ka-section-copy">Kim Academy xây dựng lộ trình tiếng Anh theo khung CEFR, từ Mầm non đến THPT, với định hướng các kỳ thi tiếng Anh quốc tế.</p></div>
+                            <div class="col-lg-7"><div class="ka-credential"><div class="ka-credential-mark" aria-hidden="true">MTS<span>UK</span></div><div><span class="ka-label">Cơ quan khảo thí</span><h3>Thành viên chính thức MTS UK</h3><p>Kim Academy là thành viên chính thức của Cơ quan khảo thí MTS UK.</p></div></div><div class="ka-credential"><div class="ka-credential-mark ka-cambridge" aria-hidden="true"><i class="fa fa-university"/></div><div><span class="ka-label">Cambridge</span><h3>Exam Preparation Center</h3><p>Trung tâm đạt chuẩn Exam Preparation Center do Cambridge công nhận.</p></div></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-path" id="lo-trinh">
+                    <div class="container">
+                        <header class="edu-head"><span class="edu-head-sub">Một hành trình, từng bước tiến</span><h2 class="edu-display">Lớn lên cùng tiếng Anh</h2><p class="edu-head-lead">Lộ trình định hướng từ Mầm non đến THPT theo khung CEFR. Điểm bắt đầu được tư vấn theo độ tuổi và trình độ của học viên.</p></header>
+                        <ol class="ka-path-steps"><li><span>01</span><strong>Starters</strong><small>Làm quen</small></li><li><span>02</span><strong>Movers</strong><small>Khám phá</small></li><li><span>03</span><strong>Flyers</strong><small>Mở rộng</small></li><li><span>04</span><strong>KET</strong><small>Xây nền tảng</small></li><li><span>05</span><strong>PET</strong><small>Phát triển</small></li><li><span>06</span><strong>IELTS</strong><small>Hướng mục tiêu</small></li></ol>
+                        <p class="ka-path-note">Mỗi học viên có một điểm xuất phát riêng. Hãy cùng tìm lộ trình phù hợp với con.</p>
+                        <div class="text-center"><a href="#dang-ky" class="btn edu-btn edu-btn-sec">Nhận tư vấn lộ trình <span aria-hidden="true">→</span></a></div>
+                    </div>
+                </section>
+
+                <t t-call="edu_landing.registration"/>
+            </div>
+        </t>
+    </template>
+    <record id="page_about" model="website.page">
+        <field name="name">Giới thiệu Kim Academy</field>
+        <field name="url">/gioi-thieu</field>
+        <field name="view_id" ref="about"/>
+        <field name="is_published">True</field>
+        <field name="website_meta_title">Giới thiệu Kim Academy | Trung tâm Anh ngữ</field>
+        <field name="website_meta_description">Khám phá định hướng giáo dục, giá trị và lộ trình học tiếng Anh tại Kim Academy Language Center.</field>
+    </record>
+</odoo>

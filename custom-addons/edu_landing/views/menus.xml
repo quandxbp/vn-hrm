@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- post_init_hook chỉ chạy khi cài mới; function cập nhật cả DB đã cài. -->
+    <function model="website" name="_sync_edu_landing_menus"/>
+</odoo>

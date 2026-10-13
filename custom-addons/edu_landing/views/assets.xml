@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <template id="favicon" inherit_id="website.layout" name="Favicon Kim Academy">
+        <xpath expr="//t[@t-set='x_icon']" position="attributes">
+            <attribute name="t-value">'/vnpt_base/static/src/img/favicon.ico'</attribute>
+        </xpath>
+    </template>
 
     <!-- Nạp font Google qua <link> trong <head>. Không đặt @import trong SCSS vì Odoo gộp bundle
          và làm hỏng URL có dấu ";" (wght@400;500...). -->
@@ -7,7 +12,7 @@
         <xpath expr="//head/meta[last()]" position="after">
             <link rel="preconnect" href="https://fonts.googleapis.com"/>
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
-            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Merienda:wght@700&amp;display=swap"/>
         </xpath>
     </template>
 

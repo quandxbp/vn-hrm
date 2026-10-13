@@ -84,6 +84,16 @@ Python trên máy là Python Windows: nó không đọc được đường dẫn
 
 ## edu_landing
 
+- Trang tuyển dụng `/tuyen-dung`: `views/careers.xml` và `static/src/scss/careers.scss`; submenu Tuyển dụng trong Về Kim Academy và liên kết footer. Nội dung gồm môi trường, giá trị, nhóm công việc giáo viên/nhân sự và liên hệ email. Chưa có JD được xác nhận, nên hiển thị trạng thái đang cập nhật; dùng email công khai `kimacademy.edu@gmail.com`, chưa có form tải CV hoặc tích hợp HR Recruitment. Đã nâng cấp module trên DB `odoo`, `gvnn`; kiểm tra UI và CSS trên website `odoo`.
+
+- Theo y?u c?u ti?p theo: section `thanh-tich` v? `giao-vien` ?? kh?i ph?c b? c?c, n?n, th? ?nh g?c; gi? typography hi?n t?i. `home.scss` ch? c?n ghi ?? typography cho hai section n?y.
+
+- Đồng bộ hình thức trang chủ với trang giới thiệu (2026-10-13): `edu-home` + `static/src/scss/home.scss`. Tiêu đề phụ, tiêu đề chính, nút và form dùng style chung trong `landing.scss`; trang chủ dùng nền navy/trắng/xanh nhạt, thẻ ảnh kèm phần chữ riêng, bố cục chứng nhận/thống kê hai cột và một cột trên mobile. Giữ nội dung, neo, lọc độ tuổi, lọc thành tích và điền sẵn chương trình. Clearfix `container::before/after` của Odoo phải ẩn khi container dùng CSS grid để không chiếm ô.
+- Trang giới thiệu `/gioi-thieu` (2026-10-13): `views/about.xml`, CSS riêng `static/src/scss/about.scss`, bản ghi `website.page` công khai. Submenu Giới thiệu trung tâm, nút Câu chuyện của chúng tôi và footer đều dẫn đến trang này. Nội dung biên soạn cho Kim Academy theo cấu trúc tham khảo YOLA; không dùng ảnh, câu chuyện sáng lập hoặc số liệu của YOLA. Lịch sử/người sáng lập của Kim Academy chờ người dùng bổ sung.
+- Form tư vấn đã tách thành `views/registration.xml` (`edu_landing.registration`), dùng chung trang chủ và giới thiệu. Template gọi cần đặt biến `img` trỏ đến thư mục ảnh. Đã nâng cấp trên DB `odoo` và `gvnn`; kiểm tra desktop/mobile, liên kết menu, ảnh và form.
+- Navbar (2026-10-12): Về Kim Academy (4 submenu), Chương trình học, Học viên & Hoạt động (3 submenu), Liên hệ, nút Nhận tư vấn. Website một trang; chương trình cụ thể bổ sung sau. Điểm cuộn: `gioi-thieu`, `phuong-phap`, `giao-vien`, `uy-tin`, `chuong-trinh`, `hoc-vien`, `cam-nhan`, `hoat-dong`, `lien-he`, `dang-ky`.
+- `views/menus.xml` gọi `website._sync_edu_landing_menus()` khi nâng cấp; `post_init_hook` dùng chung hàm đồng bộ khi cài mới. Khi đổi menu trang riêng sang neo phải xoá `page_id`, nếu không Odoo vẫn dẫn tới trang cũ. Menu mobile tự đóng sau khi chọn neo.
+- Đã áp dụng navbar trên DB `gvnn` và `odoo`; tab website của người dùng ngày 2026-10-12 dùng DB `odoo` (xác nhận từ log HTTP). Mục Hoạt động lớp học hiện là thông báo đang cập nhật, chờ nội dung thật.
 - Ghi đè `website.homepage` (vùng `#wrap`) và footer. Các khối nằm trong `oe_structure` nên vẫn sửa được bằng trình dựng kéo thả.
 - Form đăng ký gửi tới `/website/form/crm.lead` và tạo lead. Các trường tự đặt (chương trình, cơ sở) được ghi vào `description` của lead.
 - Menu neo (`/#chuong-trinh`, ...) được tạo trong `hooks.py` (`post_init_hook`) và gắn vào `website.menu_id` của từng website, không gắn vào `website.main_menu`. Cách khai báo bằng XML với `eval="obj()..."` không chạy được trên Odoo 17.

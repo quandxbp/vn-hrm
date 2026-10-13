@@ -8,7 +8,38 @@
         <xpath expr="//span[@t-field='website.logo']" position="replace">
             <img src="/vnpt_base/static/src/img/kim-academy-logo.png" alt="Kim Academy Language Center" title="Kim Academy Language Center"
                  width="160" height="160" class="edu-nav-logo"/>
+            <span class="edu-nav-brand-name"><span class="edu-nav-brand-kim">KIM</span> <span class="edu-nav-brand-academy">ACADEMY</span></span>
         </xpath>
     </template>
 
+    <!-- Nút tư vấn nằm trong cây menu, dùng chung desktop/mobile. -->
+    <template id="hide_default_header_cta" inherit_id="website.header_call_to_action" name="Ẩn nút Contact Us trùng lặp">
+        <xpath expr="//li" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+    </template>
+
+    <!-- Landing một trang không cần tìm kiếm hay số điện thoại mẫu trên header. -->
+    <template id="landing_header_default" inherit_id="website.template_header_default" name="Navbar gọn cho Kim Academy">
+        <xpath expr="//t[@t-call='website.placeholder_header_search_box']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='website.placeholder_header_text_element']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+    </template>
+    <template id="landing_header_mobile" inherit_id="website.template_header_mobile" name="Menu mobile Kim Academy">
+        <xpath expr="//t[@t-call='website.placeholder_header_search_box']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='website.placeholder_header_text_element']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+    </template>
 </odoo>

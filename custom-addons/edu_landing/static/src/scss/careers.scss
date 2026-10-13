@@ -1,0 +1,50 @@
+.edu-careers {
+    .ka-career-eyebrow { margin: 0 0 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--edu-pri-text); }
+    h2.edu-display { margin: 0 0 28px; font-size: clamp(42px, 4.8vw, 68px); line-height: 1.12; }
+    .ka-career-link { display: inline-flex; align-items: center; gap: 14px; color: var(--ka-deep); font-size: 13px; font-weight: 600; text-decoration: none; line-height: 1.8; span { font-size: 20px; } &:hover { color: var(--edu-pri-text); text-decoration: underline; } }
+    a:focus-visible { outline: 2px solid var(--edu-pri-text); outline-offset: 5px; }
+    .ka-career-hero { padding: 32px 0 0; background: #f1f6fc; overflow: hidden; }
+    .ka-career-breadcrumb { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 64px; color: var(--edu-muted); font-size: 11px; line-height: 1.8; a { color: inherit; } }
+    .ka-career-hero h1 { margin: 0 0 28px; font-size: clamp(48px, 4.5vw, 64px); line-height: 1.16; span { color: var(--edu-pri-text); } }
+    .ka-career-lead { max-width: 470px; margin-bottom: 32px; font-size: 16px; line-height: 1.95; color: var(--edu-muted); }
+    .ka-career-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+    .ka-career-hero-photo { position: relative; margin: 0 0 20px 16px; padding-bottom: 24px; img { width: 100%; height: 440px; object-fit: cover; border-radius: 16px 90px 16px 16px; } }
+    .ka-career-photo-label { position: absolute; bottom: 0; left: -32px; display: flex; align-items: center; gap: 18px; padding: 22px 30px; color: #fff; background: var(--ka-deep); border: 6px solid #f1f6fc; border-radius: 20px; font-size: 13px; line-height: 1.8; .fa { font-size: 28px; color: #ffcf84; } strong { font-size: 17px; } }
+    .ka-career-principles { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; margin-top: 64px; padding: 32px 0; border-top: 1px solid #dce7f5; span { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; } .fa { color: var(--edu-pri-text); font-size: 20px; } }
+    .ka-career-culture { background: #fff; p:not(.ka-career-eyebrow) { color: var(--edu-muted); font-size: 15px; line-height: 1.95; margin-bottom: 20px; } h2 span { color: var(--edu-pri-text); } }
+    .ka-career-culture-photo { position: relative; img { width: 100%; height: 480px; object-fit: cover; border-radius: 70px 12px 12px 12px; } > span { position: absolute; left: 24px; bottom: 24px; padding: 14px 20px; background: #fff; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--ka-deep); } }
+    .ka-career-values { color: #fff; background: var(--ka-deep); }
+    .ka-career-value { position: relative; height: 100%; padding: 30px 24px; border: 1px solid rgba(255,255,255,0.22); border-radius: 16px; > .fa { margin-bottom: 28px; font-size: 28px; color: #ffcf84; } > span { position: absolute; top: 30px; right: 24px; font-size: 11px; color: #c9e2ff; } h3 { font-family: var(--edu-body); font-size: 17px; font-weight: 600; line-height: 1.6; margin-bottom: 14px; } p { margin: 0; font-size: 13px; line-height: 1.95; color: #d6e2f1; } }
+    .ka-career-opportunities { background: #fff; }
+    .ka-career-role { height: 100%; padding: 40px; border: 1px solid #dce7f5; border-radius: 16px 48px 16px 16px; background: #f8fafd; h3 { margin: 18px 0; font-size: 40px; line-height: 1.2; } > p { max-width: 450px; color: var(--edu-muted); font-size: 14px; line-height: 1.95; } }
+    .ka-career-role-icon { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; margin-bottom: 28px; border-radius: 16px; background: #e8f0fa; color: var(--ka-deep); font-size: 26px; }
+    .ka-career-role-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--edu-pri-text); }
+    .ka-career-role-status { display: flex; align-items: center; gap: 8px; margin: 24px 0; padding-top: 24px; border-top: 1px solid #dce7f5; color: var(--edu-muted); font-size: 12px; line-height: 1.8; span { flex: 0 0 6px; height: 6px; border-radius: 50%; background: #66768d; } }
+    .ka-career-opportunities-note { margin: 28px 0 0; text-align: center; color: var(--edu-muted); font-size: 12px; line-height: 1.8; }
+    .ka-career-connect { padding-top: 0; background: #fff; }
+    .ka-career-connect-card { display: grid; grid-template-columns: 3fr 2fr; gap: 48px; padding: 64px; border-radius: 24px; background: #edf4fc; > div > p:not(.ka-career-eyebrow) { max-width: 540px; margin-bottom: 28px; font-size: 14px; line-height: 1.95; color: var(--edu-muted); } }
+    .ka-career-email { display: block; width: fit-content; max-width: 100%; margin-top: 20px; color: var(--ka-deep); font-size: 13px; overflow-wrap: anywhere; }
+    .ka-career-connect-art { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 32px; border-radius: 90px 16px 16px 16px; color: #fff; background: var(--ka-deep); > .fa { margin-bottom: 28px; color: #ffcf84; font-size: 48px; } > span { font-family: var(--edu-display); font-size: clamp(32px, 3.5vw, 52px); line-height: 1.3; letter-spacing: 0.03em; strong { color: #ffcf84; font-weight: 400; } } }
+    @media (max-width: 991.98px) {
+        .ka-career-hero-photo { max-width: 620px; margin-left: 24px; }
+        .ka-career-breadcrumb { margin-bottom: 40px; }
+        .ka-career-hero-copy { max-width: 680px; }
+        .ka-career-connect-card { padding: 40px; gap: 32px; }
+        .ka-career-culture-photo img { height: 400px; }
+    }
+    @media (max-width: 575.98px) {
+        .ka-career-hero { padding-top: 24px; }
+        .ka-career-breadcrumb { font-size: 10px; gap: 8px; }
+        .ka-career-hero h1 { font-size: 48px; }
+        .ka-career-lead { font-size: 14px; }
+        .ka-career-actions { gap: 20px; }
+        .ka-career-hero-photo { margin-left: 12px; img { height: 300px; border-top-right-radius: 60px; } }
+        .ka-career-photo-label { left: -20px; padding: 16px 20px; font-size: 12px; }
+        .ka-career-principles { margin-top: 32px; gap: 20px; flex-direction: column; span { font-size: 12px; } }
+        .ka-career-culture-photo img { height: 340px; }
+        .ka-career-role { padding: 28px; }
+        .ka-career-connect-card { grid-template-columns: 1fr; padding: 32px 24px; gap: 36px; }
+        .ka-career-connect-art { min-height: 300px; align-items: flex-start; padding: 40px; }
+        .ka-career-connect-card .edu-btn { padding-left: 18px; padding-right: 18px; }
+    }
+}

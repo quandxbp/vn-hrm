@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="registration" name="Form tư vấn dùng chung">
+                <section class="edu-register s_website_form" id="dang-ky" data-vcss="001" data-snippet="s_website_form">
+                    <img class="edu-register-bg" t-att-src="img + 'cta.jpg'" alt="" loading="lazy"/>
+                    <div class="container">
+                        <div class="row align-items-center g-5">
+                            <div class="col-lg-5 edu-register-intro">
+                                <span class="edu-head-sub">Bắt đầu ngay</span>
+                                <h2 class="edu-display">Khai phóng tiềm năng học thuật</h2>
+                                <p>Để lại thông tin, chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ.</p>
+                                <a href="tel:0766777793" class="edu-register-hotline">
+                                    <i class="fa fa-phone" role="img" aria-label=""/> Hotline: 0766.7777.93
+                                </a>
+                            </div>
+                            <div class="col-lg-7">
+                                <div class="edu-register-card">
+                                    <form action="/website/form/" method="post" enctype="multipart/form-data"
+                                          class="o_mark_required" data-mark="*" data-pre-fill="true"
+                                          data-model_name="crm.lead" data-success-mode="redirect"
+                                          data-success-page="/contactus-thank-you">
+                                        <div class="s_website_form_rows row s_col_no_bgcolor">
+
+                                            <div data-name="Field" class="s_website_form_field col-12 s_website_form_dnone">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px"/>
+                                                    <div class="col-sm">
+                                                        <input type="hidden" class="form-control s_website_form_input" name="name" value="Đăng ký tư vấn từ website"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_required" data-type="char">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-contact-name">
+                                                        <span class="s_website_form_label_content">Họ và tên</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <input id="edu-contact-name" class="form-control s_website_form_input" type="text" name="contact_name" required="1" autocomplete="name"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_required" data-type="tel">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-phone">
+                                                        <span class="s_website_form_label_content">Số điện thoại</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <input id="edu-phone" class="form-control s_website_form_input" type="tel" name="phone" required="1" autocomplete="tel"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_custom s_website_form_required" data-type="char">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-level">
+                                                        <span class="s_website_form_label_content">Trình độ / chương trình</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <select id="edu-level" class="form-select s_website_form_input" name="Chương trình quan tâm" required="1">
+                                                            <option value="">Chọn chương trình</option>
+                                                            <option value="Tiếng Anh mầm non">Tiếng Anh mầm non</option>
+                                                            <option value="Tiếng Anh tiểu học">Tiếng Anh tiểu học</option>
+                                                            <option value="Tiếng Anh thiếu niên">Tiếng Anh thiếu niên</option>
+                                                            <option value="IELTS / SAT">IELTS / SAT</option>
+                                                            <option value="Chưa xác định">Tôi chưa biết, cần tư vấn</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-md-6 s_website_form_custom s_website_form_required" data-type="char">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-branch">
+                                                        <span class="s_website_form_label_content">Cơ sở học</span>
+                                                        <span class="s_website_form_mark"> *</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <select id="edu-branch" class="form-select s_website_form_input" name="Cơ sở học" required="1">
+                                                            <option value="">Chọn cơ sở</option>
+                                                            <option value="Cơ sở 1">Cơ sở 1</option>
+                                                            <option value="Cơ sở 2">Cơ sở 2</option>
+                                                            <option value="Học online">Học online</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div data-name="Field" class="s_website_form_field mb-3 col-12" data-type="email">
+                                                <div class="row s_col_no_resize s_col_no_bgcolor">
+                                                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="edu-email">
+                                                        <span class="s_website_form_label_content">Email (không bắt buộc)</span>
+                                                    </label>
+                                                    <div class="col-sm">
+                                                        <input id="edu-email" class="form-control s_website_form_input" type="email" name="email_from" autocomplete="email"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-0 py-2 col-12 s_website_form_submit" data-name="Submit Button">
+                                                <div style="width: 200px;" class="s_website_form_label"/>
+                                                <a href="#" role="button" class="btn edu-btn edu-btn-sec w-100 s_website_form_send">Nhận tư vấn miễn phí</a>
+                                                <span id="s_website_form_result"/>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+    </template>
+</odoo>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="careers" name="Tuyển dụng Kim Academy">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Tuyển dụng Kim Academy</t>
+            <t t-set="meta_description">Khám phá môi trường làm việc và cơ hội nghề nghiệp dành cho giáo viên, nhân sự trung tâm tại Kim Academy.</t>
+            <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
+            <div id="wrap" class="oe_structure edu-landing edu-careers">
+                <section class="ka-career-hero">
+                    <div class="container">
+                        <nav class="ka-career-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><a href="/gioi-thieu">Về Kim Academy</a><span aria-hidden="true">/</span><span>Tuyển dụng</span></nav>
+                        <div class="row align-items-center g-5">
+                            <div class="col-lg-6 ka-career-hero-copy">
+                                <p class="ka-career-eyebrow">Careers at Kim Academy</p>
+                                <h1 class="edu-display">Cùng dạy điều hay.<br/><span>Cùng tạo đổi thay.</span></h1>
+                                <p class="ka-career-lead">Mang niềm yêu thích giáo dục của bạn đến một nơi mỗi bước tiến của học viên đều có ý nghĩa.</p>
+                                <div class="ka-career-actions"><a href="#co-hoi" class="btn edu-btn edu-btn-sec">Khám phá cơ hội <i class="fa fa-arrow-right" aria-hidden="true"/></a><a href="#moi-truong" class="ka-career-link">Cuộc sống tại Kim <span aria-hidden="true">↗</span></a></div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="ka-career-hero-photo">
+                                    <img t-att-src="img + 'hero.jpg'" alt="Hoạt động tập thể tại Kim Academy" fetchpriority="high"/>
+                                    <div class="ka-career-photo-label"><i class="fa fa-heart-o" aria-hidden="true"/><span>Con người làm nên<br/><strong>Kim Academy.</strong></span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ka-career-principles"><span><i class="fa fa-book" aria-hidden="true"/> Tận tâm với giáo dục</span><span><i class="fa fa-users" aria-hidden="true"/> Kết nối bằng sự tôn trọng</span><span><i class="fa fa-lightbulb-o" aria-hidden="true"/> Cùng học hỏi mỗi ngày</span></div>
+                    </div>
+                </section>
+
+                <section class="ka-career-culture" id="moi-truong">
+                    <div class="container">
+                        <div class="row align-items-center g-5">
+                            <div class="col-lg-5">
+                                <div class="ka-career-culture-photo"><img t-att-src="img + 'prog_primary.jpg'" alt="Ảnh minh họa môi trường học tiếng Anh" loading="lazy"/><span>Learn. Share. Grow.</span></div>
+                            </div>
+                            <div class="col-lg-6 offset-lg-1">
+                                <p class="ka-career-eyebrow">Môi trường làm việc</p>
+                                <h2 class="edu-display">Một đội ngũ.<br/><span>Chung niềm tin.</span></h2>
+                                <p>Phía sau một giờ học thú vị là sự chuẩn bị của giáo viên, sự hỗ trợ của đội ngũ trung tâm và những cuộc trao đổi cùng phụ huynh.</p>
+                                <p>Chúng tôi mong muốn kết nối những người yêu giáo dục, sẵn sàng chia sẻ và cùng tìm cách giúp học viên tiến bộ. Dù ở lớp học hay phía sau hậu trường, mỗi vai trò đều góp phần tạo nên trải nghiệm học tập tại Kim Academy.</p>
+                                <a href="/gioi-thieu" class="ka-career-link">Tìm hiểu câu chuyện của Kim <span aria-hidden="true">→</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-career-values">
+                    <div class="container">
+                        <header class="edu-head edu-head-light"><span class="edu-head-sub">Điều kết nối chúng ta</span><h2 class="edu-display">Công việc có ý nghĩa.<br/>Hành trình có đồng đội.</h2><p class="edu-head-lead">Những giá trị Kim Academy hướng đến trong cách làm việc cùng nhau.</p></header>
+                        <div class="row g-4">
+                            <div class="col-md-6 col-lg-3"><article class="ka-career-value"><i class="fa fa-heart-o" aria-hidden="true"/><span>01</span><h3>Đặt học viên ở trung tâm</h3><p>Lắng nghe nhu cầu học tập và quan tâm đến từng bước tiến của học viên.</p></article></div>
+                            <div class="col-md-6 col-lg-3"><article class="ka-career-value"><i class="fa fa-comments-o" aria-hidden="true"/><span>02</span><h3>Chia sẻ và đồng hành</h3><p>Trao đổi cởi mở, tôn trọng khác biệt và cùng giải quyết những thử thách.</p></article></div>
+                            <div class="col-md-6 col-lg-3"><article class="ka-career-value"><i class="fa fa-lightbulb-o" aria-hidden="true"/><span>03</span><h3>Không ngừng học hỏi</h3><p>Giữ sự tò mò, đón nhận góp ý và từng ngày hoàn thiện cách làm việc.</p></article></div>
+                            <div class="col-md-6 col-lg-3"><article class="ka-career-value"><i class="fa fa-compass" aria-hidden="true"/><span>04</span><h3>Chủ động và trách nhiệm</h3><p>Làm việc bằng sự tận tâm, giữ lời hứa và theo sát điều mình phụ trách.</p></article></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-career-opportunities" id="co-hoi">
+                    <div class="container">
+                        <header class="edu-head"><span class="edu-head-sub">Tìm vai trò của bạn</span><h2 class="edu-display">Cơ hội cùng Kim Academy</h2><p class="edu-head-lead">Tìm hiểu hai nhóm công việc và kết nối với trung tâm để nhận thông tin tuyển dụng phù hợp.</p></header>
+                        <!-- Chưa xác nhận vị trí đang tuyển: không công bố JD, lương hoặc hạn ứng tuyển mẫu. -->
+                        <div class="row g-4">
+                            <div class="col-lg-6"><article class="ka-career-role"><div class="ka-career-role-icon"><i class="fa fa-graduation-cap" aria-hidden="true"/></div><span class="ka-career-role-tag">Giảng dạy &amp; Học thuật</span><h3 class="edu-display">Đội ngũ giáo viên</h3><p>Dành cho những người yêu việc giảng dạy tiếng Anh và mong muốn đồng hành cùng sự tiến bộ của học viên.</p><div class="ka-career-role-status"><span/>Vị trí tuyển dụng đang được cập nhật</div><a href="mailto:kimacademy.edu@gmail.com?subject=Quan%20tam%20vi%20tri%20Giao%20vien%20-%20Kim%20Academy" class="ka-career-link">Kết nối về cơ hội giảng dạy <span aria-hidden="true">→</span></a></article></div>
+                            <div class="col-lg-6"><article class="ka-career-role"><div class="ka-career-role-icon"><i class="fa fa-building-o" aria-hidden="true"/></div><span class="ka-career-role-tag">Vận hành &amp; Hỗ trợ</span><h3 class="edu-display">Nhân sự trung tâm</h3><p>Dành cho những người muốn góp phần xây dựng trải nghiệm học tập qua công việc tư vấn, chăm sóc và vận hành.</p><div class="ka-career-role-status"><span/>Vị trí tuyển dụng đang được cập nhật</div><a href="mailto:kimacademy.edu@gmail.com?subject=Quan%20tam%20vi%20tri%20Nhan%20su%20-%20Kim%20Academy" class="ka-career-link">Kết nối về cơ hội tại trung tâm <span aria-hidden="true">→</span></a></article></div>
+                        </div>
+                        <p class="ka-career-opportunities-note">Thông tin vị trí, yêu cầu và chế độ làm việc sẽ được công bố trong từng đợt tuyển dụng.</p>
+                    </div>
+                </section>
+
+                <section class="ka-career-connect" id="ket-noi-tuyen-dung">
+                    <div class="container"><div class="ka-career-connect-card"><div><p class="ka-career-eyebrow">Giữ kết nối với Kim</p><h2 class="edu-display">Cơ hội phù hợp<br/>bắt đầu từ một lời chào.</h2><p>Chia sẻ đôi nét về kinh nghiệm, lĩnh vực quan tâm và CV của bạn qua email trung tâm để trao đổi thêm về cơ hội nghề nghiệp.</p><a href="mailto:kimacademy.edu@gmail.com?subject=Ket%20noi%20nghe%20nghiep%20-%20Kim%20Academy" class="btn edu-btn edu-btn-sec">Gửi email giới thiệu <i class="fa fa-arrow-right" aria-hidden="true"/></a><a class="ka-career-email" href="mailto:kimacademy.edu@gmail.com">kimacademy.edu@gmail.com</a></div><div class="ka-career-connect-art" aria-hidden="true"><i class="fa fa-paper-plane-o"/><span>YOUR NEXT<br/>CHAPTER<br/><strong>STARTS HERE.</strong></span></div></div></div>
+                </section>
+            </div>
+        </t>
+    </template>
+    <record id="page_careers" model="website.page">
+        <field name="name">Tuyển dụng Kim Academy</field>
+        <field name="url">/tuyen-dung</field>
+        <field name="view_id" ref="careers"/>
+        <field name="is_published">True</field>
+        <field name="website_meta_title">Tuyển dụng | Kim Academy</field>
+        <field name="website_meta_description">Tìm hiểu môi trường làm việc và kết nối về cơ hội nghề nghiệp cho giáo viên, nhân sự trung tâm tại Kim Academy.</field>
+    </record>
+</odoo>

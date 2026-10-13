@@ -2,6 +2,33 @@
 
 import publicWidget from "@web/legacy/js/public/public_widget";
 
+// Odoo cuộn tới neo nhưng giữ offcanvas mở; đóng menu khi đã chọn nội dung.
+publicWidget.registry.EduLandingNavbar = publicWidget.Widget.extend({
+    selector: "#wrapwrap > header",
+    start() {
+        // Bắt sự kiện trước handler cuộn của Odoo (handler đó chặn bubbling).
+        this.onAnchorClick = this._onAnchorClick.bind(this);
+        this.el.addEventListener("click", this.onAnchorClick, true);
+        return this._super(...arguments);
+    },
+
+    destroy() {
+        this.el.removeEventListener("click", this.onAnchorClick, true);
+        this._super(...arguments);
+    },
+
+    _onAnchorClick(ev) {
+        const anchor = ev.target.closest('a[href^="/#"]');
+        if (!anchor || anchor.classList.contains("dropdown-toggle")) {
+            return;
+        }
+        const panel = anchor.closest(".offcanvas.show");
+        if (panel) {
+            setTimeout(() => panel.querySelector('[data-bs-dismiss="offcanvas"]')?.click(), 0);
+        }
+    },
+});
+
 /**
  * Hành vi của trang chủ trung tâm Anh ngữ:
  * - chọn độ tuổi để làm nổi bật chương trình phù hợp
@@ -16,10 +43,16 @@ publicWidget.registry.EduLanding = publicWidget.Widget.extend({
         "click .edu-chip": "_onChipClick",
         "click .edu-course-item[data-level]": "_onProgramClick",
         "click .edu-stu-tab": "_onStudentTab",
+        "click .edu-smem-tab": "_onTeacherTab",
+        "keydown .edu-smem-tab": "_onTeacherTabKeydown",
     },
 
     start() {
         this._setupCounters();
+        const teacherTab = this.el.querySelector('.edu-smem-tab[aria-selected="true"]');
+        if (teacherTab) {
+            this._selectTeacherTeam(teacherTab);
+        }
         return this._super(...arguments);
     },
 
@@ -61,6 +94,36 @@ publicWidget.registry.EduLanding = publicWidget.Widget.extend({
         this.el.querySelectorAll(".edu-stu-col").forEach((col) => {
             col.classList.toggle("is-hidden", filter !== "all" && col.dataset.cat !== filter);
         });
+    },
+
+    _onTeacherTab(ev) {
+        this._selectTeacherTeam(ev.currentTarget);
+    },
+
+    _selectTeacherTeam(tab) {
+        const section = tab.closest(".edu-smem");
+        section.querySelectorAll(".edu-smem-tab").forEach((button) => {
+            const active = button === tab;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-selected", String(active));
+            button.tabIndex = active ? 0 : -1;
+        });
+        section.querySelectorAll(".edu-smem-panel").forEach((panel) => {
+            panel.hidden = panel.dataset.team !== tab.dataset.team;
+        });
+    },
+
+    _onTeacherTabKeydown(ev) {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(ev.key)) {
+            return;
+        }
+        ev.preventDefault();
+        const tabs = [...ev.currentTarget.closest(".edu-smem-tabs").querySelectorAll(".edu-smem-tab")];
+        const index = tabs.indexOf(ev.currentTarget);
+        const next = ev.key === "Home" ? 0 : ev.key === "End" ? tabs.length - 1 :
+            (index + (ev.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+        this._selectTeacherTeam(tabs[next]);
+        tabs[next].focus();
     },
 
     _setupCounters() {
