@@ -18,6 +18,16 @@
          url('/edu_landing/static/src/fonts/SVN-BebasNeuePro.ttf') format('truetype');
 }
 
+// Cùng kiểu chữ thương hiệu cho navbar và footer.
+@mixin edu-brand-type {
+    font-family: 'SVN-Bebas Neue Pro', 'Oswald', 'Arial Narrow', sans-serif;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #d6e2f1;
+}
+
 .edu-landing,
 #footer.edu-footer {
     --edu-pri: #325d9e;          // xanh nền chính
@@ -241,18 +251,16 @@
     }
 
     .edu-nav-brand-name {
+        @include edu-brand-type;
         display: inline-flex;
         align-items: baseline;
         gap: 6px;
-        font-family: 'Merienda', cursive;
-        font-size: 22px;
-        font-weight: 700;
-        line-height: 1.4;
-        letter-spacing: -0.035em;
+        font-size: 32px;
+        color: #122f56;
         white-space: nowrap;
     }
     .edu-nav-brand-kim,
-    .edu-nav-brand-academy { color: #34465c; }
+    .edu-nav-brand-academy { color: inherit; }
 
     .top_menu > .nav-item > .nav-link {
         display: flex;
@@ -298,26 +306,44 @@
     // Cùng một liên kết tư vấn trên menu desktop và menu mobile của Odoo.
     .top_menu > .nav-item > .nav-link[href="/#dang-ky"] {
         justify-content: center;
-        gap: 16px;
-        padding: 13px 22px;
+        gap: 14px;
+        min-height: 50px;
+        padding: 8px 10px 8px 22px;
         margin-left: 18px;
-        border-radius: 12px;
-        background: #b85a06;
+        border: 1px solid rgba(154, 74, 4, 0.18);
+        border-radius: 999px;
+        background: linear-gradient(135deg, #b85a06, #9a4a04);
         color: #fff !important;
+        font-size: 13px;
         font-weight: 700;
-        box-shadow: 0 5px 14px rgba(184, 90, 6, 0.16);
+        box-shadow: 0 4px 12px rgba(154, 74, 4, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
 
         &::after {
             content: '\2192';
-            font-size: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 32px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.16);
+            font-size: 18px;
             font-weight: 400;
             line-height: 1;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
         &:hover,
         &:focus-visible {
-            background: #9a4a04;
+            background: linear-gradient(135deg, #a65005, #873f03);
+            transform: translateY(-1px);
+            box-shadow: 0 7px 18px rgba(154, 74, 4, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            &::after { background: rgba(255, 255, 255, 0.24); transform: translateX(2px); }
         }
+        &:focus-visible { outline: 2px solid #325d9e; outline-offset: 4px; }
+        &:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(154, 74, 4, 0.16); }
     }
 
     .dropdown-menu {
@@ -373,16 +399,16 @@
     }
 
     @media (min-width: 992px) and (max-width: 1199.98px) {
-        .edu-nav-brand-name { font-size: 18px; gap: 5px; }
+        .edu-nav-brand-name { font-size: 26px; gap: 5px; }
         .navbar-brand.logo { gap: 6px; }
         .o_main_nav { gap: 12px; }
         .top_menu > .nav-item > .nav-link { padding: 11px 9px; font-size: 12px; }
-        .top_menu > .nav-item > .nav-link[href="/#dang-ky"] { margin-left: 8px; padding: 12px 16px; }
+        .top_menu > .nav-item > .nav-link[href="/#dang-ky"] { margin-left: 8px; padding: 8px 8px 8px 16px; gap: 10px; }
     }
 
     @media (max-width: 991.98px) {
         &.o_header_is_scrolled { --edu-nav-h: 72px; }
-        .edu-nav-brand-name { font-size: 19px; gap: 5px; }
+        .edu-nav-brand-name { font-size: 27px; gap: 5px; }
         .navbar-brand.logo { gap: 6px; }
 
         .o_header_mobile_buttons_wrap button {
@@ -407,7 +433,7 @@
         .offcanvas-body { padding: 20px; }
         .top_menu { gap: 6px; }
         .top_menu > .nav-item > .nav-link { min-height: 50px; padding: 14px; }
-        .top_menu > .nav-item > .nav-link[href="/#dang-ky"] { margin: 18px 0 0; }
+        .top_menu > .nav-item > .nav-link[href="/#dang-ky"] { justify-content: space-between; margin: 18px 0 0; padding: 10px 12px 10px 22px; }
 
         .dropdown-menu {
             min-width: 0;
@@ -423,6 +449,10 @@
     @media (prefers-reduced-motion: reduce) {
         .nav-link, .dropdown-item, .dropdown-toggle::after, img.edu-nav-logo {
             transition: none;
+        }
+        .top_menu > .nav-item > .nav-link[href="/#dang-ky"] {
+            transform: none;
+            &::after { transition: none; transform: none; }
         }
     }
 }
@@ -1385,14 +1415,9 @@
     }
 
     a.edu-footer-brand {
+        @include edu-brand-type;
         display: inline-block;
-        font-family: var(--edu-display);
         font-size: 46px;
-        line-height: 1.1;
-        font-weight: 400;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        color: #fff;
         span { display: block; margin-top: 10px; font-family: var(--edu-body); font-size: 10px; letter-spacing: 0.26em; font-weight: 500; color: #ffcf84; }
         &:hover { text-decoration: none; }
     }
