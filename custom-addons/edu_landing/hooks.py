@@ -15,7 +15,7 @@ LANDING_MENUS = [
         ('Cảm nhận phụ huynh', '/#cam-nhan'),
         ('Hoạt động lớp học', '/#hoat-dong'),
     ]),
-    ('Liên hệ', '/#lien-he', []),
+    ('Liên hệ', '/lien-he', []),
     ('Nhận tư vấn', '/#dang-ky', []),
 ]
 
@@ -49,7 +49,7 @@ def sync_landing_menus(env):
         for sequence, (name, url, children) in enumerate(LANDING_MENUS, start=1):
             aliases = ('/#thanh-tich',) if name == 'Học viên & Hoạt động' else ()
             if name == 'Liên hệ':
-                aliases = ('/contactus',)
+                aliases = ('/contactus', '/#lien-he')
             parent = upsert(name, url, root, sequence * 10, aliases)
             for child_sequence, (child_name, child_url) in enumerate(children, start=1):
                 if child_url == '/#giao-vien':

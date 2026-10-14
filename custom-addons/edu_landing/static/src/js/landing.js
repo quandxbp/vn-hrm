@@ -34,14 +34,13 @@ publicWidget.registry.EduLandingNavbar = publicWidget.Widget.extend({
  * - chọn độ tuổi để làm nổi bật chương trình phù hợp
  * - tab lọc thành tích học viên
  * - đếm số liệu khi cuộn tới
- * - bấm thẻ chương trình thì điền sẵn chương trình vào form đăng ký
+ * - điền sẵn chương trình vào form trên trang chi tiết khóa học
  * Trang vẫn đọc được đầy đủ khi tắt JS, vì số liệu và thẻ đã có sẵn trong HTML.
  */
 publicWidget.registry.EduLanding = publicWidget.Widget.extend({
     selector: ".edu-landing",
     events: {
         "click .edu-chip": "_onChipClick",
-        "click .edu-course-item[data-level]": "_onProgramClick",
         "click .edu-stu-tab": "_onStudentTab",
         "click .edu-smem-tab": "_onTeacherTab",
         "keydown .edu-smem-tab": "_onTeacherTabKeydown",
@@ -49,6 +48,10 @@ publicWidget.registry.EduLanding = publicWidget.Widget.extend({
 
     start() {
         this._setupCounters();
+        const programSelect = this.el.querySelector('select[name="Chương trình quan tâm"]');
+        if (programSelect && this.el.dataset.program) {
+            programSelect.value = this.el.dataset.program;
+        }
         const teacherTab = this.el.querySelector('.edu-smem-tab[aria-selected="true"]');
         if (teacherTab) {
             this._selectTeacherTeam(teacherTab);
@@ -74,13 +77,6 @@ publicWidget.registry.EduLanding = publicWidget.Widget.extend({
             card.classList.toggle("is-match", Boolean(age) && matches);
             card.classList.toggle("is-dimmed", Boolean(age) && !matches);
         });
-    },
-
-    _onProgramClick(ev) {
-        const select = this.el.querySelector('select[name="Chương trình quan tâm"]');
-        if (select) {
-            select.value = ev.currentTarget.dataset.level;
-        }
     },
 
     _onStudentTab(ev) {

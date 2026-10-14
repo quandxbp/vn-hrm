@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Landing page: Trung tâm Anh ngữ',
-    'version': '17.0.1.2.0',
+    'version': '17.0.1.3.0',
     'summary': 'Trang giới thiệu trung tâm tiếng Anh, form đăng ký tư vấn đổ vào CRM',
     'description': """
 Trang chủ cho trung tâm tiếng Anh dựng trên Odoo Website (bản Community).
@@ -11,12 +11,21 @@ Form đăng ký tạo lead trong CRM.
     'category': 'Website',
     'depends': ['website', 'website_crm', 'vnpt_base'],
     'data': [
+        'security/ir.model.access.csv',
+        'security/course_security.xml',
+        'data/courses.xml',
+        'views/course_views.xml',
+        'views/website_registration_views.xml',
         'views/assets.xml',
+        'views/map.xml',
         'views/header.xml',
         'views/registration.xml',
+        'views/course_detail.xml',
         'views/homepage.xml',
         'views/about.xml',
         'views/careers.xml',
+        'views/contact.xml',
+        'views/thank_you.xml',
         'views/footer.xml',
         'views/menus.xml',
     ],
@@ -27,7 +36,11 @@ Form đăng ký tạo lead trong CRM.
             'edu_landing/static/src/scss/about.scss',
             'edu_landing/static/src/scss/home.scss',
             'edu_landing/static/src/scss/careers.scss',
+            'edu_landing/static/src/scss/course.scss',
+            'edu_landing/static/src/scss/contact.scss',
+            'edu_landing/static/src/scss/thank_you.scss',
             'edu_landing/static/src/js/landing.js',
+            'edu_landing/static/src/js/consultation_form.js',
         ],
     },
     'installable': True,

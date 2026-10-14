@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dùng chung điểm đến cho các liên kết chỉ đường của Kim Academy. -->
+    <template id="directions_link" name="Chỉ đường Kim Academy">
+        <a href="https://www.google.com/maps/dir/?api=1&amp;destination=11.538931%2C106.8911376"
+           target="_blank" rel="noopener noreferrer" t-att-class="map_link_class or ''">
+            <t t-out="map_link_label or 'Chỉ đường đến trung tâm'"/>
+            <i t-if="map_link_icon" class="fa fa-external-link" aria-hidden="true"/>
+        </a>
+    </template>
+
+    <!-- Khối bản đồ kéo thả của Odoo cũng phải bắt đầu tại đúng vị trí trung tâm. -->
+    <template id="map_location" inherit_id="website.s_map" name="Vị trí bản đồ Kim Academy">
+        <xpath expr="//section" position="attributes">
+            <attribute name="t-att-data-map-address">'11.538931,106.8911376'</attribute>
+            <attribute name="data-map-zoom">17</attribute>
+        </xpath>
+        <xpath expr="//iframe" position="attributes">
+            <attribute name="src">https://maps.google.com/maps?q=11.538931%2C106.8911376&amp;t=m&amp;z=17&amp;output=embed</attribute>
+            <attribute name="aria-label">Bản đồ Kim Academy</attribute>
+        </xpath>
+    </template>
+</odoo>

@@ -1,0 +1,17 @@
+.edu-thank-you {
+    .ka-thanks-section { padding: 32px 0 72px; background: #f1f6fc; }
+    .ka-thanks-breadcrumb { display: flex; gap: 12px; margin-bottom: 40px; color: var(--edu-muted); font-size: 11px; line-height: 1.8; a { color: inherit; } }
+    .ka-thanks-card { display: grid; grid-template-columns: 3fr 2fr; overflow: hidden; border: 1px solid #dce7f5; border-radius: 24px; background: #fff; box-shadow: 0 16px 40px rgba(23, 61, 112, 0.05); }
+    .ka-thanks-message { padding: 56px; h1 { margin: 20px 0 24px; color: var(--ka-deep); font-size: clamp(44px, 4vw, 64px); line-height: 1.15; } > p:not(.ka-thanks-eyebrow) { max-width: 560px; font-size: 14px; line-height: 1.95; color: var(--edu-muted); } }
+    .ka-thanks-check { display: flex; align-items: center; justify-content: center; width: 68px; height: 68px; margin-bottom: 28px; border: 1px solid #cfe7df; border-radius: 50%; background: #edf8f4; color: #267158; font-size: 28px; }
+    .ka-thanks-eyebrow { margin: 0; color: var(--edu-pri-text); font-size: 10px; font-weight: 700; line-height: 1.8; letter-spacing: 0.12em; text-transform: uppercase; }
+    .ka-thanks-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 32px; }
+    .ka-thanks-text-link { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--edu-pri-text); text-decoration: none; &:hover { text-decoration: underline; } }
+    .ka-thanks-next { padding: 56px 40px; color: #fff; background: var(--ka-deep); .ka-thanks-eyebrow { color: #ffcf84; } h2 { margin: 20px 0 32px; font-family: var(--edu-body); font-size: 24px; font-weight: 600; line-height: 1.5; } ol { margin: 0; padding: 0; list-style: none; } li { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; > span { display: flex; flex: 0 0 34px; height: 34px; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; color: #ffcf84; font-size: 11px; } h3 { margin: 0 0 8px; font-family: var(--edu-body); font-size: 14px; font-weight: 600; line-height: 1.6; } p { margin: 0; color: #d6e2f1; font-size: 12px; line-height: 1.9; } } }
+    .ka-thanks-hotline { margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.2); p { margin: 0 0 10px; color: #d6e2f1; font-size: 12px; } a { display: inline-flex; align-items: center; gap: 12px; color: #ffcf84; font-size: 24px; font-weight: 600; text-decoration: none; &:hover { text-decoration: underline; } } }
+    .ka-thanks-contact { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; margin-top: 28px; p { margin: 0; color: var(--edu-muted); font-size: 12px; line-height: 1.9; a { color: var(--edu-pri-text); font-weight: 600; } } }
+    a:focus-visible { outline: 2px solid var(--edu-pri-text); outline-offset: 4px; }
+    .ka-thanks-next a:focus-visible { outline-color: #ffcf84; }
+    @media (max-width: 991.98px) { .ka-thanks-card { grid-template-columns: 1fr; } .ka-thanks-message, .ka-thanks-next { padding: 40px; } }
+    @media (max-width: 575.98px) { .ka-thanks-section { padding: 24px 0 48px; } .ka-thanks-breadcrumb { margin-bottom: 28px; } .ka-thanks-message, .ka-thanks-next { padding: 32px 24px; } .ka-thanks-card { border-radius: 16px; } .ka-thanks-message h1 { font-size: 42px; } .ka-thanks-actions { align-items: stretch; flex-direction: column; } .ka-thanks-actions .ka-thanks-text-link { justify-content: center; } .ka-thanks-hotline a { font-size: 22px; } }
+}

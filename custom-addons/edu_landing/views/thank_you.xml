@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="contact_thank_you" inherit_id="website.contactus_thanks_ir_ui_view" name="Cảm ơn đăng ký tư vấn Kim Academy">
+        <xpath expr="//div[@id='wrap']" position="replace">
+            <t t-set="title">Cảm ơn bạn | Kim Academy</t>
+            <div id="wrap" class="oe_structure edu-landing edu-thank-you">
+                <section class="ka-thanks-section">
+                    <div class="container">
+                        <nav class="ka-thanks-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Cảm ơn bạn</span></nav>
+                        <div class="ka-thanks-card">
+                            <div class="ka-thanks-message">
+                                <span class="ka-thanks-check"><i class="fa fa-check" aria-hidden="true"/></span>
+                                <p class="ka-thanks-eyebrow">Thông tin đã được gửi thành công</p>
+                                <h1 class="edu-display">Cảm ơn bạn<br/>đã kết nối cùng Kim!</h1>
+                                <p>Kim Academy cảm ơn bạn đã quan tâm. Đội ngũ trung tâm sẽ liên hệ theo thông tin bạn cung cấp để lắng nghe nhu cầu và tư vấn lộ trình học phù hợp.</p>
+                                <div class="ka-thanks-actions"><a href="/" class="btn edu-btn edu-btn-pri">Về trang chủ <i class="fa fa-arrow-right" aria-hidden="true"/></a><a href="/#chuong-trinh" class="ka-thanks-text-link">Khám phá chương trình học <span aria-hidden="true">→</span></a></div>
+                            </div>
+                            <aside class="ka-thanks-next" aria-label="Các bước tiếp theo">
+                                <p class="ka-thanks-eyebrow">Hành trình tiếp theo</p>
+                                <h2>Kim sẽ đồng hành cùng bạn</h2>
+                                <ol><li><span aria-hidden="true">01</span><div><h3>Tiếp nhận thông tin</h3><p>Đội ngũ tư vấn tìm hiểu chương trình bạn quan tâm.</p></div></li><li><span aria-hidden="true">02</span><div><h3>Kết nối và tư vấn</h3><p>Trung tâm liên hệ để trao đổi về độ tuổi, mục tiêu và lựa chọn lớp học phù hợp.</p></div></li></ol>
+                                <div class="ka-thanks-hotline"><p>Bạn muốn trao đổi ngay?</p><a href="tel:0766777793"><i class="fa fa-phone" aria-hidden="true"/> 0766.7777.93</a></div>
+                            </aside>
+                        </div>
+                        <div class="ka-thanks-contact"><p>Cần bổ sung thông tin? <a href="/lien-he">Liên hệ với Kim Academy</a></p><t t-call="edu_landing.directions_link"><t t-set="map_link_class">ka-thanks-text-link</t><t t-set="map_link_icon" t-value="True"/></t></div>
+                    </div>
+                </section>
+            </div>
+        </xpath>
+    </template>
+</odoo>

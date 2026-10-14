@@ -148,7 +148,7 @@
                         </header>
                         <div class="row g-3 g-lg-4">
                             <div class="col-12 col-md-6 col-xl-3">
-                                <a href="#dang-ky" class="edu-course-item" data-ages="3-5" data-level="Tiếng Anh mầm non">
+                                <a href="/khoa-hoc/tieng-anh-mam-non" class="edu-course-item" data-ages="3-5" data-level="Tiếng Anh mầm non">
                                     <img t-att-src="img + 'prog_kinder.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">3 - 5 tuổi</span>
@@ -160,7 +160,7 @@
                                 </a>
                             </div>
                             <div class="col-12 col-md-6 col-xl-3">
-                                <a href="#dang-ky" class="edu-course-item" data-ages="6-10" data-level="Tiếng Anh tiểu học">
+                                <a href="/khoa-hoc/tieng-anh-tieu-hoc" class="edu-course-item" data-ages="6-10" data-level="Tiếng Anh tiểu học">
                                     <img t-att-src="img + 'prog_primary.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">6 - 10 tuổi</span>
@@ -172,7 +172,7 @@
                                 </a>
                             </div>
                             <div class="col-12 col-md-6 col-xl-3">
-                                <a href="#dang-ky" class="edu-course-item" data-ages="11-14" data-level="Tiếng Anh thiếu niên">
+                                <a href="/khoa-hoc/tieng-anh-thieu-nien" class="edu-course-item" data-ages="11-14" data-level="Tiếng Anh thiếu niên">
                                     <img t-att-src="img + 'prog_teen.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">11 - 14 tuổi</span>
@@ -184,7 +184,7 @@
                                 </a>
                             </div>
                             <div class="col-12 col-md-6 col-xl-3">
-                                <a href="#dang-ky" class="edu-course-item" data-ages="15-18 19-21" data-level="IELTS / SAT">
+                                <a href="/khoa-hoc/ielts-sat" class="edu-course-item" data-ages="15-18 19-21" data-level="IELTS / SAT">
                                     <img t-att-src="img + 'prog_ielts.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">15 tuổi trở lên</span>

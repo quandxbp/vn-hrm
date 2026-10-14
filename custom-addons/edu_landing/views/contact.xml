@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="contact" name="Liên hệ Kim Academy">
+        <t t-call="website.layout">
+            <t t-set="title">Liên hệ | Kim Academy</t>
+            <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
+            <div id="wrap" class="oe_structure edu-landing edu-contact">
+                <section class="ka-contact-hero">
+                    <div class="container">
+                        <nav class="ka-contact-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Liên hệ</span></nav>
+                        <div class="row align-items-end g-4">
+                            <div class="col-lg-7"><p class="ka-contact-eyebrow">Kết nối với Kim Academy</p><h1 class="edu-display">Một lời chào.<br/><span>Một hành trình mới.</span></h1></div>
+                            <div class="col-lg-5 ka-contact-hero-copy"><p>Bạn đang tìm lộ trình tiếng Anh phù hợp cho con? Hãy chia sẻ cùng Kim. Đội ngũ trung tâm sẵn sàng lắng nghe và tư vấn.</p><a href="#dang-ky" class="btn edu-btn edu-btn-accent">Để Kim liên hệ với bạn <i class="fa fa-arrow-right" aria-hidden="true"/></a></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-contact-channels">
+                    <div class="container">
+                        <header class="edu-head"><span class="edu-head-sub">Chúng tôi ở đây để lắng nghe</span><h2 class="edu-display">Chọn cách kết nối với Kim</h2></header>
+                        <div class="row g-4">
+                            <div class="col-lg-4"><article class="ka-contact-card"><span class="ka-contact-icon"><i class="fa fa-phone" aria-hidden="true"/></span><h3>Gọi cho trung tâm</h3><p>Trao đổi về chương trình học, lớp học và nhu cầu tư vấn của bạn.</p><a class="ka-contact-phone" href="tel:0766777793">0766.7777.93 <i class="fa fa-long-arrow-right" aria-hidden="true"/></a></article></div>
+                            <div class="col-lg-4"><article class="ka-contact-card"><span class="ka-contact-icon"><i class="fa fa-envelope-o" aria-hidden="true"/></span><h3>Gửi email cho Kim</h3><p>Gửi câu hỏi hoặc thông tin cần trao đổi để trung tâm hỗ trợ bạn.</p><a href="mailto:kimacademy.edu@gmail.com">kimacademy.edu@gmail.com <i class="fa fa-long-arrow-right" aria-hidden="true"/></a></article></div>
+                            <div class="col-lg-4"><article class="ka-contact-card"><span class="ka-contact-icon"><i class="fa fa-comments-o" aria-hidden="true"/></span><h3>Kết nối trên Facebook</h3><p>Theo dõi hoạt động lớp học và nhắn tin trực tiếp cho Kim Academy.</p><a href="https://www.facebook.com/mskim.kimacademy" target="_blank" rel="noopener noreferrer">Facebook Kim Academy <i class="fa fa-external-link" aria-hidden="true"/></a></article></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ka-contact-visit" id="dia-chi">
+                    <div class="container"><div class="row g-5 align-items-center">
+                        <div class="col-lg-6"><div class="ka-contact-photo"><img t-att-src="img + 'hero.jpg'" alt="Hoạt động tập thể tại Kim Academy" loading="lazy"/><span>Hẹn gặp bạn tại Kim Academy.</span></div></div>
+                        <div class="col-lg-5 offset-lg-1"><p class="ka-contact-eyebrow">Ghé thăm trung tâm</p><h2 class="edu-display">Gặp gỡ trực tiếp.<br/>Hiểu nhau nhiều hơn.</h2><div class="ka-contact-address"><i class="fa fa-map-marker" aria-hidden="true"/><div><h3>Kim Academy Language Center</h3><address>257 Lý Thường Kiệt, KP Tân Phú 2,<br/>P. Bình Phước, TP. Đồng Nai</address></div></div><p class="ka-contact-visit-note">Bạn có thể gọi trước để trung tâm hỗ trợ sắp xếp buổi trao đổi phù hợp.</p><t t-call="edu_landing.directions_link"><t t-set="map_link_class">btn edu-btn edu-btn-pri</t><t t-set="map_link_icon" t-value="True"/></t></div>
+                    </div></div>
+                </section>
+
+                <t t-call="edu_landing.registration"><t t-set="registration_title">Để Kim đồng hành cùng bạn</t><t t-set="registration_description">Để lại thông tin và chương trình quan tâm, đội ngũ trung tâm sẽ liên hệ để tư vấn lộ trình phù hợp.</t></t>
+            </div>
+        </t>
+    </template>
+    <record id="page_contact" model="website.page">
+        <field name="name">Liên hệ Kim Academy</field>
+        <field name="url">/lien-he</field>
+        <field name="view_id" ref="contact"/>
+        <field name="is_published">True</field>
+        <field name="website_meta_title">Liên hệ | Kim Academy</field>
+        <field name="website_meta_description">Liên hệ Kim Academy qua hotline 0766.7777.93, email hoặc để lại thông tin để được tư vấn chương trình tiếng Anh phù hợp.</field>
+    </record>
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="course_detail" name="Chi tiết khóa học Kim Academy">
+        <t t-call="website.layout">
+            <t t-set="title" t-value="course.name + ' | Kim Academy'"/>
+            <t t-set="meta_description" t-value="course.introduction"/>
+            <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
+            <div id="wrap" class="oe_structure edu-landing edu-course-detail" t-att-data-program="course.program_value">
+                <section class="ka-course-hero">
+                    <div class="container">
+                        <nav class="ka-course-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><a href="/#chuong-trinh">Chương trình học</a><span aria-hidden="true">/</span><span t-field="course.name"/></nav>
+                        <div class="row g-5 align-items-center">
+                            <div class="col-lg-6">
+                                <p class="ka-course-eyebrow">Chương trình tại Kim Academy</p>
+                                <h1 class="edu-display" t-field="course.name"/>
+                                <p class="ka-course-intro" t-field="course.introduction"/>
+                                <div class="ka-course-facts">
+                                    <div><i class="fa fa-users" aria-hidden="true"/><span>Độ tuổi<strong t-field="course.age_range"/></span></div>
+                                    <div><i class="fa fa-bullseye" aria-hidden="true"/><span>Mục tiêu học tập<strong t-field="course.target"/></span></div>
+                                </div>
+                                <a href="#dang-ky" class="btn edu-btn edu-btn-sec">Nhận tư vấn khóa học <i class="fa fa-arrow-right" aria-hidden="true"/></a>
+                            </div>
+                            <div class="col-lg-6"><img class="ka-course-photo" t-att-src="('/web/image/edu.landing.course/%s/image_1920' % course.id) if course.image_1920 else default_image" t-att-alt="course.name" fetchpriority="high"/></div>
+                        </div>
+                    </div>
+                </section>
+                <section class="ka-course-content">
+                    <div class="container"><div class="row g-5 align-items-start">
+                        <div class="col-lg-8">
+                            <p class="ka-course-eyebrow">Khám phá chương trình</p>
+                            <h2 class="edu-display">Giới thiệu khóa học</h2>
+                            <div class="ka-course-description" t-field="course.description"/>
+                            <a class="ka-course-back" href="/#chuong-trinh"><span aria-hidden="true">←</span> Xem các chương trình khác</a>
+                        </div>
+                        <div class="col-lg-4">
+                            <aside class="ka-course-enrolment" aria-label="Thông tin tuyển sinh">
+                                <span class="ka-course-eyebrow">Thông tin tuyển sinh</span>
+                                <h2>Số học viên còn nhận</h2>
+                                <t t-if="not course.seats_confirmed"><p class="ka-course-seat-status">Đang cập nhật</p><p>Liên hệ trung tâm để biết số lượng còn nhận và lịch mở lớp phù hợp.</p></t>
+                                <t t-elif="course.seats_remaining &gt; 0"><p class="ka-course-seat-count"><strong t-field="course.seats_remaining"/><span>học viên</span></p><p>Thông tin theo đợt tuyển sinh hiện tại. Trung tâm sẽ xác nhận lớp và số lượng còn nhận khi tư vấn.</p></t>
+                                <t t-else=""><p class="ka-course-seat-status">Đã đủ số lượng đợt này</p><p>Bạn có thể để lại thông tin để được tư vấn về đợt mở lớp tiếp theo.</p></t>
+                                <a href="#dang-ky" class="btn edu-btn edu-btn-sec w-100"><t t-if="course.seats_confirmed and not course.seats_remaining">Tư vấn đợt tiếp theo</t><t t-else="">Đăng ký tư vấn</t><i class="fa fa-arrow-right" aria-hidden="true"/></a>
+                                <a class="ka-course-phone" href="tel:0766777793"><i class="fa fa-phone" aria-hidden="true"/> 0766.7777.93</a>
+                            </aside>
+                        </div>
+                    </div></div>
+                </section>
+                <t t-call="edu_landing.registration"><t t-set="course_program" t-value="course.program_value"/></t>
+            </div>
+        </t>
+    </template>
+</odoo>

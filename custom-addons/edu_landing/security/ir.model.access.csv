@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_landing_course_designer,Course website designer,model_edu_landing_course,website.group_website_designer,1,1,1,1
+access_landing_course_public,Published course public,model_edu_landing_course,base.group_public,1,0,0,0
+access_landing_course_portal,Published course portal,model_edu_landing_course,base.group_portal,1,0,0,0
+access_landing_course_user,Published course internal,model_edu_landing_course,base.group_user,1,0,0,0

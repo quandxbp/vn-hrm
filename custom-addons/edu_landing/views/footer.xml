@@ -38,13 +38,20 @@
                                     <li><a href="/tuyen-dung">Tuyển dụng</a></li>
                                     <li><a href="/#giao-vien">Đội ngũ giáo viên</a></li>
                                     <li><a href="/#thanh-tich">Thành tích</a></li>
-                                    <li><a href="/#lien-he">Liên hệ</a></li>
+                                    <li><a href="/lien-he">Liên hệ</a></li>
                                 </ul>
                             </div>
                             <div class="col-lg-4">
                                 <h5>Kết nối với chúng tôi</h5>
                                 <ul class="list-unstyled edu-footer-contact">
-                                    <li><i class="fa fa-map-marker" aria-hidden="true"/><div><span>Địa chỉ trung tâm</span>257 Lý Thường Kiệt, KP Tân Phú 2, P. Bình Phước, TP. Đồng Nai</div></li>
+                                    <li>
+                                        <i class="fa fa-map-marker" aria-hidden="true"/>
+                                        <div>
+                                            <span>Địa chỉ trung tâm</span>
+                                            <t t-call="edu_landing.directions_link"><t t-set="map_link_label">257 Lý Thường Kiệt, KP Tân Phú 2, P. Bình Phước, TP. Đồng Nai</t></t>
+                                            <t t-call="edu_landing.directions_link"><t t-set="map_link_class">edu-footer-directions</t><t t-set="map_link_icon" t-value="True"/></t>
+                                        </div>
+                                    </li>
                                     <li><i class="fa fa-phone" aria-hidden="true"/><div><span>Hotline tư vấn</span><a href="tel:0766777793" class="edu-footer-phone">0766.7777.93</a></div></li>
                                     <li><i class="fa fa-envelope-o" aria-hidden="true"/><div><span>Email</span><a href="mailto:kimacademy.edu@gmail.com">kimacademy.edu@gmail.com</a></div></li>
                                 </ul>

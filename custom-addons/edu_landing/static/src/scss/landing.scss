@@ -1392,6 +1392,21 @@
         span { display: block; margin-bottom: 4px; font-size: 11px; color: #afc5df; }
         a { overflow-wrap: anywhere; }
         .edu-footer-phone { font-size: 20px; font-weight: 600; color: #fff; }
+        a.edu-footer-directions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            margin-top: 12px;
+            padding: 7px 12px;
+            border: 1px solid rgba(255, 207, 132, 0.4);
+            border-radius: 8px;
+            color: #ffcf84;
+            font-size: 11px;
+            font-weight: 600;
+            &:hover, &:focus-visible { background: rgba(255, 207, 132, 0.1); color: #ffe1ae; text-decoration: none; }
+            &:focus-visible { outline: 2px solid #ffcf84; outline-offset: 3px; }
+        }
     }
 
     .edu-footer-bottom {
