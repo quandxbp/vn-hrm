@@ -1,0 +1,90 @@
+<odoo>
+    <record id="config_default" model="edu.zalo.config">
+        <field name="name">Lịch học Zalo</field>
+    </record>
+    <record id="view_zalo_config_form" model="ir.ui.view">
+        <field name="name">edu.zalo.config.form</field>
+        <field name="model">edu.zalo.config</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <button name="action_login" type="object" string="Đăng nhập bằng QR" class="btn-primary" invisible="state == 'connected'"/>
+                    <button name="action_refresh" type="object" string="Cập nhật kết nối / QR"/>
+                    <button name="action_disconnect" type="object" string="Ngắt kết nối"
+                        invisible="state != 'connected'" confirm="Ngắt kết nối Zalo và tắt gửi tự động? Lịch sử gửi vẫn được giữ."/>
+                    <button name="action_send" type="object" string="Gửi lịch" class="btn-primary"
+                        invisible="state != 'connected' or not confirmed_group_id or group_id != confirmed_group_id"
+                        confirm="Gửi lịch của ngày đang xem vào nhóm Zalo đã xác nhận?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="disconnected,qr,connected"/>
+                </header>
+                <sheet>
+                    <h1><field name="name" readonly="1"/></h1>
+                    <div class="alert alert-info" invisible="state == 'connected'">
+                        Bấm Đăng nhập bằng QR, sau đó Cập nhật kết nối / QR để hiện mã. Quét bằng Zalo trên điện thoại và xác nhận đăng nhập, rồi cập nhật lại.
+                    </div>
+                    <group>
+                        <group string="Kết nối Zalo">
+                            <field name="account"/>
+                            <field name="qr" widget="image" options="{'size': [280, 280]}" invisible="not qr"/>
+                            <field name="preferred_group"/>
+                            <field name="group_id" options="{'no_create': True, 'no_open': True}"/>
+                            <button name="action_confirm_group" type="object" string="Xác nhận nhóm nhận" class="btn-secondary"
+                                invisible="state != 'connected' or not group_id" confirm="Xác nhận dùng nhóm đang chọn để nhận lịch học?"/>
+                            <field name="confirmed_group_id"/>
+                        </group>
+                        <group string="Gửi lịch">
+                            <field name="auto_send"/>
+                            <label for="auto_send" string="12:00 giờ Việt Nam; máy chủ cần hoạt động."/>
+                            <field name="preview_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Xem trước lịch"><field name="preview" nolabel="1"/></page>
+                        <page string="Lịch sử gửi">
+                            <field name="log_ids" readonly="1">
+                                <tree create="false" delete="false" decoration-success="state == 'sent'" decoration-danger="state in ['failed', 'uncertain']">
+                                    <field name="date"/><field name="group_name"/><field name="send_mode"/><field name="state" widget="badge"/><field name="sent_at"/><field name="error"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_zalo_message_form" model="ir.ui.view">
+        <field name="name">edu.zalo.message.form</field>
+        <field name="model">edu.zalo.message</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_retry" type="object" string="Thử lại kết nối" invisible="state != 'failed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group><field name="date"/><field name="group_name"/><field name="send_mode"/><field name="sent_at"/><field name="message_ids"/><field name="error"/></group>
+                    <field name="content"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_zalo_config" model="ir.actions.act_window">
+        <field name="name">Lịch học Zalo</field><field name="res_model">edu.zalo.config</field>
+        <field name="view_mode">form</field><field name="res_id" ref="config_default"/>
+    </record>
+    <record id="view_edu_session_tree_zalo" model="ir.ui.view">
+        <field name="name">edu.session.tree.zalo</field>
+        <field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_gvnn.view_edu_session_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/header" position="inside">
+                <button name="action_send_today_zalo" type="object" display="always"
+                    string="Gửi lịch hôm nay" icon="fa-paper-plane" class="btn-primary"
+                    help="Gửi ngay lịch học hôm nay theo giờ Việt Nam vào nhóm Zalo đã cấu hình."
+                    groups="edu_gvnn.group_edu_manager"/>
+            </xpath>
+        </field>
+    </record>
+    <menuitem id="menu_zalo_schedule" name="Lịch học Zalo" parent="edu_gvnn.menu_edu_operation_root"
+        action="action_zalo_config" sequence="40" groups="edu_gvnn.group_edu_manager"/>
+</odoo>

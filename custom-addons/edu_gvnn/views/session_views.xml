@@ -10,11 +10,11 @@
                     <button name="%(action_edu_export_week_wizard)d" type="action" display="always"
                             string="Xuất điểm danh tuần"/>
                 </header>
-                <field name="date"/>
-                <field name="weekday"/>
+                <field name="date" widget="edu_weekday_date_badge"/>
+                <field name="weekday" widget="edu_weekday_badge"/>
                 <field name="week_id"/>
                 <field name="teacher_id"/>
-                <field name="session_type"/>
+                <field name="session_type" optional="hide"/>
                 <field name="time_start" widget="float_time"/>
                 <field name="time_end" widget="float_time"/>
                 <field name="minutes" optional="hide"/>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'KIM ACADEMY: Quản lý GVNN',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'summary': 'Quản lý lớp luyện nói online với giáo viên nước ngoài',
     'description': """
 Thay cho file TỔNG HỢP_GVNN.xlsx: giáo viên và đơn giá, lớp, học viên, buổi học,
@@ -32,6 +32,12 @@ Kế hoạch chi tiết: docs/GVNN_PLAN.md
         'views/import_views.xml',
     ],
     'application': True,
+    'assets': {
+        'web.assets_backend': [
+            'edu_gvnn/static/src/fields/weekday_badge.js',
+            'edu_gvnn/static/src/fields/weekday_badge.scss',
+        ],
+    },
     'installable': True,
     'license': 'LGPL-3',
 }

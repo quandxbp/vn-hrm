@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+zalo_config_manager,zalo config manager,model_edu_zalo_config,edu_gvnn.group_edu_manager,1,1,0,0
+zalo_group_manager,zalo group manager,model_edu_zalo_group,edu_gvnn.group_edu_manager,1,0,0,0
+zalo_message_manager,zalo message manager,model_edu_zalo_message,edu_gvnn.group_edu_manager,1,0,0,0

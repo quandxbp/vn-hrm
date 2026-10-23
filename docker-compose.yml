@@ -1,5 +1,19 @@
 version: '3.1'
 services:
+  zalo-bridge:
+    profiles: ["zalo"]
+    build: ./services/zalo-bridge
+    restart: unless-stopped
+    env_file:
+      - path: .env.zalo
+        required: false
+    volumes:
+      - zalo-bridge-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
   web:
     image: odoo:17.0
     depends_on:
@@ -23,5 +37,6 @@ services:
     volumes:
       - odoo-db-data:/var/lib/postgresql/data/pgdata
 volumes:
+  zalo-bridge-data:
   odoo-web-data:
   odoo-db-data:

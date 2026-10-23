@@ -1,5 +1,10 @@
 # vn-hrm
 
+> **Bàn giao GVNN/Zalo mới nhất (24/10/2026):** đọc [docs/SESSION_HANDOFF_2026-10-24.md](docs/SESSION_HANDOFF_2026-10-24.md)
+> trước khi tiếp tục. DB local hiện dùng **`gvnn`**, đã nhập thử 155 buổi tuần 100–102.
+> Có module `edu_zalo` + bridge `zca-js`; gửi thủ công hoạt động, tự động 12:00 vẫn tắt.
+> Mẫu cuối gom theo giáo viên, mỗi tiết một dòng và link học cuối đoạn. Ghi chú này cập nhật trạng thái local mới hơn tài liệu website ngày 23/10.
+
 > **Auto deploy Windows (đang chuẩn bị, chưa bật trên server):** xem [docs/WINDOWS_DEPLOY.md](docs/WINDOWS_DEPLOY.md).
 > Workflow GitHub Actions chạy khi push `feature/edu-gvnn`, cần runner Windows label `kim-production`, worker/config ngoài repo
 > và repository variable `KIM_DEPLOY_ENABLED=true`. Chưa cài runner hoặc chạy deploy thật. Không coi push code là đã deploy server.

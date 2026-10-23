@@ -1,0 +1,7 @@
+.env.zalo
+/artifacts/
+/*.xlsx
+services/zalo-bridge/node_modules/
+services/zalo-bridge/data/
+**/__pycache__/
+*.pyc

@@ -36,7 +36,7 @@ SIGN_UP_REQUEST_PARAMS = {'db', 'login', 'debug', 'token', 'message', 'error',
 
 
 class Home(WebHome):
-    @http.route(route='/web/login', type='http', auth="none")
+    @http.route(route='/web/login', type='http', auth="public", website=True, sitemap=False)
     def web_login(self, redirect=None, **kw):
         """Override web_login function to add features of this module."""
         ensure_db()
@@ -53,7 +53,7 @@ class Home(WebHome):
             values['databases'] = None
 
         if request.httprequest.method == 'POST':
-            old_uid = request.update_env(user=request.session.uid)
+            old_uid = request.env.uid
 
             try:
                 uid = request.session.authenticate(request.session.db,
@@ -63,7 +63,7 @@ class Home(WebHome):
                 return request.redirect(
                     self._login_redirect(uid, redirect=redirect))
             except odoo.exceptions.AccessDenied as e:
-                request.update_env = old_uid
+                request.update_env(user=old_uid)
                 if e.args == odoo.exceptions.AccessDenied().args:
                     values['error'] = _("Sai tên đăng nhập/Mật khẩu")
                 else:

@@ -6,6 +6,8 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
+                <field name="teaching_title"/>
+                <field name="meeting_url" widget="url" optional="show"/>
                 <field name="code"/>
                 <field name="teacher_type"/>
                 <field name="agency_id"/>
@@ -24,6 +26,8 @@
                     <group>
                         <group>
                             <field name="name"/>
+                            <field name="teaching_title"/>
+                            <field name="meeting_url" widget="url" placeholder="https://meet.google.com/xxx-xxxx-xxx"/>
                             <field name="code"/>
                             <field name="teacher_type"/>
                             <field name="agency_id" required="teacher_type == 'agency'"
