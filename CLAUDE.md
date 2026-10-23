@@ -1,5 +1,9 @@
 # vn-hrm
 
+> **Auto deploy Windows (đang chuẩn bị, chưa bật trên server):** xem [docs/WINDOWS_DEPLOY.md](docs/WINDOWS_DEPLOY.md).
+> Workflow GitHub Actions chạy khi push `feature/edu-gvnn`, cần runner Windows label `kim-production`, worker/config ngoài repo
+> và repository variable `KIM_DEPLOY_ENABLED=true`. Chưa cài runner hoặc chạy deploy thật. Không coi push code là đã deploy server.
+
 Odoo 17 chạy bằng Docker. Hiện dùng cho trung tâm luyện nói tiếng Anh với giáo viên nước ngoài (GVNN): module `edu_gvnn` thay file `TỔNG HỢP_GVNN.xlsx`, kèm `edu_landing` (landing page) dùng chung server. Phần HRM của VNPT là mã cũ, không còn dùng cho GVNN.
 
 > **Bàn giao mới nhất (23/10/2026):** đọc [docs/WEBSITE_HANDOFF.md](docs/WEBSITE_HANDOFF.md) trước khi làm tiếp website: có trạng thái cuối cùng của navbar/hero, dải ảnh sự kiện + Highlight, menu Kim Website, học viên/giáo viên động, triển khai và kiểm tra. `edu_landing` hiện là **17.0.1.7.0**, đã kiểm tra trên DB local **`odoo`**. Source nghiệp vụ GVNN đã xong giai đoạn 1–8, nhưng trạng thái DB `gvnn` của máy này khác bản bàn giao cũ; không mặc định DB đó đã sẵn sàng. Với nghiệp vụ GVNN, đọc [docs/GVNN_PLAN.md](docs/GVNN_PLAN.md) và đối chiếu DB thực tế trước khi sửa.

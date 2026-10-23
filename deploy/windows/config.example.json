@@ -1,0 +1,11 @@
+{
+  "RepoPath": "D:\\Apps\\vn-hrm",
+  "Branch": "feature/edu-gvnn",
+  "Database": "REPLACE_WITH_SERVER_DATABASE",
+  "Modules": ["edu_landing"],
+  "PostgresUser": "odoo",
+  "StatePath": "C:\\ProgramData\\KimAcademyDeploy\\state",
+  "BackupPath": "D:\\Backups\\KimAcademy",
+  "HealthUrl": "http://127.0.0.1:8069/web/login?db=REPLACE_WITH_SERVER_DATABASE",
+  "HealthTimeoutSeconds": 180
+}

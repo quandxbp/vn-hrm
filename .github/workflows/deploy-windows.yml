@@ -1,0 +1,32 @@
+name: Deploy Kim Academy
+
+on:
+  push:
+    branches: [feature/edu-gvnn]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kim-academy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.repository == 'quandxbp/vn-hrm' &&
+      github.ref == 'refs/heads/feature/edu-gvnn' &&
+      vars.KIM_DEPLOY_ENABLED == 'true'
+    runs-on: [self-hosted, Windows, X64, kim-production]
+    timeout-minutes: 90
+    steps:
+      - name: Back up, update Odoo modules and restart
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $worker = 'C:\ProgramData\KimAcademyDeploy\Deploy.ps1'
+          $config = 'C:\ProgramData\KimAcademyDeploy\config.json'
+          if (-not (Test-Path -LiteralPath $worker)) { throw 'Deployment worker has not been installed.' }
+          & $worker -ConfigPath $config
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
