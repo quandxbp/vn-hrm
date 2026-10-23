@@ -1,19 +1,5 @@
 // Trang chủ dùng cùng nhịp biên tập, bảng màu và thẻ nội dung với trang giới thiệu.
 .edu-home {
-    .edu-hero {
-        min-height: 700px;
-        padding-top: 100px;
-        &::after { background: linear-gradient(90deg, rgba(12, 35, 65, 0.94), rgba(12, 35, 65, 0.68) 47%, rgba(12, 35, 65, 0.2)); }
-        .edu-hero-content { text-align: left; }
-        .edu-hero-kicker { margin-bottom: 28px; font-family: var(--edu-body); font-size: 12px; font-weight: 700; letter-spacing: 0.16em; color: #c9e2ff; }
-        .edu-hero-title { max-width: 850px; font-size: clamp(54px, 5.8vw, 88px); line-height: 1.08; margin-bottom: 28px; text-shadow: none; }
-        .edu-hero-sub { max-width: 600px; margin: 0 0 32px; font-size: 17px; line-height: 1.9; color: #e5edf7; }
-        .edu-hero-actions { justify-content: flex-start; }
-    }
-    .edu-finder { border: 1px solid #e4ebf4; border-radius: 16px; box-shadow: 0 12px 32px rgba(12, 35, 65, 0.12); }
-    .edu-finder-label { font-size: 13px; }
-    .edu-chip { border-color: #dce7f5; border-radius: 10px; font-size: 12px; }
-    .edu-finder-go { font-size: 13px; }
 
     .edu-cred {
         padding: 96px 0;
@@ -142,8 +128,6 @@
         .edu-smem-tabs { width: 100%; gap: 4px; padding: 5px; }
         .edu-smem-tab { flex: 1; flex-direction: column; gap: 6px; padding: 12px 8px; font-size: 12px; }
         .edu-smem-team-intro { font-size: 13px; margin-bottom: 24px; }
-        .edu-hero { min-height: 0; padding-top: 64px; &::after { background: rgba(12, 35, 65, 0.83); } .edu-hero-sub { font-size: 15px; } .edu-hero-actions { flex-direction: column; align-items: stretch; } }
-        .edu-finder-wrap { padding-top: 40px; }
         .edu-finder-label { white-space: normal; }
         .edu-cred { padding: 56px 0; .edu-cred-item { padding: 22px; } }
         .edu-path-list { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -156,4 +140,333 @@
     @media (prefers-reduced-motion: reduce) {
         .edu-course-item, .edu-course-item img, .edu-btn { transition: none; &:hover { transform: none; } }
     }
+}
+
+@font-face {
+    font-family: 'Kim Lora';
+    font-style: italic;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/edu_landing/static/src/fonts/Lora-MediumItalic.ttf') format('truetype');
+}
+
+// Transparent navigation over the opening scene; Odoo keeps its own menu and offcanvas.
+// The fixed overlay never occupies layout space. StandardAffixedHeader otherwise
+// inserts a header-height padding on main mid-scroll, shifting every section.
+#wrapwrap:has(.edu-home) > main { padding-top: 0 !important; }
+
+#wrapwrap:has(.edu-home) > header {
+    --edu-nav-h: 86px;
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 1030;
+    // StandardAffixedHeader hides the header between its height and 300px.
+    // This homepage header is fixed from the start, so it must never slide away.
+    transform: none !important;
+    border-bottom: 1px solid transparent;
+    isolation: isolate;
+    background: transparent !important;
+    box-shadow: none;
+    transition: none;
+
+    // Fade one glass layer rather than adding/removing backdrop-filter on scroll.
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid rgba(23, 61, 112, 0.1);
+        box-shadow: 0 4px 24px rgba(23, 61, 112, 0.06);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .navbar { background: transparent !important; }
+    .o_main_nav { max-width: 1480px; gap: 18px; }
+    .navbar-brand img.edu-nav-logo { height: 58px; }
+    .edu-nav-brand-name { font-size: 29px; }
+    .top_menu > .nav-item > .nav-link {
+        position: relative;
+        padding: 12px 10px;
+        font-size: 13px;
+        color: #173d70;
+        &:hover, &.show { background: rgba(255, 255, 255, 0.55); }
+    }
+    .top_menu > .nav-item > .nav-link[href="/#dang-ky"] {
+        min-height: 44px;
+        margin-left: 16px;
+        padding: 8px 16px;
+        border: 0;
+        border-radius: 6px;
+        background: #173d70;
+        box-shadow: none;
+        > .fa-arrow-right { width: 22px; height: 22px; flex-basis: 22px; background: transparent; }
+        &:hover { background: #28599a; box-shadow: 0 6px 18px rgba(23, 61, 112, 0.16); }
+    }
+    &.edu-nav-scrolled::before { opacity: 1; }
+    .dropdown-menu { animation: edu-menu-in 0.2s ease both; }
+}
+
+.edu-home .edu-hero {
+    isolation: isolate;
+    justify-content: flex-start;
+    min-height: 900px;
+    min-height: unquote("max(900px, 100svh)");
+    padding: 136px 0 150px;
+    color: var(--ka-deep);
+    background: #edf3f7;
+
+    .edu-hero-img {
+        z-index: -3;
+        opacity: 0.28;
+        object-position: center 40%;
+        filter: blur(7px) saturate(0.65);
+        transform: scale(1.06);
+    }
+    &::after {
+        z-index: -2;
+        background: radial-gradient(ellipse at 50% 25%, rgba(255, 255, 255, 0.98), rgba(246, 250, 254, 0.78) 40%, rgba(221, 235, 247, 0.12) 78%),
+            linear-gradient(130deg, rgba(255, 237, 210, 0.55), rgba(204, 224, 243, 0.5));
+    }
+    .edu-hero-content { text-align: center; }
+    .edu-hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        font-family: var(--edu-body);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.23em;
+        color: var(--ka-deep);
+        animation: edu-hero-enter 0.8s ease both;
+        .fa { font-size: 17px; }
+    }
+    .edu-hero-title {
+        max-width: 900px;
+        margin: 0 auto 28px;
+        color: #142f53;
+        font-family: var(--edu-body);
+        font-size: clamp(54px, 5.2vw, 84px);
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.055em;
+        text-transform: none;
+        text-shadow: none;
+        animation: edu-hero-enter 0.85s 0.08s ease both;
+        > span, > em { display: block; }
+        em {
+            position: relative;
+            width: fit-content;
+            margin: 0 auto;
+            padding-bottom: 12px;
+            font-family: 'Kim Lora', var(--edu-body);
+            font-style: italic;
+            font-synthesis: none;
+            font-size: 1.08em;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: #325d9e;
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 36%;
+                width: 34%;
+                height: 5px;
+                border-radius: 50%;
+                background: #e4862c;
+                transform: rotate(-4deg);
+            }
+        }
+    }
+    .edu-hero-sub {
+        max-width: 600px;
+        margin: 0 auto 24px;
+        font-size: 15px;
+        line-height: 1.9;
+        color: #3f526c;
+        text-wrap: pretty;
+        animation: edu-hero-enter 0.85s 0.16s ease both;
+    }
+    .edu-hero-actions {
+        justify-content: center;
+        gap: 12px;
+        animation: edu-hero-enter 0.85s 0.22s ease both;
+        .edu-btn { min-height: 46px; padding: 10px 21px; border-radius: 999px; font-size: 12px; }
+        .edu-btn-sec { background: #173d70; &:hover { background: #28599a; } }
+        .edu-btn-outline-light {
+            color: #173d70;
+            background: rgba(255, 255, 255, 0.65);
+            border-color: rgba(23, 61, 112, 0.15);
+            backdrop-filter: none;
+            .fa { transform: rotate(45deg); }
+            &:hover { background: #fff; }
+        }
+    }
+    .edu-finder-wrap {
+        max-width: 1000px;
+        margin-top: 34px;
+        padding-top: 0;
+        padding-bottom: 0;
+        animation: edu-hero-enter 0.9s 0.3s ease both;
+    }
+    .edu-finder {
+        gap: 14px;
+        padding: 12px 12px 12px 24px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.93);
+        backdrop-filter: none;
+        box-shadow: 0 16px 48px rgba(23, 61, 112, 0.12);
+    }
+    .edu-finder-label { width: 100%; font-size: 11px; color: #4f5d78; .fa { font-size: 15px; } }
+    .edu-chips { gap: 6px; }
+    .edu-chip {
+        min-height: 44px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background: #edf3f9;
+        color: #173d70;
+        font-size: 12px;
+        &:hover, &.is-active { color: #fff; background: #173d70; }
+        &:focus-visible { outline: 2px solid #325d9e; outline-offset: 3px; }
+    }
+    .edu-finder-go { min-height: 44px; padding: 8px 20px; border-radius: 999px; background: #173d70; font-size: 12px; }
+    &.is-scene-paused .edu-hero-scene * { animation-play-state: paused; }
+}
+
+.edu-hero-scene {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    contain: layout paint;
+    transform: translate3d(var(--hero-x, 0px), var(--hero-y, 0px), 0);
+    transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.edu-hero-globe {
+    position: absolute;
+    top: 470px;
+    left: 50%;
+    width: 880px;
+    transform: translateX(-50%) rotate(-14deg);
+    svg { display: block; width: 100%; height: auto; }
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 7%;
+        border-radius: 50%;
+        box-shadow: 0 0 100px 35px rgba(181, 213, 240, 0.45);
+    }
+}
+// Keep the large SVG static: animating stroke-dashoffset repaints it every frame.
+.edu-hero-float {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 86px;
+    height: 86px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 16px 40px rgba(23, 61, 112, 0.09);
+    will-change: transform;
+    font-size: 34px;
+    color: #325d9e;
+    animation: edu-scene-float 7s ease-in-out infinite;
+}
+.edu-hero-float-book { left: calc(50% - 510px); top: 390px; transform: rotate(-12deg); }
+.edu-hero-float-cap { right: calc(50% - 510px); top: 330px; color: #a24f08; animation-delay: -3s; }
+.edu-hero-spark { position: absolute; color: #b85a06; font-size: 36px; animation: edu-scene-float 8s ease-in-out infinite; }
+.edu-hero-spark-one { top: 220px; left: calc(50% - 390px); }
+.edu-hero-spark-two { top: 460px; right: calc(50% - 380px); font-size: 44px; animation-delay: -4s; }
+.edu-hero-scroll {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 44px;
+    padding: 10px;
+    color: #fff;
+    transform: translateX(-50%);
+    span { width: 1px; height: 28px; background: currentColor; }
+    &:hover { color: #fde680; }
+}
+@keyframes edu-hero-enter { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes edu-menu-in { from { opacity: 0; margin-top: 16px; } to { opacity: 1; margin-top: 10px; } }
+@keyframes edu-scene-float { 0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); } 50% { transform: translate3d(0, -18px, 0) rotate(4deg); } }
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    #wrapwrap:has(.edu-home) > header {
+        .edu-nav-brand-name { font-size: 25px; }
+        .navbar-brand img.edu-nav-logo { height: 48px; }
+        .top_menu > .nav-item > .nav-link { padding: 10px 7px; font-size: 11px; }
+        .top_menu > .nav-item > .nav-link[href="/#dang-ky"] { margin-left: 4px; padding: 8px 10px; }
+    }
+}
+@media (max-width: 991.98px) {
+    #wrapwrap:has(.edu-home) > header {
+        --edu-nav-h: 76px;
+        .edu-nav-brand-name { font-size: 26px; }
+        .navbar-brand img.edu-nav-logo { height: 52px; }
+        .top_menu > .nav-item > .nav-link { min-height: 48px; padding: 12px 14px; }
+        .top_menu > .nav-item > .nav-link[href="/#dang-ky"] { margin: 18px 0 0; }
+        .o_header_mobile_buttons_wrap button { background: rgba(255, 255, 255, 0.75); }
+    }
+    .edu-home .edu-hero {
+        padding-top: 120px;
+        .edu-finder-wrap { max-width: 750px; }
+        .edu-finder-go { margin-left: auto; }
+    }
+    .edu-hero-float-book { left: 5%; top: 450px; }
+    .edu-hero-float-cap { right: 5%; top: 370px; }
+    .edu-hero-spark-one { left: 9%; }
+    .edu-hero-spark-two { right: 12%; }
+}
+@media (max-width: 575.98px) {
+    #wrapwrap:has(.edu-home) > header {
+        .edu-nav-brand-name { font-size: 23px; }
+        .navbar-brand img.edu-nav-logo { height: 46px; }
+        .o_main_nav { gap: 8px; }
+    }
+    .edu-home .edu-hero {
+        min-height: 880px;
+        padding: 118px 0 160px;
+        .edu-hero-kicker { margin-bottom: 22px; font-size: 10px; letter-spacing: 0.18em; }
+        .edu-hero-title { font-size: clamp(42px, 12vw, 60px); margin-bottom: 22px; }
+        .edu-hero-sub { max-width: 360px; padding: 0 8px; font-size: 13px; line-height: 1.85; }
+        .edu-hero-actions { gap: 8px; .edu-btn { min-height: 44px; padding: 9px 14px; font-size: 11px; } }
+        .edu-finder-wrap { margin-top: 28px; padding-inline: 20px; }
+        .edu-finder { padding: 18px; border-radius: 24px; gap: 14px; }
+        .edu-finder-label { justify-content: center; font-size: 11px; }
+        .edu-chips { justify-content: center; }
+        .edu-chip { padding: 8px 12px; font-size: 11px; }
+        .edu-finder-go { margin: 0; width: 100%; }
+    }
+    .edu-hero-globe { width: 680px; top: 560px; }
+    .edu-hero-float { width: 52px; height: 52px; font-size: 23px; border-radius: 16px; }
+    .edu-hero-float-book { left: -14px; top: 325px; }
+    .edu-hero-float-cap { right: -10px; top: 230px; }
+    .edu-hero-spark-one { top: 190px; left: 6%; font-size: 20px; }
+    .edu-hero-spark-two { top: 405px; right: 5%; font-size: 24px; }
+}
+// Keep the Website editor usable and all content visible without animation support.
+body.editor_enable #wrapwrap:has(.edu-home) > header { position: relative; }
+body.editor_enable #wrapwrap:has(.edu-home) > main { padding-top: revert !important; }
+#wrapwrap:has(.offcanvas.show) .edu-sticky-cta { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+    .edu-home .edu-hero *, #wrapwrap:has(.edu-home) > header, #wrapwrap:has(.edu-home) > header::before, #wrapwrap:has(.edu-home) > header * {
+        animation: none !important;
+        transition: none !important;
+    }
+    .edu-hero-scene { transform: none; }
 }

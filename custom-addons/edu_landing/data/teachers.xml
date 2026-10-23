@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Seed once, preserving edits and deletions on upgrade. -->
+    <function model="edu.landing.teacher" name="_seed_teacher_samples"/>
+</odoo>

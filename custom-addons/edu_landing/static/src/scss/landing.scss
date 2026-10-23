@@ -319,8 +319,7 @@
         box-shadow: 0 4px 12px rgba(154, 74, 4, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.18);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-        &::after {
-            content: '\2192';
+        > .fa-arrow-right {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -340,7 +339,7 @@
             background: linear-gradient(135deg, #a65005, #873f03);
             transform: translateY(-1px);
             box-shadow: 0 7px 18px rgba(154, 74, 4, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-            &::after { background: rgba(255, 255, 255, 0.24); transform: translateX(2px); }
+            > .fa-arrow-right { background: rgba(255, 255, 255, 0.24); transform: translateX(2px); }
         }
         &:focus-visible { outline: 2px solid #325d9e; outline-offset: 4px; }
         &:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(154, 74, 4, 0.16); }
@@ -452,7 +451,7 @@
         }
         .top_menu > .nav-item > .nav-link[href="/#dang-ky"] {
             transform: none;
-            &::after { transition: none; transform: none; }
+            > .fa-arrow-right { transition: none; transform: none; }
         }
     }
 }

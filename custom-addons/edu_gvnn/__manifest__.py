@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Trung tâm GVNN: Điểm danh, học phí, lương giáo viên',
+    'name': 'KIM ACADEMY: Quản lý GVNN',
     'version': '17.0.1.0.0',
     'summary': 'Quản lý lớp luyện nói online với giáo viên nước ngoài',
     'description': """

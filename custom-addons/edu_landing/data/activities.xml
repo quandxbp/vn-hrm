@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Seed once; preserve edits and deletions on upgrade. -->
+    <function model="edu.landing.activity" name="_seed_activity_samples"/>
+    <function model="edu.landing.activity" name="_organize_activity_events"/>
+</odoo>

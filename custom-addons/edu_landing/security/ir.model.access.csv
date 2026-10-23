@@ -3,3 +3,17 @@ access_landing_course_designer,Course website designer,model_edu_landing_course,
 access_landing_course_public,Published course public,model_edu_landing_course,base.group_public,1,0,0,0
 access_landing_course_portal,Published course portal,model_edu_landing_course,base.group_portal,1,0,0,0
 access_landing_course_user,Published course internal,model_edu_landing_course,base.group_user,1,0,0,0
+access_landing_activity_designer,Activity website designer,model_edu_landing_activity,website.group_website_designer,1,1,1,1
+access_landing_activity_public,Published activity public,model_edu_landing_activity,base.group_public,1,0,0,0
+access_landing_activity_portal,Published activity portal,model_edu_landing_activity,base.group_portal,1,0,0,0
+access_landing_activity_user,Published activity internal,model_edu_landing_activity,base.group_user,1,0,0,0
+access_landing_activity_event_designer,Activity event designer,model_edu_landing_activity_event,website.group_website_designer,1,1,1,1
+access_landing_activity_upload_designer,Activity upload designer,model_edu_landing_activity_upload,website.group_website_designer,1,1,1,1
+access_landing_student_designer,Student showcase designer,model_edu_landing_student,website.group_website_designer,1,1,1,1
+access_landing_student_public,Published student public,model_edu_landing_student,base.group_public,1,0,0,0
+access_landing_student_portal,Published student portal,model_edu_landing_student,base.group_portal,1,0,0,0
+access_landing_student_user,Published student internal,model_edu_landing_student,base.group_user,1,0,0,0
+access_landing_teacher_designer,Teacher website designer,model_edu_landing_teacher,website.group_website_designer,1,1,1,1
+access_landing_teacher_public,Published teacher public,model_edu_landing_teacher,base.group_public,1,0,0,0
+access_landing_teacher_portal,Published teacher portal,model_edu_landing_teacher,base.group_portal,1,0,0,0
+access_landing_teacher_user,Published teacher internal,model_edu_landing_teacher,base.group_user,1,0,0,0

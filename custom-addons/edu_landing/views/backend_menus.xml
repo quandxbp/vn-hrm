@@ -1,0 +1,6 @@
+<odoo>
+    <!-- Central entry point for all Kim Academy website content configuration. -->
+    <menuitem id="menu_kim_website" name="Kim Website" sequence="32"
+              web_icon="vnpt_base,static/src/img/kim-academy-logo.png"
+              groups="website.group_website_designer"/>
+</odoo>

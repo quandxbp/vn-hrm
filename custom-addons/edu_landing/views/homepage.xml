@@ -17,18 +17,49 @@
             <div id="wrap" class="oe_structure edu-landing edu-home">
 
                 <!-- ============ HERO ============ -->
-                <section class="edu-hero" id="gioi-thieu">
+                <section class="edu-hero" id="gioi-thieu" aria-labelledby="edu-hero-heading">
                     <img class="edu-hero-img" t-att-src="img + 'hero.jpg'" alt="" fetchpriority="high"/>
+                    <div class="edu-hero-scene" aria-hidden="true">
+                        <div class="edu-hero-globe">
+                            <svg viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <radialGradient id="edu-globe-fill" cx="0.33" cy="0.2" r="0.85">
+                                        <stop stop-color="#b9d9f1"/><stop offset="0.48" stop-color="#5c91c6"/><stop offset="1" stop-color="#173d70"/>
+                                    </radialGradient>
+                                    <clipPath id="edu-globe-clip"><circle cx="400" cy="400" r="370"/></clipPath>
+                                </defs>
+                                <circle cx="400" cy="400" r="370" fill="url(#edu-globe-fill)"/>
+                                <g clip-path="url(#edu-globe-clip)" stroke="#e4f4ff" stroke-opacity="0.25" stroke-width="1.3">
+                                    <ellipse cx="400" cy="400" rx="260" ry="370"/><ellipse cx="400" cy="400" rx="130" ry="370"/>
+                                    <ellipse cx="400" cy="400" rx="370" ry="130"/><ellipse cx="400" cy="400" rx="370" ry="260"/>
+                                    <path d="M30 400H770M400 30V770"/>
+                                    <g fill="#d2ecf5" fill-opacity="0.24" stroke="none">
+                                        <path d="M144 173L220 122 293 139 321 184 284 225 298 267 249 302 228 365 187 333 182 281 128 253Z"/>
+                                        <path d="M245 377L308 394 341 447 318 509 285 551 265 620 235 571 229 498 204 444Z"/>
+                                        <path d="M413 175L477 147 536 165 574 148 656 194 694 250 657 283 590 267 560 312 513 289 480 316 442 285 399 255Z"/>
+                                        <path d="M438 316L501 321 542 370 520 431 479 489 449 468 431 413 402 368Z"/>
+                                        <path d="M588 489L644 470 683 504 670 549 609 557 576 527Z"/>
+                                    </g>
+                                </g>
+                                <path class="edu-globe-route" d="M145 430C230 235 365 558 470 337S634 252 685 370" stroke="#f5be72" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 12"/>
+                                <g fill="#fff" stroke="#f5be72" stroke-width="7"><circle cx="145" cy="430" r="10"/><circle cx="470" cy="337" r="10"/><circle cx="685" cy="370" r="10"/></g>
+                            </svg>
+                        </div>
+                        <span class="edu-hero-float edu-hero-float-book"><i class="fa fa-book"/></span>
+                        <span class="edu-hero-float edu-hero-float-cap"><i class="fa fa-graduation-cap"/></span>
+                        <span class="edu-hero-spark edu-hero-spark-one">✦</span>
+                        <span class="edu-hero-spark edu-hero-spark-two">✧</span>
+                    </div>
                     <div class="container edu-hero-content">
-                        <span class="edu-hero-kicker">Dẫn lối nhân tài</span>
-                        <h1 class="edu-display edu-hero-title">Khai phóng tiềm năng</h1>
+                        <span class="edu-hero-kicker"><i class="fa fa-star-o" aria-hidden="true"/> Dẫn lối nhân tài</span>
+                        <h1 class="edu-display edu-hero-title" id="edu-hero-heading"><span>Khai phóng</span> <em>tiềm năng</em></h1>
                         <p class="edu-hero-sub">
                             Nền tảng học thuật tiếng Anh vững chắc, nuôi dưỡng sự tò mò và khát vọng lớn
                             cho học viên từ 3 tuổi.
                         </p>
                         <div class="edu-hero-actions">
-                            <a href="#dang-ky" class="btn edu-btn edu-btn-sec">Nhận tư vấn miễn phí</a>
-                            <a href="/gioi-thieu" class="btn edu-btn edu-btn-outline-light">Câu chuyện của chúng tôi</a>
+                            <a href="#dang-ky" class="btn edu-btn edu-btn-sec">Nhận tư vấn miễn phí <i class="fa fa-arrow-right" aria-hidden="true"/></a>
+                            <a href="/gioi-thieu" class="btn edu-btn edu-btn-outline-light">Câu chuyện của chúng tôi <i class="fa fa-arrow-up" aria-hidden="true"/></a>
                         </div>
                     </div>
 
@@ -40,15 +71,16 @@
                                 <span>Tìm khoá học theo độ tuổi</span>
                             </div>
                             <div class="edu-chips" role="group" aria-label="Chọn độ tuổi">
-                                <button type="button" class="edu-chip" data-age="3-5">3 - 5 tuổi</button>
-                                <button type="button" class="edu-chip" data-age="6-10">6 - 10 tuổi</button>
-                                <button type="button" class="edu-chip" data-age="11-14">11 - 14 tuổi</button>
-                                <button type="button" class="edu-chip" data-age="15-18">15 - 18 tuổi</button>
-                                <button type="button" class="edu-chip" data-age="19-21">19 - 21+ tuổi</button>
+                                <button type="button" class="edu-chip" data-age="3-5" aria-pressed="false">3 - 5 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="6-10" aria-pressed="false">6 - 10 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="11-14" aria-pressed="false">11 - 14 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="15-18" aria-pressed="false">15 - 18 tuổi</button>
+                                <button type="button" class="edu-chip" data-age="19-21" aria-pressed="false">19 - 21+ tuổi</button>
                             </div>
-                            <a href="#chuong-trinh" class="btn edu-btn edu-btn-pri edu-finder-go">Tìm khoá học</a>
+                            <a href="#chuong-trinh" class="btn edu-btn edu-btn-pri edu-finder-go">Tìm khoá học <i class="fa fa-arrow-right" aria-hidden="true"/></a>
                         </div>
                     </div>
+                    <a class="edu-hero-scroll" href="#uy-tin" aria-label="Khám phá Kim Academy"><span/><i class="fa fa-angle-down" aria-hidden="true"/></a>
                 </section>
 
                 <!-- ============ UY TÍN + LỘ TRÌNH CEFR ============ -->
@@ -202,6 +234,9 @@
                 <!-- ============ GIÁO VIÊN ============ -->
                 <section class="edu-smem" id="giao-vien">
                     <div class="container">
+                        <t t-set="teachers" t-value="website._get_landing_teachers()"/>
+                        <t t-set="center_teachers" t-value="teachers.filtered(lambda teacher: teacher.team == 'center')"/>
+                        <t t-set="international_teachers" t-value="teachers.filtered(lambda teacher: teacher.team == 'international')"/>
                         <div class="edu-smem-head">
                             <header class="edu-head edu-head-left">
                                 <span class="edu-head-sub">Đội ngũ</span>
@@ -216,56 +251,23 @@
                             <button type="button" id="edu-teachers-center-tab" class="edu-smem-tab is-active" role="tab" aria-selected="true" aria-controls="edu-teachers-center" data-team="center"><i class="fa fa-building-o" aria-hidden="true"/> Giáo viên tại trung tâm</button>
                             <button type="button" id="edu-teachers-international-tab" class="edu-smem-tab" role="tab" aria-selected="false" aria-controls="edu-teachers-international" tabindex="-1" data-team="international"><i class="fa fa-globe" aria-hidden="true"/> Giáo viên nước ngoài</button>
                         </div>
-                        <!-- Hồ sơ và ảnh mẫu, thay bằng thông tin giáo viên thật của từng nhóm. -->
                         <div class="edu-smem-panel" id="edu-teachers-center" role="tabpanel" aria-labelledby="edu-teachers-center-tab" data-team="center" tabindex="0">
                             <p class="edu-smem-team-intro">Đội ngũ giảng dạy và đào tạo tại Kim Academy.</p>
                             <div class="row g-3 g-lg-4 justify-content-center">
-                            <div class="col-6 col-lg-3">
-                                <article class="edu-smem-item">
-                                    <img t-att-src="img + 'teacher_1.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
-                                    <div class="edu-smem-body">
-                                        <span class="edu-smem-pos">Trưởng bộ môn IELTS</span>
-                                        <h3 class="edu-display">Họ tên giáo viên</h3>
-                                        <span class="edu-smem-cert">IELTS 8.5</span>
-                                    </div>
-                                </article>
+                                <div t-foreach="center_teachers" t-as="teacher" class="col-6 col-lg-3">
+                                    <t t-call="edu_landing.teacher_showcase_card"/>
+                                </div>
                             </div>
-                            <div class="col-6 col-lg-3">
-                                <article class="edu-smem-item">
-                                    <img t-att-src="img + 'teacher_2.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
-                                    <div class="edu-smem-body">
-                                        <span class="edu-smem-pos">Quản lý đào tạo</span>
-                                        <h3 class="edu-display">Họ tên giáo viên</h3>
-                                        <span class="edu-smem-cert">CELTA</span>
-                                    </div>
-                                </article>
-                            </div>
-                            </div>
+                            <p t-if="not center_teachers" class="text-center text-muted">Thông tin giáo viên tại trung tâm đang được cập nhật.</p>
                         </div>
-                        <div class="edu-smem-panel" id="edu-teachers-international" role="tabpanel" aria-labelledby="edu-teachers-international-tab" data-team="international" tabindex="0">
+                        <div class="edu-smem-panel" id="edu-teachers-international" role="tabpanel" aria-labelledby="edu-teachers-international-tab" data-team="international" tabindex="0" hidden="hidden">
                             <p class="edu-smem-team-intro">Khám phá đội ngũ giáo viên nước ngoài đồng hành cùng Kim Academy.</p>
                             <div class="row g-3 g-lg-4 justify-content-center">
-                            <div class="col-6 col-lg-3">
-                                <article class="edu-smem-item">
-                                    <img t-att-src="img + 'teacher_3.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
-                                    <div class="edu-smem-body">
-                                        <span class="edu-smem-pos">Giáo viên tiểu học</span>
-                                        <h3 class="edu-display">Họ tên giáo viên</h3>
-                                        <span class="edu-smem-cert">TESOL</span>
-                                    </div>
-                                </article>
+                                <div t-foreach="international_teachers" t-as="teacher" class="col-6 col-lg-3">
+                                    <t t-call="edu_landing.teacher_showcase_card"/>
+                                </div>
                             </div>
-                            <div class="col-6 col-lg-3">
-                                <article class="edu-smem-item">
-                                    <img t-att-src="img + 'teacher_4.jpg'" alt="Ảnh minh hoạ giáo viên" loading="lazy"/>
-                                    <div class="edu-smem-body">
-                                        <span class="edu-smem-pos">Giáo viên SAT</span>
-                                        <h3 class="edu-display">Họ tên giáo viên</h3>
-                                        <span class="edu-smem-cert">SAT 1550</span>
-                                    </div>
-                                </article>
-                            </div>
-                            </div>
+                            <p t-if="not international_teachers" class="text-center text-muted">Thông tin giáo viên nước ngoài đang được cập nhật.</p>
                         </div>
                     </div>
                 </section>
@@ -292,58 +294,32 @@
                 <!-- ============ HỌC VIÊN TIÊU BIỂU (tab lọc) ============ -->
                 <section class="edu-stu" id="hoc-vien">
                     <div class="container">
+                        <t t-set="featured_students" t-value="website._get_landing_students()"/>
                         <header class="edu-head">
                             <span class="edu-head-sub">Mở rộng cơ hội</span>
                             <h2 class="edu-display">Cho 50.000+ học viên</h2>
                         </header>
-                        <div class="edu-stu-tabs" role="tablist" aria-label="Lọc thành tích">
+                        <div t-if="featured_students" class="edu-stu-tabs" role="tablist" aria-label="Lọc thành tích">
                             <button type="button" class="edu-stu-tab is-active" role="tab" aria-selected="true" data-filter="all">Tất cả</button>
                             <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="ielts">IELTS</button>
                             <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="cambridge">Cambridge</button>
                             <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="sat">SAT</button>
                         </div>
-                        <div class="row g-3 g-lg-4">
-                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="ielts">
+                        <div t-if="featured_students" class="row g-3 g-lg-4">
+                            <div t-foreach="featured_students" t-as="student" class="col-12 col-sm-6 col-lg-3 edu-stu-col" t-att-data-cat="student.category">
                                 <article class="edu-stu-item">
                                     <div class="edu-stu-img">
-                                        <img t-att-src="img + 'student_1.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
-                                        <span class="edu-stu-score"><small>IELTS</small><b class="edu-display">8.0</b></span>
+                                        <img t-att-src="'/web/image/edu.landing.student/%s/image_1920' % student.id" t-att-alt="student.alt_text or student.name" loading="lazy"/>
+                                        <span t-if="student.score" class="edu-stu-score"><small t-field="student.display_label"/><b class="edu-display" t-field="student.score"/></span>
                                     </div>
-                                    <h3>Tên học viên</h3>
-                                    <p>Trường đang theo học</p>
-                                </article>
-                            </div>
-                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="sat">
-                                <article class="edu-stu-item">
-                                    <div class="edu-stu-img">
-                                        <img t-att-src="img + 'student_2.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
-                                        <span class="edu-stu-score"><small>SAT</small><b class="edu-display">1520</b></span>
-                                    </div>
-                                    <h3>Tên học viên</h3>
-                                    <p>Trường đang theo học</p>
-                                </article>
-                            </div>
-                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="cambridge">
-                                <article class="edu-stu-item">
-                                    <div class="edu-stu-img">
-                                        <img t-att-src="img + 'student_3.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
-                                        <span class="edu-stu-score"><small>Flyers</small><b class="edu-display">15/15</b></span>
-                                    </div>
-                                    <h3>Tên học viên</h3>
-                                    <p>Trường đang theo học</p>
-                                </article>
-                            </div>
-                            <div class="col-12 col-sm-6 col-lg-3 edu-stu-col" data-cat="ielts">
-                                <article class="edu-stu-item">
-                                    <div class="edu-stu-img">
-                                        <img t-att-src="img + 'student_4.jpg'" alt="Ảnh minh hoạ học viên" loading="lazy"/>
-                                        <span class="edu-stu-score"><small>IELTS</small><b class="edu-display">8.5</b></span>
-                                    </div>
-                                    <h3>Tên học viên</h3>
-                                    <p>Trường đang theo học</p>
+                                    <h3 t-field="student.name"/>
+                                    <p t-if="student.school" t-field="student.school"/>
+                                    <p t-if="student.description" t-field="student.description"/>
                                 </article>
                             </div>
                         </div>
+                        <p t-if="featured_students" class="edu-stu-empty text-center text-muted" role="status" hidden="hidden">Chưa có học viên trong nhóm này.</p>
+                        <p t-else="" class="text-center text-muted">Thông tin học viên đang được cập nhật.</p>
                     </div>
                 </section>
 
@@ -379,11 +355,27 @@
 
                 <section class="edu-activities" id="hoat-dong">
                     <div class="container">
-                        <header class="edu-head mb-0">
+                        <t t-set="activities" t-value="website._get_landing_activities()"/>
+                        <header class="edu-head">
                             <span class="edu-head-sub">Học viên &amp; Hoạt động</span>
                             <h2 class="edu-display">Hoạt động lớp học</h2>
-                            <p class="edu-head-lead">Hình ảnh lớp học, sự kiện và hoạt động tại Kim Academy đang được cập nhật.</p>
+                            <p class="edu-head-lead" t-if="activities">Những khoảnh khắc học tập, khám phá và kết nối.</p>
+                            <p class="edu-head-lead" t-else="">Hình ảnh lớp học, sự kiện và hoạt động tại Kim Academy đang được cập nhật.</p>
                         </header>
+                        <div t-if="activities" class="edu-activity-slideshow" role="region" aria-roledescription="trình chiếu" aria-label="Hoạt động lớp học" tabindex="0">
+                            <div class="edu-activity-stage" id="edu-activity-slides">
+                                <div class="edu-activity-track">
+                                <figure t-foreach="activities" t-as="activity" t-attf-class="edu-activity-slide #{'is-active' if activity_first else ''}" t-att-aria-hidden="'false' if activity_first else 'true'" role="group" aria-roledescription="ảnh" t-att-aria-label="'%s / %s' % (activity_index + 1, len(activities))">
+                                    <img t-att-src="'/web/image/edu.landing.activity/%s/image_1920' % activity.id" t-att-alt="activity.alt_text or activity.name" loading="lazy" decoding="async"/>
+                                </figure>
+                                </div>
+                            </div>
+                            <div t-if="len(activities) &gt; 1" class="edu-activity-controls">
+                                <div class="edu-activity-dots" role="group" aria-label="Chọn ảnh">
+                                    <button t-foreach="activities" t-as="activity" type="button" class="edu-activity-dot" t-att-aria-label="'Xem ảnh %s: %s' % (activity_index + 1, activity.name)" t-att-aria-pressed="'true' if activity_first else 'false'" aria-controls="edu-activity-slides"/>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 

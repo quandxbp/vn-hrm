@@ -1,0 +1,54 @@
+<odoo>
+    <record id="student_showcase_tree" model="ir.ui.view">
+        <field name="name">edu.landing.student.tree</field>
+        <field name="model">edu.landing.student</field>
+        <field name="arch" type="xml">
+            <tree string="Học viên tiêu biểu">
+                <field name="sequence" widget="handle"/>
+                <field name="image_1920" widget="image" options="{'size': [60, 80]}"/>
+                <field name="name"/><field name="school"/><field name="category"/>
+                <field name="exam_label" optional="hide"/><field name="score"/>
+                <field name="website_id" groups="website.group_multi_website"/>
+                <field name="is_published" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="student_showcase_form" model="ir.ui.view">
+        <field name="name">edu.landing.student.form</field>
+        <field name="model">edu.landing.student</field>
+        <field name="arch" type="xml">
+            <form string="Học viên tiêu biểu">
+                <sheet>
+                    <div class="oe_title"><label for="name"/><h1><field name="name" placeholder="Họ và tên học viên"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="school"/><field name="category"/><field name="exam_label"/><field name="score"/>
+                            <field name="is_published"/><field name="sequence"/>
+                            <field name="website_id" groups="website.group_multi_website"/>
+                        </group>
+                        <group><field name="image_1920" widget="image" nolabel="1" options="{'size': [300, 400]}"/><field name="alt_text"/></group>
+                    </group>
+                    <field name="description" placeholder="Thông tin bổ sung hiển thị bên dưới tên và trường học"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="student_showcase_search" model="ir.ui.view">
+        <field name="name">edu.landing.student.search</field>
+        <field name="model">edu.landing.student</field>
+        <field name="arch" type="xml">
+            <search><field name="name"/><field name="school"/><field name="category"/>
+                <filter name="published" string="Đang hiển thị" domain="[('is_published', '=', True)]"/>
+                <filter name="unpublished" string="Đang ẩn" domain="[('is_published', '=', False)]"/>
+                <group string="Nhóm theo"><filter name="category_group" string="Nhóm thành tích" context="{'group_by': 'category'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="student_showcase_action" model="ir.actions.act_window">
+        <field name="name">Học viên tiêu biểu</field>
+        <field name="res_model">edu.landing.student</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Thêm học viên tiêu biểu</p><p>Tải ảnh, nhập thông tin và thành tích, bật hiển thị để đưa học viên lên trang chủ. Kéo thả các dòng để sắp xếp.</p></field>
+    </record>
+    <menuitem id="menu_landing_students" name="Học viên tiêu biểu" parent="menu_kim_website" action="student_showcase_action" sequence="30" groups="website.group_website_designer"/>
+</odoo>

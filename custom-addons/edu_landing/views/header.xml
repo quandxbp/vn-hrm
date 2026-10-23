@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <template id="navbar_consultation_icon" inherit_id="website.submenu" name="Icon nút nhận tư vấn">
+        <xpath expr="//a[@t-att-href]/span[@t-field='submenu.name']" position="after">
+            <i t-if="submenu.url == '/#dang-ky'" class="fa fa-arrow-right" aria-hidden="true"/>
+        </xpath>
+    </template>
+
     <!-- Logo trên thanh menu: dùng file logo của trung tâm thay cho logo lưu trong DB (website.logo).
          File nằm ở vnpt_base/static/src/img/kim-academy-logo.png. Template này nối vào mọi kiểu header
          của Website vì cùng dùng website.option_header_brand_logo. -->

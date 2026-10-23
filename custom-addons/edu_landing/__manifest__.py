@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Landing page: Trung tâm Anh ngữ',
-    'version': '17.0.1.3.0',
+    'name': 'Kim Academy: Website',
+    'version': '17.0.1.7.0',
     'summary': 'Trang giới thiệu trung tâm tiếng Anh, form đăng ký tư vấn đổ vào CRM',
     'description': """
 Trang chủ cho trung tâm tiếng Anh dựng trên Odoo Website (bản Community).
@@ -13,8 +13,18 @@ Form đăng ký tạo lead trong CRM.
     'data': [
         'security/ir.model.access.csv',
         'security/course_security.xml',
+        'security/activity_security.xml',
+        'security/student_security.xml',
+        'security/teacher_security.xml',
         'data/courses.xml',
+        'data/activities.xml',
+        'data/students.xml',
+        'data/teachers.xml',
+        'views/backend_menus.xml',
         'views/course_views.xml',
+        'views/activity_views.xml',
+        'views/student_showcase_views.xml',
+        'views/teacher_showcase_views.xml',
         'views/website_registration_views.xml',
         'views/assets.xml',
         'views/map.xml',
@@ -35,11 +45,13 @@ Form đăng ký tạo lead trong CRM.
             'edu_landing/static/src/scss/landing.scss',
             'edu_landing/static/src/scss/about.scss',
             'edu_landing/static/src/scss/home.scss',
+            'edu_landing/static/src/scss/activities.scss',
             'edu_landing/static/src/scss/careers.scss',
             'edu_landing/static/src/scss/course.scss',
             'edu_landing/static/src/scss/contact.scss',
             'edu_landing/static/src/scss/thank_you.scss',
             'edu_landing/static/src/js/landing.js',
+            'edu_landing/static/src/js/activity_slideshow.js',
             'edu_landing/static/src/js/consultation_form.js',
         ],
     },

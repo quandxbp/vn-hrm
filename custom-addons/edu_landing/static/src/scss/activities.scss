@@ -1,0 +1,102 @@
+.edu-activity-slideshow {
+    --activity-height: clamp(280px, 43vh, 440px);
+    --activity-gap: 24px;
+    width: calc(100vw - 40px);
+    max-width: 1480px;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    &:focus-visible { outline: 2px solid #325d9e; outline-offset: 5px; }
+}
+.edu-activity-stage {
+    position: relative;
+    height: calc(var(--activity-height) + 28px);
+    padding: 14px 0;
+    overflow: hidden;
+    touch-action: pan-y pinch-zoom;
+    contain: layout paint;
+}
+.edu-activity-track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--activity-gap);
+    width: 100%;
+    height: var(--activity-height);
+    transition: transform 0.8s cubic-bezier(0.22, 0.68, 0.15, 1);
+}
+.edu-activity-slideshow.is-ready .edu-activity-track { will-change: transform; }
+.edu-activity-slide {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--activity-height) * var(--activity-ratio, 1.3333));
+    max-width: 80%;
+    height: 100%;
+    margin: 0;
+    opacity: 0.55;
+    transform: scale(0.93);
+    transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.22, 0.68, 0.15, 1);
+    cursor: pointer;
+    &.is-active { opacity: 1; transform: scale(1); cursor: default; }
+    // Natural-width cards share a height on desktop. Very wide photos shrink
+    // within the mobile viewport instead of losing their edges.
+    img {
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 16px;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+}
+.edu-activity-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 16px 0;
+    button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        min-height: 44px;
+        padding: 10px;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #173d70;
+        cursor: pointer;
+        &:hover { background: #edf3f9; }
+        &:focus-visible { outline: 2px solid #325d9e; outline-offset: 3px; }
+    }
+}
+.edu-activity-dots {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
+    button {
+        position: relative;
+        min-width: 28px;
+        min-height: 44px;
+        border: 0;
+        background: transparent;
+        &::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #98abc3; }
+        &[aria-pressed="true"]::after { width: 22px; border-radius: 999px; background: #173d70; }
+    }
+}
+@media (max-width: 575.98px) {
+    .edu-activity-slideshow {
+        --activity-height: clamp(250px, 43svh, 350px);
+        --activity-gap: 12px;
+        width: calc(100vw - 16px);
+    }
+    .edu-activity-slide img { border-radius: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .edu-activity-slide, .edu-activity-track { transition: none; }
+}

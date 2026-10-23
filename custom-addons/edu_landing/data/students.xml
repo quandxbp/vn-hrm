@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Convert the four static sample cards into editable data once. -->
+    <function model="edu.landing.student" name="_seed_student_samples"/>
+</odoo>

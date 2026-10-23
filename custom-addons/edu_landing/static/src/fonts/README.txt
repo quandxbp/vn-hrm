@@ -1,4 +1,9 @@
-Font tiêu đề của landing page: "SVN-Bebas Neue Pro".
+Font nghiêng của hero: Lora Medium Italic (Lora-MediumItalic.ttf).
+Font được lưu cùng dự án, hỗ trợ tiếng Việt và dùng nét nghiêng thật.
+Nguồn: Google Fonts, https://fonts.google.com/specimen/Lora
+Giấy phép SIL Open Font License 1.1: xem Lora-OFL.txt.
+
+Font tiêu đề các section của landing page: "SVN-Bebas Neue Pro".
 
 File font KHÔNG nằm trong git. Đặt vào thư mục này, đúng tên:
 
