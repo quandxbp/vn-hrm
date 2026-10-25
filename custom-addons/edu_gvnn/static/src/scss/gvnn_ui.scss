@@ -1,0 +1,76 @@
+// Scoped to GVNN views: keep the rest of the backend and its dialogs unchanged.
+.edu_form {
+    .o_form_sheet {
+        border-radius: 12px;
+        border: 1px solid $o-gray-200;
+        box-shadow: 0 3px 16px rgba($o-gray-900, .04);
+    }
+
+    .edu_profile_heading {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 4px 0 24px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid $o-gray-200;
+
+        .oe_title { flex: 1; margin: 0; min-width: 0; }
+        h1 { margin: 4px 0 0; font-size: 26px; font-weight: 600; color: $o-gray-900; }
+        .o_field_widget { margin-bottom: 0; }
+    }
+
+    .edu_profile_icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: rgba($o-brand-primary, .08);
+        color: $o-brand-primary;
+        font-size: 23px;
+    }
+
+    .edu_eyebrow { color: $o-gray-600; font-size: 10px; font-weight: 600; letter-spacing: 1.2px; }
+    .o_inner_group .o_horizontal_separator { color: $o-brand-primary; font-size: 13px; font-weight: 600; }
+    .o_form_label { color: $o-gray-700; }
+    .edu_metric { font-weight: 700; font-size: 18px; }
+
+    .o_notebook {
+        margin-top: 16px;
+        .nav-tabs { gap: 4px; border-bottom-color: $o-gray-200; }
+        .nav-link { border-radius: 8px 8px 0 0; padding: 10px 16px; color: $o-gray-600; }
+        .nav-link.active { color: $o-brand-primary; font-weight: 600; background: rgba($o-brand-primary, .04); border-bottom-color: $o-brand-primary; }
+        .tab-pane { padding-top: 20px; }
+    }
+}
+
+.edu_list, .edu_form {
+    .o_field_badge .badge {
+        border-radius: 6px;
+        padding: 5px 9px;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: .1px;
+        border: 0;
+    }
+    .o_list_table {
+        thead { background: $o-gray-100; color: $o-gray-700; }
+        thead th { padding-top: 12px; padding-bottom: 12px; font-size: 12px; }
+        tbody .o_data_row > td { vertical-align: middle; padding-top: 9px; padding-bottom: 9px; border-bottom-color: $o-gray-200; }
+        .o_data_row:hover { background-color: rgba($o-brand-primary, .035); }
+    }
+}
+
+.edu_form .edu_recording_parts th[data-name="number"] {
+    min-width: 96px;
+    width: 96px !important;
+}
+
+@media (max-width: 767.98px) {
+    .edu_form .edu_profile_heading {
+        gap: 12px; padding-bottom: 16px; margin-bottom: 16px;
+        h1 { font-size: 22px; }
+    }
+    .edu_form .o_notebook .nav-link { padding: 9px 12px; }
+}

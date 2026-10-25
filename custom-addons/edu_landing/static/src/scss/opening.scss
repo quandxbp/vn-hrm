@@ -1,0 +1,117 @@
+// Shared opening scene for the inner pages, following the homepage's light/navy palette.
+.edu-landing .ka-opening {
+    padding: 132px 0 80px;
+    color: var(--ka-deep);
+    background: radial-gradient(ellipse at 24% 8%, rgba(255, 237, 210, .55), transparent 55%),
+        linear-gradient(125deg, #f8fafc, #edf3f9 70%, #e3edf8);
+    border-bottom: 1px solid var(--edu-line);
+
+    // Keep each page's content and arrangement, with a common typographic hierarchy.
+    h1.edu-display {
+        margin: 0 0 28px;
+        color: var(--ka-deep);
+        font-family: var(--edu-body);
+        font-size: clamp(42px, 4.5vw, 68px);
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -.045em;
+        text-transform: none;
+
+        > span {
+            display: inline-block;
+            color: var(--edu-pri);
+            font-family: 'Kim Lora', var(--edu-body);
+            font-weight: 500;
+            font-style: italic;
+            font-synthesis: none;
+            letter-spacing: -.025em;
+            line-height: 1.3;
+        }
+    }
+
+    nav[aria-label="Đường dẫn trang"] {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 44px;
+        color: var(--edu-muted);
+        font-size: 11px;
+        line-height: 1.9;
+        a { color: var(--ka-deep); text-decoration: none; &:hover { text-decoration: underline; } }
+        > span[aria-hidden] { opacity: .5; }
+    }
+
+    .ka-eyebrow, .ka-career-eyebrow, .ka-contact-eyebrow, .ka-course-eyebrow {
+        margin: 0 0 20px;
+        color: var(--ka-deep);
+        font-family: var(--edu-body);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .16em;
+        line-height: 1.8;
+        text-transform: uppercase;
+    }
+
+    .ka-about-intro, .ka-career-lead, .ka-contact-hero-copy > p, .ka-course-intro {
+        color: var(--edu-muted);
+        font-size: 15px;
+        line-height: 1.95;
+    }
+
+    .edu-btn {
+        min-height: 46px;
+        padding: 12px 22px;
+        border: 1px solid var(--ka-deep);
+        border-radius: 999px;
+        background: var(--ka-deep);
+        color: var(--edu-white);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+        box-shadow: none;
+        &:hover { background: var(--edu-pri); border-color: var(--edu-pri); color: var(--edu-white); }
+    }
+    a:focus-visible { outline: 2px solid var(--edu-pri); outline-offset: 5px; }
+
+    .ka-course-photo, .ka-career-hero-photo img {
+        height: 420px;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(23, 61, 112, .1);
+    }
+    .ka-career-hero-photo { margin-left: 0; }
+    .ka-career-photo-label { left: -16px; border-color: #edf3f9; }
+    .ka-career-principles { margin-top: 48px; padding-bottom: 0; }
+
+    @media (max-width: 991.98px) {
+        padding: 116px 0 56px;
+        nav[aria-label="Đường dẫn trang"] { margin-bottom: 32px; }
+        .ka-course-photo, .ka-career-hero-photo img { height: 360px; }
+        .ka-career-photo-label { left: 16px; }
+    }
+    @media (max-width: 575.98px) {
+        padding: 104px 0 48px;
+        h1.edu-display { font-size: clamp(34px, 9vw, 44px); letter-spacing: -.035em; }
+        .ka-course-photo, .ka-career-hero-photo img { height: 280px; border-radius: 18px; }
+        .ka-career-principles { margin-top: 32px; gap: 20px; }
+    }
+}
+
+.edu-about .ka-opening {
+    min-height: 700px;
+    isolation: isolate;
+    &::after { display: none; }
+    .ka-about-hero-image { z-index: -1; opacity: .07; filter: saturate(.5); }
+    .ka-discover {
+        color: var(--ka-deep);
+        span { border-color: var(--edu-pri); }
+        &:hover { color: var(--edu-pri); }
+    }
+    @media (max-width: 575.98px) { min-height: 0; }
+}
+
+// Bootstrap's g-5 row extends 24px beyond a 15px container on phones.
+// Reduce only the horizontal gutter; retain the spacing between stacked content.
+@media (max-width: 575.98px) {
+    .edu-landing .row { --gutter-x: 24px; }
+}

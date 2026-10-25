@@ -4,16 +4,24 @@
         <field name="name">edu.import.wizard.form</field>
         <field name="model">edu.import.wizard</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
+                <p class="text-muted" invisible="result">
+                    Chọn file Tổng hợp_GVNN.xlsx có sheet 2.ĐIỂM DANH.
+                    Chế độ lịch sử chỉ nhập buổi học và bổ sung danh mục còn thiếu;
+                    không nhập phiếu thu, số dư đầu kỳ, đơn giá hoặc kỳ lương.
+                    Để trống khoảng ngày để lấy toàn bộ lịch sử.
+                    Học viên mới mặc định Ngưng học; có thể chuyển sang Đang học sau khi kiểm tra.
+                </p>
                 <group invisible="result">
                     <group>
+                        <field name="import_mode"/>
                         <field name="file" filename="filename"/>
                         <field name="filename" invisible="1"/>
-                        <field name="date_from"/>
+                        <field name="date_from" required="import_mode == 'all'"/>
                         <field name="date_to"/>
                         <field name="agency_id"/>
                     </group>
-                    <group string="Nội dung import">
+                    <group string="Nội dung import" invisible="import_mode != 'all'">
                         <field name="import_catalog"/>
                         <field name="import_students"/>
                         <field name="set_opening"/>
@@ -36,12 +44,14 @@
     </record>
 
     <record id="action_edu_import_wizard" model="ir.actions.act_window">
-        <field name="name">Import Excel</field>
+        <field name="name">Nhập dữ liệu buổi học từ Excel</field>
         <field name="res_model">edu.import.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
 
-    <menuitem id="menu_edu_import" name="Import Excel" parent="menu_edu_config_root"
-              action="action_edu_import_wizard" sequence="80"/>
+    <record id="menu_edu_import" model="ir.ui.menu">
+        <field name="name">Nhập dữ liệu Excel</field>
+        <field name="active" eval="False"/>
+    </record>
 </odoo>

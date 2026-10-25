@@ -1,5 +1,63 @@
 # Bàn giao Kim Website — 23/10/2026
 
+## Cập nhật ảnh thật — 25/10/2026
+
+- `edu_landing` **17.0.1.9.0**, đã upgrade DB local `gvnn`. Tuyển chọn **11 ảnh gốc**
+  từ album Facebook do người dùng cung cấp: https://www.facebook.com/mskim.kimacademy/photos.
+  Bản JPEG lưu trong `static/src/img/kim/`, permalink nguồn trong `SOURCES.json`.
+  Tổng khoảng 3,2 MB, cạnh dài ít nhất 1900px; không hotlink CDN Facebook và không dùng AI sửa ảnh.
+- Thay ảnh tĩnh trên trang chủ (banner/4 khóa học/form), Giới thiệu, Tuyển dụng,
+  Liên hệ và 4 trang chi tiết khóa học. Logo Kim Academy giữ nguyên.
+  Ảnh mầm non dùng học liệu Oxford Phonics, tiểu học dùng lớp thực hành bảng viết,
+  thiếu niên dùng thực hành tại bảng, IELTS/SAT dùng đọc sách/trao đổi học tập.
+  Ảnh thư viện là hoạt động đọc sách được Facebook chia sẻ, không gắn nhãn là cơ sở trung tâm.
+- `models/kim_media.py` + `data/kim_photos.xml` cài ảnh một lần, marker
+  `edu_landing.kim_photos_20261025`. So SHA256 ảnh gốc và ảnh Odoo resize để chỉ ẩn
+  đúng ảnh mẫu cũ, giữ ảnh người dùng đã tự thay. Không xóa bản ghi hoặc file cũ.
+  Tạo 2 thẻ đội ngũ, 2 thẻ vinh danh Cambridge và 6 Highlight trong sự kiện
+  “Khoảnh khắc Kim Academy”. Không gán một ngày diễn ra cho ảnh từ nhiều bài đăng.
+- Chưa đủ thông tin tên/chứng chỉ từng người: thẻ dùng chú thích trung tính, không gán
+  IELTS/CELTA/TESOL hoặc điểm mẫu cho người thật. Bỏ nhãn top 3%/100% mẫu ở phần đội ngũ,
+  thay tiêu đề 50.000+ ở phần thẻ học viên bằng “Thành tích học viên Kim Academy”.
+  Các số liệu marketing/cảm nhận mẫu ở khu vực khác chưa thuộc đợt thay ảnh này.
+  Chưa có ảnh chân dung giáo viên nước ngoài phù hợp: ẩn ảnh mẫu cũ, tab giữ thông báo cập nhật.
+- `photos.scss`: thẻ đội ngũ và học viên chuyển hai cột, ảnh ngang object-fit contain,
+  giữ đủ người/chứng chỉ; mobile một cột. Các chức năng tab/lọc/slideshow được giữ.
+- Đã kiểm tra Chrome: ảnh trên trang chủ + 7 trang có ảnh còn lại dùng nguồn mới,
+  không còn URL ảnh stock trong DOM; không có ảnh đã load bị hỏng. Hai tab giáo viên,
+  bộ lọc Cambridge hoạt động. Kiểm tra 390px không tràn ngang, ảnh giữ trọn khung;
+  đã reset viewport. Console không có lỗi. Chạy lại hàm/upgrade không tạo trùng.
+  Published hiện tại: 2 đội ngũ / 2 học viên / 6 hoạt động, 0 ảnh stock; 156 buổi học giữ nguyên.
+- Lưu ý XML ID IELTS là `course_ielts_sat`. Đã sửa fallback local sang study-together.
+- Backup trước thay dữ liệu: `D:\Projects\vn-hrm-backups\landing-real-photos-20261025\gvnn.dump`.
+  Ảnh kiểm tra: `artifacts/landing-real-photos.jpg`. Chưa commit/push/deploy public.
+
+## Cập nhật mới nhất — 25/10/2026: navbar và phần mở đầu đồng bộ
+
+- `edu_landing` **17.0.1.8.0**, đã nâng cấp trên DB local **`gvnn`**. Các ghi chú DB
+  `odoo`/`gvnn` ở phần lịch sử bên dưới không mô tả trạng thái máy hiện tại.
+- Navbar trong `home.scss` mở rộng selector từ `:has(.edu-home)` sang
+  `:has(.edu-landing)`: cùng logo, kích thước, nút tư vấn, nền trong suốt và kính trắng
+  khi cuộn, cả desktop/mobile. `landing.js` bỏ vòng affix mặc định trên các trang này
+  ngoài editor để tránh transform/padding gây nhảy nội dung. Trang ngoài edu_landing giữ mặc định.
+- Giới thiệu, Tuyển dụng, Liên hệ, Chi tiết khóa học và Cảm ơn thêm class `ka-opening`.
+  `opening.scss` (nạp sau các style từng trang) dùng nền sáng chuyển sắc, chữ navy,
+  Be Vietnam Pro, dòng nhấn Lora nghiêng, breadcrumb/eyebrow/nút tư vấn đồng bộ trang chủ.
+  Bố cục và nội dung từng trang được giữ; ảnh mở đầu bo góc 24px.
+- Mobile giảm riêng gutter ngang `.edu-landing .row` còn 24px (biến Odoo `--gutter-x`,
+  không phải `--bs-gutter-x`) để g-5 không tràn container; khoảng dọc giữ nguyên.
+- Đã mở 9 URL trên Chrome desktop và 390×844: `/`, `/gioi-thieu`, `/tuyen-dung`,
+  `/lien-he`, 4 slug khóa học, `/contactus-thank-you`. Không tràn ngang sau sửa,
+  breadcrumb mobile ở y=104, navbar kết thúc y=77. Đã thử menu mobile và link chuyển trang.
+  Link tư vấn cuộn đúng form; header fixed, transform none, nền kính bật, main padding 0.
+  Đã reset viewport. Console có lỗi từ extension Chrome `eppiocem.../executors/200.js`,
+  không thấy lỗi JS của module trong lượt kiểm tra. Không gửi form/tạo lead.
+- Backup: `D:\Projects\vn-hrm-backups\landing-opening-20261025\gvnn.dump`.
+  Ảnh: `artifacts/landing-contact-unified.jpg`, `artifacts/landing-careers-unified.jpg`.
+  Chỉ cập nhật local, chưa commit/push/deploy internet.
+
+Các phần dưới đây giữ lại bàn giao và quyết định thiết kế của ngày 23/10.
+
 ## Đọc trước khi làm tiếp
 
 Đây là trạng thái cuối cùng của đợt thay đổi sau commit `c828b80`, trên nhánh `feature/edu-gvnn`. Khi các ghi chú trung gian trong `CLAUDE.md` khác tài liệu này, dùng trạng thái trong tài liệu này.

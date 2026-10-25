@@ -18,6 +18,10 @@ class EduWeekAlert(models.Model):
     _description = 'Cảnh báo tuần'
     _order = 'week_id desc, priority_order, student_id'
 
+    def action_open_week_wizard(self):
+        self.check_access_rights('read')
+        return self.env['ir.actions.actions']._for_xml_id('edu_gvnn.action_edu_week_alert_wizard')
+
     week_id = fields.Many2one('edu.week', 'Tuần', required=True, ondelete='cascade', index=True)
     student_id = fields.Many2one('edu.student', 'Học viên', required=True, ondelete='cascade', index=True)
     class_ids = fields.Many2many(related='student_id.class_ids')

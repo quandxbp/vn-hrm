@@ -1,0 +1,37 @@
+<odoo>
+    <record id="view_edu_clone_week_wizard_form" model="ir.ui.view">
+        <field name="name">edu.clone.week.wizard.form</field>
+        <field name="model">edu.clone.week.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sao chép lịch tuần">
+                <field name="completed" invisible="1"/>
+                <div class="alert alert-info" role="status" invisible="completed">
+                    Chọn tuần nguồn rồi tạo tuần mới ngay tại đây (ví dụ tuần 102 → 103).
+                    Mặc định gợi ý số tuần và ngày nối tiếp tuần mới nhất. Giữ đúng thứ, giờ học, giáo viên, lớp và học viên.
+                    Buổi mới mặc định Đã dạy, học viên Có mặt; đơn giá được tính theo cấu hình hiện tại.
+                    Không lấy điểm số, ghi chú kết quả, link video hoặc chốt lương của tuần cũ.
+                    Lịch trùng ngày, giờ, giáo viên, loại buổi, lớp và học viên sẽ được bỏ qua.
+                </div>
+                <group invisible="completed">
+                    <field name="source_week_id" options="{'no_create': True}"/>
+                    <field name="new_week_number" required="1"/>
+                    <field name="new_date_from" required="1"/>
+                    <field name="new_date_to"/>
+                    <field name="include_cancelled"/>
+                    <field name="source_count"/>
+                </group>
+                <field name="result" nolabel="1" invisible="not completed"/>
+                <footer>
+                    <button name="action_clone" string="Sao chép lịch" type="object" class="btn-primary" invisible="completed"/>
+                    <button name="action_open_created" string="Xem lịch vừa tạo" type="object" class="btn-primary" invisible="not completed"/>
+                    <button string="Đóng" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_edu_clone_week_wizard" model="ir.actions.act_window">
+        <field name="name">Sao chép lịch tuần</field>
+        <field name="res_model">edu.clone.week.wizard</field>
+        <field name="view_mode">form</field><field name="target">new</field>
+    </record>
+</odoo>

@@ -25,3 +25,5 @@ access_edu_report_finance_manager,edu.report.finance manager,model_edu_report_fi
 access_edu_week_alert_wizard_staff,edu.week.alert.wizard staff,model_edu_week_alert_wizard,group_edu_staff,1,1,1,1
 access_edu_export_week_wizard_staff,edu.export.week.wizard staff,model_edu_export_week_wizard,group_edu_staff,1,1,1,1
 access_edu_import_wizard_manager,edu.import.wizard manager,model_edu_import_wizard,group_edu_manager,1,1,1,1
+access_edu_clone_week_wizard_staff,edu.clone.week.wizard staff,model_edu_clone_week_wizard,group_edu_staff,1,1,1,1
+access_session_recording_part_staff,session.recording.part staff,model_edu_session_recording_part,group_edu_staff,1,1,1,1

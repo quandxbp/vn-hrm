@@ -1,49 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_edu_root" name="Trung tâm GVNN" sequence="10"
+    <menuitem id="menu_edu_root" name="GVNN" sequence="10" web_icon="edu_gvnn,static/description/icon.png"
               groups="edu_gvnn.group_edu_staff"/>
 
-    <menuitem id="menu_edu_operation_root" name="Vận hành" parent="menu_edu_root" sequence="10"/>
+    <menuitem id="menu_edu_operation_root" name="Lịch học" parent="menu_edu_root" sequence="10"/>
     <menuitem id="menu_edu_session" name="Buổi học" parent="menu_edu_operation_root"
               action="action_edu_session" sequence="10"/>
+    <!-- Legacy shortcuts stay addressable; their functions are now on list toolbars. -->
     <menuitem id="menu_edu_week_alert" name="Cảnh báo tuần" parent="menu_edu_operation_root"
-              action="action_edu_week_alert_wizard" sequence="20"/>
-    <menuitem id="menu_edu_week_alert_list" name="Danh sách cảnh báo" parent="menu_edu_operation_root"
-              action="action_edu_week_alert" sequence="25"/>
+              action="action_edu_week_alert_wizard" sequence="30"/>
     <menuitem id="menu_edu_export_week" name="Xuất điểm danh tuần" parent="menu_edu_operation_root"
-              action="action_edu_export_week_wizard" sequence="30"/>
+              action="action_edu_export_week_wizard" sequence="50"/>
 
-    <menuitem id="menu_edu_students_root" name="Học viên" parent="menu_edu_root" sequence="20"/>
-    <menuitem id="menu_edu_student" name="Học viên" parent="menu_edu_students_root"
+    <menuitem id="menu_edu_students_root" name="Danh mục" parent="menu_edu_root" sequence="20"/>
+    <menuitem id="menu_edu_student" name="Danh sách học viên" parent="menu_edu_students_root"
               action="action_edu_student" sequence="10"/>
-    <menuitem id="menu_edu_class" name="Lớp" parent="menu_edu_students_root"
+    <menuitem id="menu_edu_class" name="Lớp học" parent="menu_edu_students_root"
               action="action_edu_class" sequence="20"/>
-    <menuitem id="menu_edu_payment" name="Thu học phí" parent="menu_edu_students_root"
-              action="action_edu_tuition_payment" sequence="30"/>
+    <menuitem id="menu_edu_finance_root" name="Tài chính" parent="menu_edu_root" sequence="40"/>
+    <menuitem id="menu_edu_payment" name="Thu học phí" parent="menu_edu_finance_root"
+              action="action_edu_tuition_payment" sequence="10"/>
 
     <menuitem id="menu_edu_teachers_root" name="Giáo viên" parent="menu_edu_root" sequence="30"/>
-    <menuitem id="menu_edu_teacher" name="Giáo viên" parent="menu_edu_teachers_root"
-              action="action_edu_teacher" sequence="10"/>
-    <menuitem id="menu_edu_payroll_period" name="Kỳ lương" parent="menu_edu_teachers_root"
+    <menuitem id="menu_edu_teacher" name="Giáo viên" parent="menu_edu_students_root"
+              action="action_edu_teacher" sequence="30"/>
+    <menuitem id="menu_edu_payroll_period" name="Kỳ lương giáo viên" parent="menu_edu_finance_root"
               action="action_edu_payroll_period" sequence="20" groups="edu_gvnn.group_edu_manager"/>
 
     <menuitem id="menu_edu_config_root" name="Cấu hình" parent="menu_edu_root" sequence="90"
               groups="edu_gvnn.group_edu_manager"/>
-    <menuitem id="menu_edu_week" name="Tuần" parent="menu_edu_config_root"
-              action="action_edu_week" sequence="10"/>
-    <menuitem id="menu_edu_other_expense" name="Chi phí khác" parent="menu_edu_config_root"
-              action="action_edu_other_expense" sequence="15"/>
-    <menuitem id="menu_edu_expense_category" name="Danh mục chi phí" parent="menu_edu_config_root"
+    <menuitem id="menu_edu_config_general" name="Thiết lập chung" parent="menu_edu_config_root" sequence="10"/>
+    <menuitem id="menu_edu_config_connections" name="Kết nối dịch vụ" parent="menu_edu_config_root" sequence="20"/>
+    <menuitem id="menu_edu_config_data" name="Dữ liệu" parent="menu_edu_config_root" sequence="30"/>
+    <menuitem id="menu_edu_week" name="Tuần học" parent="menu_edu_operation_root"
+              action="action_edu_week" sequence="20"/>
+    <menuitem id="menu_edu_other_expense" name="Chi phí khác" parent="menu_edu_finance_root"
+              action="action_edu_other_expense" sequence="30" groups="edu_gvnn.group_edu_manager"/>
+    <menuitem id="menu_edu_expense_category" name="Danh mục chi phí" parent="menu_edu_config_general"
               action="action_edu_expense_category" sequence="20"/>
-    <menuitem id="menu_edu_settings" name="Thiết lập" parent="menu_edu_config_root"
-              action="action_edu_config_settings" sequence="90"/>
+    <menuitem id="menu_edu_settings" name="Thông số học phí và giờ học" parent="menu_edu_config_general"
+              action="action_edu_config_settings" sequence="10"/>
 
     <menuitem id="menu_edu_report_root" name="Báo cáo" parent="menu_edu_root" sequence="80"
-              groups="edu_gvnn.group_edu_manager"/>
+              groups="edu_gvnn.group_edu_staff"/>
+    <menuitem id="menu_edu_week_alert_list" name="Cảnh báo học viên" parent="menu_edu_report_root"
+              action="action_edu_week_alert" sequence="10"/>
     <menuitem id="menu_edu_report_salary" name="Lương giáo viên" parent="menu_edu_report_root"
-              action="action_edu_report_salary" sequence="10"/>
-    <menuitem id="menu_edu_report_finance" name="Tài chính" parent="menu_edu_report_root"
-              action="action_edu_report_finance" sequence="20"/>
+              action="action_edu_report_salary" sequence="40" groups="edu_gvnn.group_edu_manager"/>
+    <menuitem id="menu_edu_report_finance" name="Tổng quan tài chính" parent="menu_edu_report_root"
+              action="action_edu_report_finance" sequence="20" groups="edu_gvnn.group_edu_manager"/>
     <menuitem id="menu_edu_report_tuition" name="Học phí" parent="menu_edu_report_root"
-              action="action_edu_report_tuition" sequence="30"/>
+              action="action_edu_report_tuition" sequence="30" groups="edu_gvnn.group_edu_manager"/>
+    <record id="menu_edu_week_alert" model="ir.ui.menu"><field name="active" eval="False"/></record>
+    <record id="menu_edu_export_week" model="ir.ui.menu"><field name="active" eval="False"/></record>
+    <record id="menu_edu_teachers_root" model="ir.ui.menu"><field name="active" eval="False"/></record>
 </odoo>

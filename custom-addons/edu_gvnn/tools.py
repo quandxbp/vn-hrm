@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+from urllib.parse import urlparse
+
+
+def youtube_recording_url(value):
+    """Recognize old YouTube recording links without treating arbitrary URLs as videos."""
+    try:
+        value = (value or '').strip()
+        url = urlparse(value)
+        if (url.scheme in ('http', 'https') and not url.username and not url.password
+                and url.port in (None, 80, 443)
+                and url.hostname in ('youtu.be', 'www.youtu.be', 'youtube.com', 'www.youtube.com', 'm.youtube.com')):
+            return value
+    except ValueError:
+        pass
+    return False
 
 
 def normalize_name(name):

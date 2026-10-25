@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlencode
+import secrets
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -26,6 +27,35 @@ class EduTeacher(models.Model):
         help='Dùng trong lịch học gửi Zalo. Chưa chọn thì hiển thị GV.')
     meeting_url = fields.Char(
         'Link học', tracking=True, help='Link Google Meet hoặc Zoom của giáo viên, bắt đầu bằng https://.')
+    public_schedule_url = fields.Char(
+        'Link lịch dạy công khai', compute='_compute_public_schedule_url',
+        help='Bất kỳ ai có link đều có thể xem lịch, tên học sinh và link video Google Drive mà không cần đăng nhập.')
+    schedule_edit_token = fields.Char(copy=False, readonly=True, index=True,
+                                     groups='edu_gvnn.group_edu_manager')
+    schedule_edit_url = fields.Char(
+        'Link cập nhật Recording', compute='_compute_schedule_edit_url',
+        groups='edu_gvnn.group_edu_manager',
+        help='Link riêng cho giáo viên cập nhật Recording và điểm danh không cần đăng nhập. Chỉ chia sẻ với đúng giáo viên.')
+
+    @api.depends('schedule_edit_token')
+    def _compute_schedule_edit_url(self):
+        base = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '').rstrip('/')
+        for teacher in self:
+            teacher.schedule_edit_url = (base + '/weekly-schedule/edit/' + teacher.schedule_edit_token) \
+                if teacher.schedule_edit_token else False
+
+    @api.model
+    def _ensure_schedule_edit_tokens(self):
+        for teacher in self.sudo().with_context(active_test=False).search([('schedule_edit_token', '=', False)]):
+            teacher.schedule_edit_token = secrets.token_urlsafe(32)
+
+    @api.depends('name')
+    def _compute_public_schedule_url(self):
+        base = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '').rstrip('/')
+        for teacher in self:
+            teacher.public_schedule_url = (base + '/weekly-schedule?' + urlencode({'teacher': teacher.name.casefold()})) \
+                if teacher.name else False
+
     note = fields.Text('Ghi chú')
     active = fields.Boolean('Đang hoạt động', default=True)
     rate_ids = fields.One2many(
@@ -36,6 +66,7 @@ class EduTeacher(models.Model):
         groups='edu_gvnn.group_edu_manager')
 
     _sql_constraints = [
+        ('schedule_edit_token_uniq', 'unique(schedule_edit_token)', 'Schedule editing token must be unique.'),
         ('name_uniq', 'unique(name)', 'Tên giáo viên đã tồn tại.'),
     ]
 
@@ -74,6 +105,7 @@ class EduTeacher(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            vals['schedule_edit_token'] = secrets.token_urlsafe(32)
             vals['name'] = normalize_name(vals.get('name'))
             if vals.get('meeting_url'):
                 vals['meeting_url'] = vals['meeting_url'].strip()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from ..tools import youtube_recording_url
 
 WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
@@ -33,10 +34,38 @@ class EduSession(models.Model):
         string='Trạng thái', required=True, default='done', index=True)
     attendee_ids = fields.One2many('edu.session.attendee', 'session_id', 'Học viên')
     student_names = fields.Char('Danh sách học viên', compute='_compute_student_names')
+    student_badge_data = fields.Json('Thông tin hiển thị học viên', compute='_compute_student_badge_data')
+
+    @api.depends('attendee_ids.student_id.name_vi', 'attendee_ids.student_id.name_en', 'attendee_ids.present')
+    def _compute_student_badge_data(self):
+        for session in self:
+            session.student_badge_data = [{
+                'id': attendee.student_id.id,
+                'name': attendee.student_id.name_vi or '',
+                'english': attendee.student_id.name_en or '',
+                'present': attendee.present,
+            } for attendee in session.attendee_ids]
     completion_note = fields.Char('Hoàn thành / ghi chú nhanh')
     note = fields.Text('Ghi chú')
-    recording_url = fields.Char('Recording')
-    video_posted = fields.Boolean('Đã đăng video')
+    google_drive_url = fields.Char(
+        'Link video Google Drive', copy=False,
+        help='Link video gốc do giáo viên gửi sau buổi học.')
+    youtube_url = fields.Char(
+        'Link video YouTube', copy=False,
+        help='Link video buổi học sau khi được đăng lên YouTube.')
+    recording_part_ids = fields.One2many(
+        'edu.session.recording.part', 'session_id', 'Các đoạn video bổ sung', copy=False)
+
+    def _recording_parts(self):
+        self.ensure_one()
+        return [{'id': 0, 'number': 1, 'drive': self.google_drive_url or '', 'youtube': self.youtube_url or ''}] + [
+            {'id': p.id, 'number': p.number, 'drive': p.google_drive_url or '', 'youtube': p.youtube_url or ''}
+            for p in self.recording_part_ids.sorted('number')]
+    # Retained for historical Excel compatibility; current UI uses the Video tab.
+    recording_url = fields.Char('Recording (Excel cũ)',
+        help='Dữ liệu tương thích Excel cũ. Dùng Link video Google Drive / YouTube cho buổi học mới.')
+    video_posted = fields.Boolean('Đã đăng video (Excel cũ)',
+        help='Dấu đánh đăng video trong Excel cũ; không phải trạng thái upload YouTube hiện tại.')
     extra_participants = fields.Char('Người tham gia khác')
     paid = fields.Boolean('Đã chốt lương', copy=False, readonly=True)
     period_id = fields.Many2one(
@@ -47,6 +76,24 @@ class EduSession(models.Model):
     _sql_constraints = [
         ('import_key_uniq', 'unique(import_key)', 'Buổi học này đã được import.'),
     ]
+
+    @api.model
+    def _migrate_legacy_recordings(self):
+        self.flush_model(['youtube_url', 'recording_url'])
+        self.env.cr.execute("""
+            SELECT id, recording_url FROM edu_session
+            WHERE COALESCE(youtube_url, '') = '' AND COALESCE(recording_url, '') <> ''
+        """)
+        count = 0
+        for session_id, recording in self.env.cr.fetchall():
+            url = youtube_recording_url(recording)
+            if url:
+                # Metadata only: retain legacy values, bypass payroll writes and any upload hooks.
+                self.env.cr.execute("""UPDATE edu_session SET youtube_url = %s
+                    WHERE id = %s AND COALESCE(youtube_url, '') = ''""", [url, session_id])
+                count += self.env.cr.rowcount
+        self.invalidate_model(['youtube_url'])
+        return count
     teacher_rate = fields.Float(
         'Đơn giá GV (đ/giờ)', digits=(16, 0), copy=False, groups='edu_gvnn.group_edu_manager')
     paid_hours = fields.Float('Giờ tính lương', compute='_compute_paid_hours', store=True)

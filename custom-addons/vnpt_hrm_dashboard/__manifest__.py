@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name' : 'Trung tâm GVNN: Trang chủ',
-    'version' : '1.0',
+    'version' : '17.0.1.1.0',
     'summary': 'Dashboard trung tâm GVNN',
     'sequence': -1,
     'description': """Dashboard trung tâm GVNN""",

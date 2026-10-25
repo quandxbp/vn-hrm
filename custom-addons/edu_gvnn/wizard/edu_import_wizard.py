@@ -10,7 +10,7 @@ import xlrd
 from odoo import fields, models
 from odoo.exceptions import UserError
 
-from ..tools import get_param, normalize_name
+from ..tools import get_param, normalize_name, youtube_recording_url
 
 SHEET_ATT = '2.ĐIỂM DANH'
 SHEET_FEE = '4. THU HỌC PHÍ GVNN'
@@ -35,7 +35,11 @@ class EduImportWizard(models.TransientModel):
 
     file = fields.Binary('File Excel', required=True)
     filename = fields.Char('Tên file')
-    date_from = fields.Date('Import từ ngày', required=True, default=lambda self: fields.Date.to_date('2026-01-01'))
+    import_mode = fields.Selection([
+        ('attendance', 'Lịch sử buổi học — sheet 2.ĐIỂM DANH'),
+        ('all', 'Nhập dữ liệu tổng hợp (nâng cao)'),
+    ], string='Chế độ nhập', required=True, default='attendance')
+    date_from = fields.Date('Từ ngày', help='Để trống để lấy từ đầu lịch sử trong file.')
     date_to = fields.Date('Đến ngày', help='Để trống để import đến hết dữ liệu.')
     agency_id = fields.Many2one(
         'res.partner', 'Agency của giáo viên mới', domain=[('is_company', '=', True)],
@@ -49,6 +53,13 @@ class EduImportWizard(models.TransientModel):
     result = fields.Text('Kết quả', readonly=True)
 
     # ---------- đọc file ----------
+    def _attendance_sheet(self, book):
+        expected = re.sub(r'\s+', '', SHEET_ATT).casefold()
+        for name in book.sheet_names():
+            if re.sub(r'\s+', '', name).casefold() == expected:
+                return book.sheet_by_name(name)
+        raise UserError('Không tìm thấy sheet 2.ĐIỂM DANH trong file Excel.')
+
     def _date(self, book, value):
         if isinstance(value, str):
             # Một số ô trong file gốc lưu ngày dạng chữ, ví dụ "28/7/2026" (ngày/tháng/năm).
@@ -69,7 +80,7 @@ class EduImportWizard(models.TransientModel):
         return round(number * 24 * 60) / 60.0
 
     def _in_range(self, date):
-        return bool(date) and date >= self.date_from and (not self.date_to or date <= self.date_to)
+        return bool(date) and (not self.date_from or date >= self.date_from) and (not self.date_to or date <= self.date_to)
 
     def _read_fee_rows(self, book):
         sheet = book.sheet_by_name(SHEET_FEE)
@@ -96,7 +107,7 @@ class EduImportWizard(models.TransientModel):
                 for r in range(2, sheet.nrows) if _text(sheet.cell_value(r, 3)) and _text(sheet.cell_value(r, 5))}
 
     def _read_sessions(self, book):
-        sheet = book.sheet_by_name(SHEET_ATT)
+        sheet = self._attendance_sheet(book)
         rows = []
         for r in range(2, sheet.nrows):
             v = sheet.row_values(r) + [''] * 30
@@ -116,8 +127,8 @@ class EduImportWizard(models.TransientModel):
                 'minutes': _num(v[12]), 'student_hours': _num(v[13]), 'teacher_hours': _num(v[14]),
                 'state': _text(v[15]),
                 'notes': [_text(x) for x in v[16:19]],
-                'extras': [_text(x) for x in v[19:23]],
-                'score': _num(v[23]),
+                'extras': [_text(x) for x in v[19:22]],
+                'score': _num(v[22]), 'scores': [_num(x) for x in v[22:24]],
             })
         return rows
 
@@ -240,7 +251,8 @@ class EduImportWizard(models.TransientModel):
         for number, dates in sorted(by_number.items()):
             week = Week.search([('number', '=', number)], limit=1)
             if not week:
-                monday = min(dates) - timedelta(days=min(dates).weekday())
+                monday = (self._st().history_mondays[number] if self.import_mode == 'attendance'
+                          else min(dates) - timedelta(days=min(dates).weekday()))
                 try:
                     with self.env.cr.savepoint():
                         week = Week.create({'number': number, 'date_from': monday,
@@ -271,6 +283,12 @@ class EduImportWizard(models.TransientModel):
         if not row['teacher']:
             log.append('Dòng %s bỏ qua: thiếu giáo viên.' % row['row'])
             return None
+        if self.import_mode == 'attendance' and row['week']:
+            week = self._st().week_map.get(row['week'])
+            if not week or not week.date_from <= row['date'] <= week.date_to:
+                log.append('Dòng %s bỏ qua: ngày %s không khớp khoảng ngày của tuần %s. '
+                           'Hãy kiểm tra lại ngày và số tuần trong Excel.' % (row['row'], row['date'], row['week']))
+                return None
         teacher = self._teacher(row['teacher'], log)
         state_text = row['state'].upper()
         note_text = ' '.join(row['notes']).upper()
@@ -292,6 +310,8 @@ class EduImportWizard(models.TransientModel):
             'recording_url': recording, 'video_posted': video_posted,
             'import_key': self._key(row),
         }
+        if youtube_recording_url(recording):
+            vals['youtube_url'] = youtube_recording_url(recording)
         week = self._st().week_map.get(row['week'])
         if week:
             vals['week_id'] = week.id
@@ -322,7 +342,8 @@ class EduImportWizard(models.TransientModel):
                 present = english in only_names or normalize_name(student.name_vi) in only_names
             attendees.append((0, 0, {
                 'student_id': student.id, 'present': present,
-                'score': int(row['score']) if row['score'] and row['score'] > 1 and not attendees else 0}))
+                'score': int(row.get('scores', [row['score']])[len(attendees)] or 0)
+                         if len(attendees) < len(row.get('scores', [row['score']])) else 0}))
         if only_names is not None and attendees and not any(a[2]['present'] for a in attendees):
             for att in attendees:
                 att[2]['present'] = True
@@ -385,6 +406,7 @@ class EduImportWizard(models.TransientModel):
                         if cname != 'GVNN':
                             class_links[att[2]['student_id']].add(self._class(cname).id)
             batch.append((vals, row))
+            existing.add(key)
             if len(batch) >= BATCH:
                 flush_batch()
         flush_batch()
@@ -423,25 +445,72 @@ class EduImportWizard(models.TransientModel):
     # ---------- chạy ----------
     def action_import(self):
         self.ensure_one()
-        if self.date_to and self.date_to < self.date_from:
+        if not self.env.user.has_group('edu_gvnn.group_edu_manager'):
+            raise UserError('Chỉ quản lý được nhập dữ liệu buổi học.')
+        # Serialize imports so concurrent clicks/files cannot create the same catalogue twice.
+        self.env.cr.execute('SELECT pg_advisory_xact_lock(%s)', [60706261])
+        self.invalidate_recordset(['result'])
+        if self.result:
+            return self._result_action()
+        if self.date_from and self.date_to and self.date_to < self.date_from:
             raise UserError('Ngày kết thúc phải sau ngày bắt đầu.')
+        if self.import_mode == 'all' and not self.date_from:
+            raise UserError('Chọn ngày bắt đầu khi nhập dữ liệu tổng hợp.')
         try:
             book = xlrd.open_workbook(file_contents=base64.b64decode(self.file))
-            book.sheet_by_name(SHEET_ATT)
+            self._attendance_sheet(book)
+        except UserError:
+            raise
         except Exception as exc:  # noqa
             raise UserError('Không đọc được file Excel, hãy chọn đúng file TỔNG HỢP_GVNN.xlsx (%s).' % exc)
-        log = ['Import từ %s%s' % (self.date_from, ' đến %s' % self.date_to if self.date_to else '')]
+        log = ['Nhập lịch sử từ %s%s' % (self.date_from or 'đầu file', ' đến %s' % self.date_to if self.date_to else '')]
         session_rows = self._read_sessions(book)
-        fee_rows = self._read_fee_rows(book)
+        if not any(self._in_range(row['date']) for row in session_rows):
+            raise UserError('Không có buổi học hợp lệ trong khoảng ngày đã chọn.')
+        fee_rows = self._read_fee_rows(book) if self.import_mode == 'all' else []
+        history_dates = defaultdict(Counter)
+        for row in session_rows:
+            if row['week']:
+                history_dates[row['week']][row['date'] - timedelta(days=row['date'].weekday())] += 1
         _STATES[self.id] = SimpleNamespace(
             teachers={t.name: t for t in self.env['edu.teacher'].with_context(active_test=False).search([])},
             students={s.name: s for s in self.env['edu.student'].with_context(active_test=False).search([])},
             classes={c.name: c for c in self.env['edu.class'].with_context(active_test=False).search([])},
-            week_map={}, stt_counts=Counter(r['stt'] for r in session_rows if r['stt']))
+            week_map={}, stt_counts=Counter(r['stt'] for r in session_rows if r['stt']),
+            history_mondays={number: counts.most_common(1)[0][0] for number, counts in history_dates.items()})
         try:
+            if self.import_mode == 'attendance':
+                self._prepare_history_students(session_rows, log)
+                self._import_sessions(session_rows, log)
+                self.result = '\n'.join(log)
+                return self._result_action()
             return self._run_import(book, log, session_rows, fee_rows)
         finally:
             _STATES.pop(self.id, None)
+
+    def _prepare_history_students(self, rows, log):
+        created = 0
+        for row in rows:
+            if not self._in_range(row['date']) or not row['teacher']:
+                continue
+            if any(word in (row['state'] + ' ' + ' '.join(row['notes'])).upper() for word in ('DEMO', 'TEST')):
+                continue
+            for name in row['students']:
+                if name in self._st().students or re.match(r'^(TESTING|SPEAKING)\b', name):
+                    continue
+                parts = name.rsplit(' - ', 1)
+                student = self.env['edu.student'].create({
+                    'name_vi': parts[0], 'name_en': parts[1] if len(parts) > 1 else False,
+                    'state': 'stopped',
+                    'note': 'Tạo khi nhập lịch sử buổi học từ Excel.',
+                })
+                self._st().students[name] = student
+                created += 1
+        log.append('Học viên còn thiếu trong lịch sử: tạo %s.' % created)
+
+    def _result_action(self):
+        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': self.id,
+                'view_mode': 'form', 'target': 'new'}
 
     def _run_import(self, book, log, session_rows, fee_rows):
         if self.import_catalog:
@@ -460,7 +529,4 @@ class EduImportWizard(models.TransientModel):
             self.env.flush_all()
             self._reconcile(fee_rows, log)
         self.result = '\n'.join(log)
-        return {
-            'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': self.id,
-            'view_mode': 'form', 'target': 'new',
-        }
+        return self._result_action()

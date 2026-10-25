@@ -40,7 +40,7 @@ class EduDashboard(models.AbstractModel):
                     ('week_id', '=', week.id), ('state', '=', 'done'), ('warning', '!=', 'ok')]),
             }
             data['priority_list'] = [{
-                'id': a.id, 'student': a.student_id.name, 'priority': a.priority,
+                'id': a.id, 'student_id': a.student_id.id, 'student': a.student_id.name, 'priority': a.priority,
                 'fee_warning': a.fee_warning, 'absent_streak': a.absent_streak,
                 'action': a.action, 'balance': a.balance,
             } for a in Alert.search(base + [('priority', '!=', 'ok')], order='priority_order, student_id', limit=8)]

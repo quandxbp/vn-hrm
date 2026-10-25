@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="public_weekly_schedule" name="Public teacher schedule">
+        <t t-out="doctype"/>
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex, nofollow"/>
+                <title>Teaching schedule <t t-esc="teacher_name"/> | Kim Academy</title>
+                <link rel="stylesheet" href="/edu_gvnn/static/src/css/public_schedule.css?v=17.0.1.15.1"/>
+                <script src="/edu_gvnn/static/src/js/public_schedule.js?v=17.0.1.15.1" defer="defer"/>
+            </head>
+            <body>
+                <main t-att-class="'container schedule is-editor' if edit_mode else 'container schedule'">
+                    <header class="schedule-brand">
+                        <img src="/vnpt_base/static/src/img/kim-academy-logo.png" alt="Kim Academy" width="42" height="42"/>
+                        <div><strong>KIM ACADEMY</strong><span>Weekly teaching schedule</span></div>
+                        <span class="timezone">Vietnam time · UTC+7</span>
+                    </header>
+                    <section class="schedule-heading">
+                        <p class="eyebrow">WEEKLY TEACHING SCHEDULE</p>
+                        <h1 t-if="teacher_name">Teaching schedule for <span t-esc="teacher_name"/></h1>
+                        <h1 t-else="">Teaching schedule</h1>
+                        <p t-if="not error" class="week-summary"><strong t-esc="week_label"/> <span aria-hidden="true">·</span> <span t-esc="date_range"/></p>
+                    </section>
+                    <section t-if="error" class="empty" role="alert"><h2>Unable to open schedule</h2><p t-esc="error"/></section>
+                    <t t-else="">
+                        <p t-if="edit_mode" class="editing-note"><strong>Quick guide</strong> Tick a student to mark them absent, then save attendance. Add the lesson video under Recording. <span class="private-note">Private teacher link</span></p>
+
+                        <div class="schedule-controls">
+                            <span class="session-count"><strong t-esc="len(rows)"/> lessons this week</span>
+                            <form t-att-action="form_action" method="get" class="week-picker">
+                                <input t-if="not edit_mode" type="hidden" name="teacher" t-att-value="teacher_query"/>
+                                <label for="week">Select week</label>
+                                <select name="week" id="week">
+                                    <option t-if="not selected_week" value="">Current week</option>
+                                    <option t-foreach="week_options" t-as="option" t-att-value="option['number']"
+                                            t-att-selected="option['number'] == selected_week" t-esc="option['label']"/>
+                                </select>
+                                <button type="submit">View schedule</button>
+                            </form>
+                        </div>
+                        <t t-if="rows">
+                            <div t-if="edit_mode" class="lesson-list">
+                                <div class="lesson-columns" aria-hidden="true"><span>Time (VN)</span><span>Students · check to mark absent</span><span>Recording</span></div>
+                                <t t-foreach="rows" t-as="row">
+                                    <h2 t-if="row_index == 0 or row['date'] != rows[row_index - 1]['date']" class="day-heading" t-att-data-weekday="row['weekday']">
+                                        <span t-attf-class="weekday weekday-#{row['weekday']}" t-esc="row['weekday']"/>
+                                        <span t-esc="row['date']"/>
+                                    </h2>
+                                    <article t-att-class="'lesson-card is-cancelled' if row['cancelled'] else 'lesson-card'">
+                                        <div class="lesson-time">
+                                            <span class="field-label">Time · Vietnam</span>
+                                            <strong class="time" t-esc="row['time']"/>
+                                            <span t-if="row['cancelled']" class="cancel-badge">Cancelled</span>
+                                        </div>
+                                        <div class="lesson-attendance">
+                                            <h3 class="field-label">Students &amp; attendance</h3>
+                                            <form t-if="row['attendees'] and not row['attendance_locked']" action="/weekly-schedule/attendance" method="post" class="attendance-form">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <input type="hidden" name="edit_token" t-att-value="edit_token"/>
+                                                <input type="hidden" name="session_id" t-att-value="row['session_id']"/>
+                                                <input type="hidden" name="week" t-att-value="selected_week"/>
+                                                <input type="hidden" name="original_attendance" t-att-value="row['original_attendance']"/>
+
+                                                <label t-foreach="row['attendees']" t-as="attendee" class="attendance-student">
+                                                    <input type="checkbox" name="absent" t-att-value="attendee['id']" t-att-checked="attendee['absent']" t-att-aria-label="'Mark %s absent' % attendee['name']"/>
+                                                    <span t-esc="attendee['name']"/><small class="status-present">Present</small><small class="status-absent">Absent</small>
+                                                </label>
+                                                <span t-if="row['extra_participants']" class="muted" t-esc="row['extra_participants']"/>
+                                                <button type="submit" class="attendance-save" aria-label="Save attendance" title="Save attendance"><span aria-hidden="true">✓</span> Save</button>
+                                            </form>
+                                            <div t-if="not row['attendees'] or row['attendance_locked']" class="students">
+                                                <span t-foreach="row['students']" t-as="student" t-att-class="'student absent' if student['absent'] else 'student'"><t t-esc="student['name']"/><small t-if="student['absent']"> · Absent</small></span>
+                                                <span t-if="not row['students']" class="muted">No students yet</span>
+                                            </div>
+                                            <span t-if="row['attendees'] and row['attendance_locked']" class="attendance-hint">Attendance locked</span>
+                                        </div>
+                                        <div class="lesson-recording">
+                                            <h3 class="field-label">Recording</h3>
+                                            <div class="recording-links">
+                                                <a t-foreach="row['recordings']" t-as="part" t-att-href="part['url']" target="_blank" rel="noopener noreferrer" class="recording-link"><t t-if="len(row['recordings']) > 1">Part <t t-esc="part['number']"/></t><t t-else="">View recording</t> ↗</a>
+                                            </div>
+                                            <span t-if="not row['recordings']" class="recording-empty">Not added yet</span>
+                                            <details class="recording-editor">
+                                                <summary t-att-data-has-recording="'true' if row['recordings'] else 'false'" title="Add or edit the Google Drive recording"><t t-if="row['recordings']">Edit links</t><t t-else="">Add recording</t></summary>
+                                                <form action="/weekly-schedule/recording" method="post" class="recording-form">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" name="edit_token" t-att-value="edit_token"/>
+                                                    <input type="hidden" name="session_id" t-att-value="row['session_id']"/>
+                                                    <input type="hidden" name="week" t-att-value="selected_week"/>
+                                                    <input type="hidden" name="original_recording" t-att-value="row['original_recording']"/>
+                                                    <input type="hidden" name="multipart" value="1"/>
+                                                    <input type="hidden" name="original_recordings" t-att-value="row['recording_version']"/>
+                                                    <div class="recording-fields">
+                                                        <div t-foreach="row['recording_parts']" t-as="part" class="recording-part" t-att-data-number="part['number']">
+                                                            <input t-if="part['id']" type="hidden" name="part_id" t-att-value="part['id']"/>
+                                                            <label t-att-for="'recording-%s-%s' % (row['session_id'], part['id'])">Part <t t-esc="part['number']"/></label>
+                                                            <input type="url" t-att-name="'part_url' if part['id'] else 'recording'" t-att-id="'recording-%s-%s' % (row['session_id'], part['id'])" t-att-value="part['url']" t-att-aria-label="'Part %s Google Drive recording for %s %s' % (part['number'], row['date'], row['time'])" placeholder="Paste Google Drive link" maxlength="2048" autocomplete="off"/>
+                                                            <button t-if="part['id']" type="button" class="remove-recording-part" t-att-aria-label="'Remove Part %s' % part['number']" title="Remove this part">×</button>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="add-recording-part">+ Add part</button>
+                                                    <button type="submit" aria-label="Save link" title="Save recording link"><span aria-hidden="true">✓</span> Save</button>
+                                                </form>
+                                            </details>
+                                        </div>
+                                    </article>
+                                </t>
+                            </div>
+                            <div t-else="" class="schedule-table-wrap">
+                                <table>
+                                    <caption class="sr-only">Teaching schedule for <t t-esc="teacher_name"/> — <t t-esc="week_label"/></caption>
+                                    <thead><tr><th scope="col">Week</th><th scope="col">Date</th><th scope="col">Day</th><th scope="col">Teacher</th><th scope="col">Time (VN)</th><th scope="col">Students</th><th scope="col">Recording</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="rows" t-as="row" t-att-class="'is-cancelled' if row['cancelled'] else ''">
+                                            <td data-label="Week"><span class="week-badge" t-esc="row['week']"/></td>
+                                            <td data-label="Date" class="date" t-esc="row['date']"/>
+                                            <td data-label="Day"><span t-attf-class="weekday weekday-#{row['weekday']}" t-esc="row['weekday']"/></td>
+                                            <td data-label="Teacher"><strong class="teacher-name" t-esc="row['teacher']"/></td>
+                                            <td data-label="Time (VN)"><span class="time" t-esc="row['time']"/><span t-if="row['cancelled']" class="cancel-badge">Cancelled</span></td>
+                                            <td data-label="Students"><div class="students"><span t-foreach="row['students']" t-as="student" t-att-class="'student absent' if student['absent'] else 'student'"><t t-esc="student['name']"/><small t-if="student['absent']"> · Absent</small></span><span t-if="not row['students']" class="muted">No students yet</span></div></td>
+                                            <td data-label="Recording"><div class="recording-links"><a t-foreach="row['recordings']" t-as="part" t-att-href="part['url']" target="_blank" rel="noopener noreferrer" class="recording-link">Part <t t-esc="part['number']"/> ↗</a><span t-if="not row['recordings']" class="muted">No recording yet</span></div></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+                        <section t-else="" class="empty"><span class="empty-icon" aria-hidden="true">▦</span><h2>No lessons scheduled this week</h2><p>Select another week to view its schedule.</p></section>
+                    </t>
+                    <footer>Schedule updated by Kim Academy · All lesson times are in Vietnam time (UTC+7).</footer>
+                </main>
+                <div id="schedule-notifications" class="toast-container" aria-live="polite" aria-atomic="false">
+                    <div t-if="notice or save_error" t-att-class="'schedule-toast toast-error' if save_error else 'schedule-toast toast-success'" t-att-role="'alert' if save_error else 'status'">
+                        <span t-esc="save_error or notice"/><button type="button" class="toast-close" aria-label="Dismiss notification">?</button>
+                    </div>
+                </div>
+            </body>
+        </html>
+    </template>
+</odoo>

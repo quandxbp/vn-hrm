@@ -7,6 +7,9 @@
         <field name="arch" type="xml">
             <tree create="0" editable="bottom"
                   decoration-danger="priority in ('red_now', 'red')" decoration-warning="priority == 'yellow'">
+                <header>
+                    <button name="action_open_week_wizard" type="object" display="always" string="Cập nhật cảnh báo tuần" class="btn-primary"/>
+                </header>
                 <field name="student_id" readonly="1"/>
                 <field name="class_ids" widget="many2many_tags" readonly="1" optional="hide"/>
                 <field name="hours_n0" readonly="1"/>
@@ -54,7 +57,7 @@
     </record>
 
     <record id="action_edu_week_alert" model="ir.actions.act_window">
-        <field name="name">Danh sách cảnh báo</field>
+        <field name="name">Cảnh báo học viên</field>
         <field name="res_model">edu.week.alert</field>
         <field name="view_mode">tree</field>
     </record>
@@ -63,7 +66,7 @@
         <field name="name">edu.week.alert.wizard.form</field>
         <field name="model">edu.week.alert.wizard</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <group>
                     <field name="week_id" options="{'no_create': True}"/>
                 </group>
@@ -91,12 +94,14 @@
         <field name="name">edu.export.week.wizard.form</field>
         <field name="model">edu.export.week.wizard</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <group>
                     <field name="week_id" options="{'no_create': True}"/>
                 </group>
                 <p class="text-muted">
-                    Xuất file Excel gồm một sheet "2.ĐIỂM DANH" với các cột giống file gốc.
+                    Xuất sheet "Weekly" theo mẫu Điểm Danh_GVNN.xlsx (28 cột A–AB).
+                    Các cột Padlet và thời lượng video chưa có dữ liệu sẽ để trống.
+                    Link video ưu tiên YouTube, sau đó Google Drive và Recording cũ.
                 </p>
                 <footer>
                     <button name="action_export" type="object" string="Xuất Excel" class="btn-primary"/>
@@ -118,7 +123,7 @@
         <field name="name">edu.other.expense.tree</field>
         <field name="model">edu.other.expense</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <tree class="edu_list" editable="bottom">
                 <field name="date"/>
                 <field name="name"/>
                 <field name="category_id" options="{'no_create': True}"/>

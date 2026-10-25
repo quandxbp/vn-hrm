@@ -6,8 +6,8 @@
         Thông tin THẬT của trung tâm: tên Kim Academy Language Center, hotline, chứng nhận MTS UK và
         Cambridge, lộ trình CEFR (khối #uy-tin). Phần còn lại vẫn là MẪU: số liệu, giáo viên, học viên,
         lời cảm nhận, địa chỉ, email.
-        Ảnh là ảnh minh hoạ từ Unsplash (xem static/src/img/CREDITS.txt), KHÔNG phải người thật
-        của trung tâm. Thay bằng thông tin và ảnh thật trước khi công bố.
+        Ảnh đã tuyển chọn từ Facebook Kim Academy; nguồn trong static/src/img/kim/SOURCES.json.
+        Các số liệu marketing và lời cảm nhận mẫu vẫn cần trung tâm xác nhận trước khi công bố.
         Các khối nằm trong vùng oe_structure nên vẫn sửa được bằng trình dựng kéo thả của Website.
     -->
     <template id="homepage" inherit_id="website.homepage" name="Trang chủ trung tâm Anh ngữ">
@@ -18,7 +18,7 @@
 
                 <!-- ============ HERO ============ -->
                 <section class="edu-hero" id="gioi-thieu" aria-labelledby="edu-hero-heading">
-                    <img class="edu-hero-img" t-att-src="img + 'hero.jpg'" alt="" fetchpriority="high"/>
+                    <img class="edu-hero-img" t-att-src="img + 'kim/recognition.jpg'" alt="" fetchpriority="high"/>
                     <div class="edu-hero-scene" aria-hidden="true">
                         <div class="edu-hero-globe">
                             <svg viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -181,7 +181,7 @@
                         <div class="row g-3 g-lg-4">
                             <div class="col-12 col-md-6 col-xl-3">
                                 <a href="/khoa-hoc/tieng-anh-mam-non" class="edu-course-item" data-ages="3-5" data-level="Tiếng Anh mầm non">
-                                    <img t-att-src="img + 'prog_kinder.jpg'" alt="" loading="lazy"/>
+                                    <img t-att-src="img + 'kim/learning-materials.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">3 - 5 tuổi</span>
                                         <h3 class="edu-display">Mầm non</h3>
@@ -193,7 +193,7 @@
                             </div>
                             <div class="col-12 col-md-6 col-xl-3">
                                 <a href="/khoa-hoc/tieng-anh-tieu-hoc" class="edu-course-item" data-ages="6-10" data-level="Tiếng Anh tiểu học">
-                                    <img t-att-src="img + 'prog_primary.jpg'" alt="" loading="lazy"/>
+                                    <img t-att-src="img + 'kim/classroom-boards.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">6 - 10 tuổi</span>
                                         <h3 class="edu-display">Tiểu học</h3>
@@ -205,7 +205,7 @@
                             </div>
                             <div class="col-12 col-md-6 col-xl-3">
                                 <a href="/khoa-hoc/tieng-anh-thieu-nien" class="edu-course-item" data-ages="11-14" data-level="Tiếng Anh thiếu niên">
-                                    <img t-att-src="img + 'prog_teen.jpg'" alt="" loading="lazy"/>
+                                    <img t-att-src="img + 'kim/classroom-speaking.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">11 - 14 tuổi</span>
                                         <h3 class="edu-display">Thiếu niên</h3>
@@ -217,7 +217,7 @@
                             </div>
                             <div class="col-12 col-md-6 col-xl-3">
                                 <a href="/khoa-hoc/ielts-sat" class="edu-course-item" data-ages="15-18 19-21" data-level="IELTS / SAT">
-                                    <img t-att-src="img + 'prog_ielts.jpg'" alt="" loading="lazy"/>
+                                    <img t-att-src="img + 'kim/study-together.jpg'" alt="" loading="lazy"/>
                                     <div class="edu-course-body">
                                         <span class="edu-course-tag">15 tuổi trở lên</span>
                                         <h3 class="edu-display">IELTS - SAT</h3>
@@ -243,8 +243,8 @@
                                 <h2 class="edu-display">Giáo viên xuất sắc</h2>
                             </header>
                             <ul class="edu-smem-badges">
-                                <li><i class="fa fa-check-circle" role="img" aria-label=""/> <strong>100%</strong> có chứng chỉ giảng dạy quốc tế</li>
-                                <li><i class="fa fa-check-circle" role="img" aria-label=""/> Tuyển chọn từ <strong>top 3%</strong> thị trường</li>
+                                <li><i class="fa fa-check-circle" aria-hidden="true"/> Tận tâm trong từng bài học</li>
+                                <li><i class="fa fa-check-circle" aria-hidden="true"/> Đồng hành cùng sự tiến bộ của học viên</li>
                             </ul>
                         </div>
                         <div class="edu-smem-tabs" role="tablist" aria-label="Chọn đội ngũ giáo viên">
@@ -254,7 +254,7 @@
                         <div class="edu-smem-panel" id="edu-teachers-center" role="tabpanel" aria-labelledby="edu-teachers-center-tab" data-team="center" tabindex="0">
                             <p class="edu-smem-team-intro">Đội ngũ giảng dạy và đào tạo tại Kim Academy.</p>
                             <div class="row g-3 g-lg-4 justify-content-center">
-                                <div t-foreach="center_teachers" t-as="teacher" class="col-6 col-lg-3">
+                                <div t-foreach="center_teachers" t-as="teacher" class="col-12 col-md-6">
                                     <t t-call="edu_landing.teacher_showcase_card"/>
                                 </div>
                             </div>
@@ -263,7 +263,7 @@
                         <div class="edu-smem-panel" id="edu-teachers-international" role="tabpanel" aria-labelledby="edu-teachers-international-tab" data-team="international" tabindex="0" hidden="hidden">
                             <p class="edu-smem-team-intro">Khám phá đội ngũ giáo viên nước ngoài đồng hành cùng Kim Academy.</p>
                             <div class="row g-3 g-lg-4 justify-content-center">
-                                <div t-foreach="international_teachers" t-as="teacher" class="col-6 col-lg-3">
+                                <div t-foreach="international_teachers" t-as="teacher" class="col-12 col-md-6">
                                     <t t-call="edu_landing.teacher_showcase_card"/>
                                 </div>
                             </div>
@@ -297,7 +297,7 @@
                         <t t-set="featured_students" t-value="website._get_landing_students()"/>
                         <header class="edu-head">
                             <span class="edu-head-sub">Mở rộng cơ hội</span>
-                            <h2 class="edu-display">Cho 50.000+ học viên</h2>
+                            <h2 class="edu-display">Thành tích học viên Kim Academy</h2>
                         </header>
                         <div t-if="featured_students" class="edu-stu-tabs" role="tablist" aria-label="Lọc thành tích">
                             <button type="button" class="edu-stu-tab is-active" role="tab" aria-selected="true" data-filter="all">Tất cả</button>
@@ -306,7 +306,7 @@
                             <button type="button" class="edu-stu-tab" role="tab" aria-selected="false" data-filter="sat">SAT</button>
                         </div>
                         <div t-if="featured_students" class="row g-3 g-lg-4">
-                            <div t-foreach="featured_students" t-as="student" class="col-12 col-sm-6 col-lg-3 edu-stu-col" t-att-data-cat="student.category">
+                            <div t-foreach="featured_students" t-as="student" class="col-12 col-md-6 edu-stu-col" t-att-data-cat="student.category">
                                 <article class="edu-stu-item">
                                     <div class="edu-stu-img">
                                         <img t-att-src="'/web/image/edu.landing.student/%s/image_1920' % student.id" t-att-alt="student.alt_text or student.name" loading="lazy"/>

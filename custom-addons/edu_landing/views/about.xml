@@ -7,8 +7,8 @@
             <t t-set="meta_description">Tìm hiểu Kim Academy Language Center: định hướng đào tạo, giá trị giáo dục và lộ trình tiếng Anh từ Mầm non đến THPT theo khung CEFR.</t>
             <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
             <div id="wrap" class="oe_structure edu-landing edu-about">
-                <section class="ka-about-hero" id="gioi-thieu">
-                    <img class="ka-about-hero-image" t-att-src="img + 'hero.jpg'" alt="" fetchpriority="high"/>
+                <section class="ka-about-hero ka-opening" id="gioi-thieu">
+                    <img class="ka-about-hero-image" t-att-src="img + 'kim/recognition.jpg'" alt="" fetchpriority="high"/>
                     <div class="container ka-about-hero-content">
                         <nav aria-label="Đường dẫn trang" class="ka-breadcrumb"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Về Kim Academy</span></nav>
                         <p class="ka-eyebrow">Kim Academy Language Center</p>
@@ -23,7 +23,7 @@
                         <div class="row align-items-center g-5">
                             <div class="col-lg-6">
                                 <div class="ka-story-photo">
-                                    <img t-att-src="img + 'prog_primary.jpg'" alt="Ảnh minh họa hoạt động học tiếng Anh" loading="lazy"/>
+                                    <img t-att-src="img + 'kim/classroom-boards.jpg'" alt="Học viên Kim Academy cùng luyện tập với bảng viết trong lớp" loading="lazy"/>
                                     <div class="ka-photo-caption"><span>Niềm tin của chúng tôi</span><strong>Mỗi bước nhỏ hôm nay.<br/>Một thế giới rộng hơn ngày mai.</strong></div>
                                 </div>
                             </div>

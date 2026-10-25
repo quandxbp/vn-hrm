@@ -4,13 +4,13 @@
         <field name="name">edu.payroll.period.tree</field>
         <field name="model">edu.payroll.period</field>
         <field name="arch" type="xml">
-            <tree decoration-success="state == 'locked'">
+            <tree class="edu_list">
                 <field name="name"/>
                 <field name="date_from"/>
                 <field name="date_to"/>
                 <field name="total_hours"/>
                 <field name="total_amount" sum="Tổng"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-success="state == 'locked'" decoration-info="state == 'open'"/>
             </tree>
         </field>
     </record>
@@ -19,7 +19,7 @@
         <field name="name">edu.payroll.period.form</field>
         <field name="model">edu.payroll.period</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <header>
                     <button name="action_compute" type="object" string="Tính lương"
                             invisible="state != 'open' or not id"/>
@@ -44,13 +44,13 @@
                         </group>
                         <group>
                             <field name="total_hours"/>
-                            <field name="total_amount"/>
+                            <field name="total_amount" class="edu_metric"/>
                             <field name="locked_by"/>
                             <field name="locked_date"/>
                         </group>
                     </group>
                     <field name="line_ids">
-                        <tree editable="bottom" create="0" delete="0"
+                        <tree class="edu_list" editable="bottom" create="0" delete="0"
                               decoration-danger="status in ('no_rate', 'agency_diff')"
                               decoration-warning="status == 'warning'" decoration-muted="status == 'no_session'">
                             <field name="teacher_id" readonly="1"/>

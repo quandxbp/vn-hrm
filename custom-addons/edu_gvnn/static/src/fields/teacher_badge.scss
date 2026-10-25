@@ -1,0 +1,26 @@
+.o_list_view .badge.edu_teacher_badge {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-height: 25px;
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px !important;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.015em;
+    vertical-align: middle;
+    white-space: normal;
+    text-align: start;
+
+    $teacher-colors: ($blue, $purple, $teal, $orange, $pink, $cyan, $indigo, $o-success);
+    @for $index from 1 through length($teacher-colors) {
+        $color: nth($teacher-colors, $index);
+        &.edu_teacher_badge_#{$index - 1} {
+            color: mix($color, $o-gray-900, 65%);
+            background-color: mix($color, $o-view-background-color, 9%);
+            border-color: mix($color, $o-view-background-color, 18%);
+        }
+    }
+}

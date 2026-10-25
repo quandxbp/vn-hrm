@@ -6,7 +6,7 @@
             <t t-set="meta_description">Khám phá môi trường làm việc và cơ hội nghề nghiệp dành cho giáo viên, nhân sự trung tâm tại Kim Academy.</t>
             <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
             <div id="wrap" class="oe_structure edu-landing edu-careers">
-                <section class="ka-career-hero">
+                <section class="ka-career-hero ka-opening">
                     <div class="container">
                         <nav class="ka-career-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><a href="/gioi-thieu">Về Kim Academy</a><span aria-hidden="true">/</span><span>Tuyển dụng</span></nav>
                         <div class="row align-items-center g-5">
@@ -18,7 +18,7 @@
                             </div>
                             <div class="col-lg-6">
                                 <div class="ka-career-hero-photo">
-                                    <img t-att-src="img + 'hero.jpg'" alt="Hoạt động tập thể tại Kim Academy" fetchpriority="high"/>
+                                    <img t-att-src="img + 'kim/team-celebration.jpg'" alt="Hoạt động tập thể tại Kim Academy" fetchpriority="high"/>
                                     <div class="ka-career-photo-label"><i class="fa fa-heart-o" aria-hidden="true"/><span>Con người làm nên<br/><strong>Kim Academy.</strong></span></div>
                                 </div>
                             </div>
@@ -31,7 +31,7 @@
                     <div class="container">
                         <div class="row align-items-center g-5">
                             <div class="col-lg-5">
-                                <div class="ka-career-culture-photo"><img t-att-src="img + 'prog_primary.jpg'" alt="Ảnh minh họa môi trường học tiếng Anh" loading="lazy"/><span>Learn. Share. Grow.</span></div>
+                                <div class="ka-career-culture-photo"><img t-att-src="img + 'kim/study-together.jpg'" alt="Hoạt động đọc sách và trao đổi học tập được chia sẻ bởi Kim Academy" loading="lazy"/><span>Learn. Share. Grow.</span></div>
                             </div>
                             <div class="col-lg-6 offset-lg-1">
                                 <p class="ka-career-eyebrow">Môi trường làm việc</p>

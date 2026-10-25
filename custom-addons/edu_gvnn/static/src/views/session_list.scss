@@ -1,0 +1,44 @@
+.edu_session_list_content {
+    display: flex;
+    flex-direction: column;
+
+    > .o_list_renderer {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: auto;
+    }
+}
+
+.edu_session_action_bar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 10px 16px;
+    background: $o-view-background-color;
+    border-bottom: 1px solid $o-gray-200;
+
+    .edu_session_action_bar_buttons {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .edu_session_action_bar_files {
+        margin-inline-start: auto;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 11px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        text-align: start;
+    }
+}

@@ -1,0 +1,23 @@
+<templates xml:space="preserve">
+    <t t-name="edu_gvnn.SessionStudentsField">
+        <div class="edu_student_tags">
+            <t t-foreach="students" t-as="student" t-key="student.id">
+                <span class="edu_student_tag" t-att-class="{'edu_student_absent': !student.present}">
+                    <i class="fa fa-user edu_student_icon" aria-hidden="true"/>
+                    <span class="edu_student_names">
+                        <span class="edu_student_vi" t-esc="student.name"/>
+                        <span t-if="student.english" class="edu_student_en" t-esc="student.english"/>
+                    </span>
+                    <span t-if="!student.present" class="edu_student_absence">Nghỉ</span>
+                </span>
+            </t>
+            <span t-if="!students.length" class="text-muted">—</span>
+        </div>
+    </t>
+    <t t-name="edu_gvnn.SessionWeekField">
+        <div t-if="week" class="edu_session_week" t-att-class="'edu_session_week_' + week.color">
+            <span class="edu_session_week_title" t-esc="week.title"/>
+            <span t-if="week.dates" class="edu_session_week_dates" t-esc="week.dates"/>
+        </div>
+    </t>
+</templates>

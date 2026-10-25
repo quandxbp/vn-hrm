@@ -4,24 +4,36 @@
         <field name="name">edu.session.tree</field>
         <field name="model">edu.session</field>
         <field name="arch" type="xml">
-            <tree decoration-muted="state == 'cancel'" decoration-danger="state == 'done' and warning != 'ok'"
+            <tree class="edu_list" js_class="edu_session_list" expand="1" default_order="week_id asc,date desc,time_start desc,id desc" decoration-muted="state == 'cancel'"
                   decoration-info="session_type == 'testing' and state == 'done'">
                 <header>
+                    <button name="%(action_edu_import_wizard)d" type="action" display="always"
+                            string="Nhập lịch sử" icon="fa-upload" class="edu_session_action_file"
+                            help="Nhập buổi học quá khứ từ sheet 2.ĐIỂM DANH."
+                            groups="edu_gvnn.group_edu_manager"/>
+                    <button name="%(action_edu_clone_week_wizard)d" type="action" display="always"
+                            string="Tạo tuần mới" icon="fa-calendar-plus-o"
+                            help="Tạo tuần mới bằng cách sao chép lịch của một tuần trước đó."
+                            groups="edu_gvnn.group_edu_manager"/>
                     <button name="%(action_edu_export_week_wizard)d" type="action" display="always"
-                            string="Xuất điểm danh tuần"/>
+                            string="Xuất điểm danh" icon="fa-file-excel-o" class="edu_session_action_file"
+                            help="Xuất điểm danh của tuần đã chọn theo mẫu Weekly."/>
                 </header>
+                <field name="week_id" widget="edu_session_week"/>
                 <field name="date" widget="edu_weekday_date_badge"/>
                 <field name="weekday" widget="edu_weekday_badge"/>
-                <field name="week_id"/>
-                <field name="teacher_id"/>
+                <field name="teacher_id" widget="edu_teacher_badge"/>
                 <field name="session_type" optional="hide"/>
                 <field name="time_start" widget="float_time"/>
                 <field name="time_end" widget="float_time"/>
                 <field name="minutes" optional="hide"/>
                 <field name="class_ids" widget="many2many_tags"/>
-                <field name="student_names"/>
-                <field name="state"/>
-                <field name="warning"/>
+                <field name="student_badge_data" column_invisible="1"/>
+                <field name="student_names" widget="edu_session_students"/>
+                <field name="google_drive_url" widget="url" optional="hide"/>
+                <field name="youtube_url" widget="url" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-muted="state == 'cancel'"/>
+                <field name="warning" widget="badge" decoration-success="warning == 'ok'" decoration-danger="warning != 'ok'"/>
                 <field name="paid_hours" optional="hide"/>
                 <field name="teacher_amount" groups="edu_gvnn.group_edu_manager" optional="hide" sum="Tổng"/>
             </tree>
@@ -32,7 +44,7 @@
         <field name="name">edu.session.form</field>
         <field name="model">edu.session</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <header>
                     <button name="action_cancel" type="object" string="Nghỉ buổi học"
                             invisible="state != 'done'"
@@ -42,11 +54,15 @@
                     <field name="state" widget="statusbar" statusbar_visible="done,cancel"/>
                 </header>
                 <sheet>
+                    <div class="edu_profile_heading">
+                        <span class="edu_profile_icon fa fa-calendar" aria-hidden="true"/>
+                        <div><div class="edu_eyebrow">LỊCH GIẢNG DẠY</div><h1 class="edu_form_title">Thông tin buổi học</h1></div>
+                    </div>
                     <div class="alert alert-warning" role="alert" invisible="warning == 'ok'">
                         Cảnh báo: <field name="warning" class="oe_inline"/>
                     </div>
                     <group>
-                        <group>
+                        <group string="Lịch học và giáo viên">
                             <field name="session_type"/>
                             <field name="date"/>
                             <field name="week_id"/>
@@ -55,7 +71,7 @@
                             <field name="class_ids" widget="many2many_tags"
                                    required="session_type == 'testing'"/>
                         </group>
-                        <group>
+                        <group string="Thời gian buổi học">
                             <field name="time_start" widget="float_time"/>
                             <field name="time_end" widget="float_time"/>
                             <field name="minutes"/>
@@ -83,6 +99,23 @@
                             </field>
                             <field name="extra_participants" placeholder="Người tham gia khác (không có trong danh sách học viên)"/>
                         </page>
+                        <page name="session_videos" string="Video buổi học">
+                            <group string="Phần 1" col="2">
+                                <field name="google_drive_url" widget="url" string="Google Drive"
+                                       placeholder="https://drive.google.com/file/d/.../view"/>
+                                <field name="youtube_url" widget="url" string="YouTube"
+                                       placeholder="https://youtu.be/..."/>
+                            </group>
+                            <separator string="Các đoạn bổ sung (Phần 2 trở đi)"/>
+                            <div class="text-muted mb-2">Mỗi dòng là một đoạn video, gồm link Google Drive và link YouTube tương ứng.</div>
+                            <field name="recording_part_ids" nolabel="1" class="edu_recording_parts">
+                                <tree editable="bottom">
+                                    <field name="number" width="100"/>
+                                    <field name="google_drive_url" widget="url" string="Google Drive"/>
+                                    <field name="youtube_url" widget="url" string="YouTube"/>
+                                </tree>
+                            </field>
+                        </page>
                         <page string="Lương giáo viên" groups="edu_gvnn.group_edu_manager">
                             <group>
                                 <field name="teacher_rate"/>
@@ -93,8 +126,6 @@
                         <page string="Ghi chú">
                             <group>
                                 <field name="completion_note"/>
-                                <field name="recording_url"/>
-                                <field name="video_posted"/>
                             </group>
                             <field name="note"/>
                         </page>
@@ -139,5 +170,6 @@
         <field name="name">Buổi học</field>
         <field name="res_model">edu.session</field>
         <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_group_week': 1}</field>
     </record>
 </odoo>

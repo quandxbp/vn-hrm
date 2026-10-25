@@ -79,12 +79,12 @@
         <field name="arch" type="xml">
             <xpath expr="//tree/header" position="inside">
                 <button name="action_send_today_zalo" type="object" display="always"
-                    string="Gửi lịch hôm nay" icon="fa-paper-plane" class="btn-primary"
+                    string="Gửi Zalo" icon="fa-paper-plane" class="btn-primary"
                     help="Gửi ngay lịch học hôm nay theo giờ Việt Nam vào nhóm Zalo đã cấu hình."
                     groups="edu_gvnn.group_edu_manager"/>
             </xpath>
         </field>
     </record>
-    <menuitem id="menu_zalo_schedule" name="Lịch học Zalo" parent="edu_gvnn.menu_edu_operation_root"
-        action="action_zalo_config" sequence="40" groups="edu_gvnn.group_edu_manager"/>
+    <menuitem id="menu_zalo_schedule" name="Zalo: kết nối và nhóm nhận" parent="edu_gvnn.menu_edu_config_connections"
+        action="action_zalo_config" sequence="10" groups="edu_gvnn.group_edu_manager"/>
 </odoo>

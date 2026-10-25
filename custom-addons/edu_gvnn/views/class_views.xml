@@ -4,7 +4,7 @@
         <field name="name">edu.class.tree</field>
         <field name="model">edu.class</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree class="edu_list">
                 <field name="name"/>
                 <field name="zalo_group"/>
                 <field name="teacher_ids" widget="many2many_tags"/>
@@ -17,15 +17,18 @@
         <field name="name">edu.class.form</field>
         <field name="model">edu.class</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <sheet>
                     <widget name="web_ribbon" title="Đã lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="edu_profile_heading">
+                        <span class="edu_profile_icon fa fa-users" aria-hidden="true"/>
+                        <div class="oe_title"><div class="edu_eyebrow">LỚP HỌC</div><h1><field name="name" placeholder="Tên lớp học"/></h1></div>
+                    </div>
                     <group>
-                        <group>
-                            <field name="name"/>
+                        <group string="Thông tin lớp">
                             <field name="zalo_group"/>
                         </group>
-                        <group>
+                        <group string="Phân công giảng dạy">
                             <field name="teacher_ids" widget="many2many_tags"/>
                             <field name="active"/>
                         </group>
@@ -36,7 +39,7 @@
                                 <tree>
                                     <field name="code"/>
                                     <field name="name"/>
-                                    <field name="state"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'studying'" decoration-muted="state == 'stopped'"/>
                                 </tree>
                             </field>
                         </page>

@@ -12,7 +12,7 @@ class LandingCourses(http.Controller):
         if not course:
             return request.not_found()
         # Only the default asset path needs elevated access; course content obeys public rules.
-        default_image = course.sudo().fallback_image or '/edu_landing/static/src/img/prog_primary.jpg'
+        default_image = course.sudo().fallback_image or '/edu_landing/static/src/img/kim/classroom-boards.jpg'
         return request.render('edu_landing.course_detail', {
             'course': course, 'default_image': default_image,
         })

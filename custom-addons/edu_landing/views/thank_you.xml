@@ -4,7 +4,7 @@
         <xpath expr="//div[@id='wrap']" position="replace">
             <t t-set="title">Cảm ơn bạn | Kim Academy</t>
             <div id="wrap" class="oe_structure edu-landing edu-thank-you">
-                <section class="ka-thanks-section">
+                <section class="ka-thanks-section ka-opening">
                     <div class="container">
                         <nav class="ka-thanks-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Cảm ơn bạn</span></nav>
                         <div class="ka-thanks-card">

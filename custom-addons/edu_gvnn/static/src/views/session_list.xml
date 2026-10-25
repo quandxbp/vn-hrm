@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="edu_gvnn.SessionListView" t-inherit="web.ListView" t-inherit-mode="primary">
+        <xpath expr="//Layout" position="attributes">
+            <attribute name="className">'edu_session_list_content ' + (model.useSampleModel ? 'o_view_sample_data' : '')</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set-slot='control-panel-always-buttons']" position="replace">
+            <t t-set-slot="control-panel-always-buttons"/>
+        </xpath>
+        <xpath expr="//t[@t-component='props.Renderer']" position="before">
+            <div t-if="props.showButtons and actionBarButtons.length" class="edu_session_action_bar" role="toolbar" aria-label="Chức năng buổi học">
+                <t t-foreach="actionBarGroups" t-as="group" t-key="group.key">
+                <div t-if="group.buttons.length" t-attf-class="edu_session_action_bar_buttons edu_session_action_bar_{{ group.key }}">
+                    <t t-foreach="group.buttons" t-as="button" t-key="button.id">
+                        <MultiRecordViewButton
+                            list="model.root"
+                            className="button.className"
+                            clickParams="button.clickParams"
+                            defaultRank="'btn-secondary'"
+                            domain="props.domain"
+                            icon="button.icon"
+                            string="button.string"
+                            title="button.title"
+                        />
+                    </t>
+                </div>
+                </t>
+            </div>
+        </xpath>
+    </t>
+</templates>

@@ -18,7 +18,7 @@
                         <div class="row g-4 g-xl-5 edu-footer-columns">
                             <div class="col-lg-4">
                                 <a href="/" class="edu-footer-brand" aria-label="Kim Academy — Trang chủ">Kim Academy<span>Language Center</span></a>
-                                <!-- Ảnh trên trang là ảnh minh hoạ từ Unsplash, xem static/src/img/CREDITS.txt. -->
+                                <!-- Ảnh trên trang là ảnh minh hoạ từ Facebook Kim Academy, xem static/src/img/kim/SOURCES.json. -->
                                 <p class="edu-footer-description">Lộ trình học tiếng Anh từ Mầm non đến THPT, chuẩn CEFR. Đồng hành cùng học viên xây dựng nền tảng vững chắc và sự tự tin với tiếng Anh.</p>
                                 <a href="/gioi-thieu" class="edu-footer-story">Khám phá Kim Academy <i class="fa fa-long-arrow-right" aria-hidden="true"/></a>
                             </div>

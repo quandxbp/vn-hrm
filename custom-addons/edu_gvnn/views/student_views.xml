@@ -4,8 +4,7 @@
         <field name="name">edu.student.tree</field>
         <field name="model">edu.student</field>
         <field name="arch" type="xml">
-            <tree decoration-muted="state == 'stopped'" decoration-danger="fee_warning == 'out'"
-                  decoration-warning="fee_warning == 'low'">
+            <tree class="edu_list" decoration-muted="state == 'stopped'">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="class_ids" widget="many2many_tags"/>
@@ -16,9 +15,9 @@
                 <field name="learned_amount" optional="hide"/>
                 <field name="balance"/>
                 <field name="remaining_blocks"/>
-                <field name="fee_warning"/>
+                <field name="fee_warning" widget="badge" decoration-danger="fee_warning == 'out'" decoration-warning="fee_warning == 'low'"/>
                 <field name="last_session_date" optional="hide"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-success="state == 'studying'" decoration-muted="state == 'stopped'"/>
             </tree>
         </field>
     </record>
@@ -27,7 +26,7 @@
         <field name="name">edu.student.form</field>
         <field name="model">edu.student</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <header>
                     <button name="action_new_payment" type="object" string="Thu học phí"
                             class="btn-primary" invisible="not id"/>
@@ -40,17 +39,20 @@
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Đã lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="edu_profile_heading">
+                        <span class="edu_profile_icon fa fa-graduation-cap" aria-hidden="true"/>
+                        <div class="oe_title"><div class="edu_eyebrow">HỒ SƠ HỌC VIÊN</div><h1><field name="name_vi" placeholder="Tên học viên"/></h1></div>
+                    </div>
                     <group>
-                        <group>
+                        <group string="Thông tin học tập">
                             <field name="code"/>
-                            <field name="name_vi"/>
                             <field name="name_en"/>
                             <field name="class_ids" widget="many2many_tags"/>
                             <field name="zalo_group"/>
                         </group>
-                        <group>
+                        <group string="Liên hệ và quản lý">
                             <field name="parent_name"/>
-                            <field name="phone"/>
+                            <field name="phone" widget="phone"/>
                             <field name="opening_date"/>
                             <field name="active"/>
                         </group>
@@ -58,17 +60,17 @@
                     <notebook>
                         <page string="Học phí">
                             <group>
-                                <group>
+                                <group string="Số dư học phí">
                                     <field name="opening_balance"/>
                                     <field name="total_paid"/>
                                     <field name="learned_amount"/>
-                                    <field name="balance"/>
+                                    <field name="balance" class="edu_metric" decoration-danger="balance &lt; 0"/>
                                 </group>
-                                <group>
+                                <group string="Tiến độ học tập">
                                     <field name="learned_hours"/>
                                     <field name="learned_blocks"/>
                                     <field name="remaining_blocks"/>
-                                    <field name="fee_warning"/>
+                                    <field name="fee_warning" widget="badge" decoration-danger="fee_warning == 'out'" decoration-warning="fee_warning == 'low'"/>
                                     <field name="last_session_date"/>
                                 </group>
                             </group>

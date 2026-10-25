@@ -6,15 +6,19 @@ import xlsxwriter
 
 from odoo import fields, models
 from odoo.exceptions import UserError
+from ..tools import youtube_recording_url
 
 HEADERS = [
-    'STT', 'TUẦN', 'THỨ TRONG TUẦN', 'NGÀY', 'THÁNG', 'GIÁO VIÊN', 'HỌC VIÊN 1', 'HỌC VIÊN 2',
-    'HỌC VIÊN 3', 'LỚP', 'GIỜ BẮT ĐẦU', 'GIỜ KẾT THÚC', 'PHÚT', 'GIỜ TÍNH CHO HỌC VIÊN',
-    'GIỜ TÍNH CHO GIÁO VIÊN', 'STATE OF COMPLETION', 'NOTE - KHUÊ', 'NOTE - KIM', 'NOTE - TIÊN',
-    'RECORDINGS', 'POSTED VIDEO', 'PAID', 'SCORE STUDENT 1', 'SCORE STUDENT 2',
+    'NO', 'WEEK', 'DAY OF WEEK', 'DATE', 'MONTH', 'TEACHER',
+    'STUDENT 1', 'STUDENT 2', 'STUDENT 3', 'GRADE', 'START TIME ', 'END TIME',
+    'DURATION (MINUTES)', ' (HOUR) FOR STUDENT', ' (HOUR) FOR TEACHER',
+    'VIDEO ON PADLET\nKHUÊ ĐÃ GẮN LINK LÊN PADLET GHI "1"',
+    '\nJOINED:"1"\nCANCED:"0"',
+    'HOMEWORK  ON PADLET\nGV ĐÃ POST HW GHI 1 \nKHUÊ QUẢN LÝ',
+    'HỌC SINH ĐÃ HOÀN THÀNH BÀI TRÊN PADLET ', 'NOTE ', 'NOTE (Quân)',
+    'THỜI LƯỢNG ', 'IS POSTED VIDEOS?', 'LINK VIDEO 1', 'LINK VIDEO 2',
+    'SCORE STUDENT 1', 'SCORE STUDENT 2', 'SCORE STUDENT 3',
 ]
-# Cột AH, AI của sheet gốc; các cột Y..AG để trống để dán thẳng vào file Excel cũ.
-MONTH_COL, YEAR_COL = 33, 34
 
 
 class EduExportWeekWizard(models.TransientModel):
@@ -27,6 +31,10 @@ class EduExportWeekWizard(models.TransientModel):
     file = fields.Binary('File', readonly=True)
     filename = fields.Char('Tên file', readonly=True)
 
+    def _video_values(self, session):
+        return (session.youtube_url or session.google_drive_url or session.recording_url or '',
+                'OK' if session.youtube_url or session.video_posted else '')
+
     def _completion_text(self, session):
         if session.state == 'cancel':
             return 'CANCELED'
@@ -38,6 +46,29 @@ class EduExportWeekWizard(models.TransientModel):
             text += ' (only %s)' % names if names else ' (no one attended)'
         return text
 
+    def _weekly_video_values(self, session):
+        parts = session._recording_parts()
+        if len(parts) > 1:
+            youtube_links = [p['youtube'] for p in parts if p['youtube']]
+            drive_links = [p['drive'] for p in parts if p['drive']]
+            posted = 1 if all(p['youtube'] for p in parts) else ''
+            return (['\n'.join(youtube_links), '\n'.join(drive_links)] if youtube_links else
+                    [drive_links[0] if drive_links else '', '\n'.join(drive_links[1:])]), posted
+        youtube = (session.youtube_url or youtube_recording_url(session.recording_url) or '').strip()
+        links = []
+        for link in (youtube, session.google_drive_url, session.recording_url):
+            link = (link or '').strip()
+            if link and link not in links:
+                links.append(link)
+        return (links + ['', ''])[:2], 1 if youtube or session.video_posted else ''
+
+    def _weekly_note(self, session):
+        notes = [session.completion_note] if session.completion_note else []
+        absent = session.attendee_ids.filtered(lambda attendee: not attendee.present)
+        if absent:
+            notes.append('Vắng: ' + ', '.join(absent.mapped('student_id.name')))
+        return '\n'.join(notes)
+
     def action_export(self):
         self.ensure_one()
         sessions = self.env['edu.session'].search(
@@ -45,50 +76,74 @@ class EduExportWeekWizard(models.TransientModel):
         if not sessions:
             raise UserError('Tuần này chưa có buổi học nào.')
         buf = io.BytesIO()
-        wb = xlsxwriter.Workbook(buf, {'in_memory': True})
-        ws = wb.add_worksheet('2.ĐIỂM DANH')
-        head = wb.add_format({'bold': True, 'text_wrap': True, 'valign': 'top', 'bg_color': '#D9E1F2', 'border': 1})
-        date_fmt = wb.add_format({'num_format': 'dd/mm/yyyy'})
-        time_fmt = wb.add_format({'num_format': 'hh:mm'})
+        wb = xlsxwriter.Workbook(buf, {'in_memory': True, 'strings_to_formulas': False})
+        ws = wb.add_worksheet('Weekly')
+        head = wb.add_format({'bold': True, 'text_wrap': True, 'valign': 'vcenter',
+                              'align': 'center', 'bg_color': '#D9E1F2', 'border': 1, 'font_size': 10})
+        body = wb.add_format({'valign': 'top', 'font_size': 10})
+        note_fmt = wb.add_format({'valign': 'top', 'text_wrap': True, 'font_size': 10})
+        date_fmt = wb.add_format({'num_format': 'dd/mm/yyyy', 'valign': 'top', 'font_size': 10})
+        time_fmt = wb.add_format({'num_format': 'hh:mm', 'valign': 'top', 'font_size': 10})
+        hours_fmt = wb.add_format({'num_format': '0.00', 'valign': 'top', 'font_size': 10})
         for col, title in enumerate(HEADERS):
-            ws.write(1, col, title, head)
-        ws.write(1, MONTH_COL, 'THÁNG', head)
-        ws.write(1, YEAR_COL, 'NĂM', head)
-        ws.set_row(1, 32)
-        ws.set_column(0, 1, 7)
+            ws.write_string(0, col, title, head)
+        ws.set_row(0, 60)
+        ws.set_column(0, 0, 5, body)
+        ws.set_column(1, 1, 7, body)
+        ws.set_column(2, 2, 12, body)
         ws.set_column(3, 3, 12)
-        ws.set_column(5, 8, 22)
-        ws.set_column(9, 9, 16)
-        ws.set_column(15, 15, 24)
-        ws.freeze_panes(2, 0)
+        ws.set_column(4, 4, 9, body)
+        ws.set_column(5, 5, 15, body)
+        ws.set_column(6, 8, 28, body)
+        ws.set_column(9, 9, 26, body)
+        ws.set_column(10, 11, 11)
+        ws.set_column(12, 14, 13, body)
+        ws.set_column(15, 15, 20, body, {'hidden': True})
+        ws.set_column(16, 16, 15, body, {'hidden': True})
+        ws.set_column(17, 17, 36, body, {'hidden': True})
+        ws.set_column(18, 18, 17, body, {'hidden': True})
+        ws.set_column(19, 20, 30, note_fmt)
+        ws.set_column(21, 21, 13, body)
+        ws.set_column(22, 22, 16, body)
+        ws.set_column(23, 24, 40, body)
+        ws.set_column(25, 27, 12, body)
+        ws.freeze_panes(1, 6)
+        ws.autofilter(0, 0, len(sessions), len(HEADERS) - 1)
 
         for index, session in enumerate(sessions, start=1):
-            row = index + 1
+            row = index
             attendees = session.attendee_ids
             if session.session_type == 'testing':
                 students = ['TESTING ' + ' + '.join(session.class_ids.mapped('name'))]
             else:
                 students = [a.student_id.name for a in attendees]
+            if session.extra_participants:
+                students.append(session.extra_participants)
             students += [''] * (3 - len(students))
             has_time = bool(session.time_start or session.time_end)
-            scores = [a.score or '' for a in attendees][:2] + ['', '']
+            scores = [a.score or '' for a in attendees][:3] + ['', '', '']
+            video_links, video_posted = self._weekly_video_values(session)
+            if any('\n' in link for link in video_links):
+                ws.set_row(row, max(30, 15 * max(link.count('\n') + 1 for link in video_links)))
             values = [
                 index, session.week_id.number, session.weekday, None, session.date.month,
                 session.teacher_id.name, students[0], students[1], students[2],
                 ' + '.join(session.class_ids.mapped('name')) or 'GVNN', None, None, session.minutes,
-                session.student_hours, session.teacher_hours, self._completion_text(session),
-                session.note or '', '', '', session.recording_url or '',
-                'OK' if session.video_posted else '', 1 if session.paid else '', scores[0], scores[1],
+                session.student_hours, session.teacher_hours,
+                '', 1 if session.state == 'done' else 0, '', '',
+                self._weekly_note(session), session.note or '',
+                '', video_posted, video_links[0], video_links[1], scores[0], scores[1], scores[2],
             ]
             for col, value in enumerate(values):
                 if value not in (None, ''):
-                    ws.write(row, col, value)
+                    if col in (23, 24) and '\n' in str(value):
+                        ws.write_string(row, col, value, note_fmt)
+                    else:
+                        ws.write(row, col, value, hours_fmt if col in (13, 14) else note_fmt if col in (19, 20) else body)
             ws.write_datetime(row, 3, fields.Datetime.to_datetime(session.date), date_fmt)
             if has_time:
                 ws.write_number(row, 10, (session.time_start % 24) / 24.0, time_fmt)
                 ws.write_number(row, 11, (session.time_end % 24) / 24.0, time_fmt)
-            ws.write_number(row, MONTH_COL, session.date.month)
-            ws.write_number(row, YEAR_COL, session.date.year)
         wb.close()
         self.write({
             'file': base64.b64encode(buf.getvalue()),

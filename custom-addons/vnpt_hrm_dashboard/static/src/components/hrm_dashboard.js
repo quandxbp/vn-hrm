@@ -93,6 +93,7 @@ export class OwlGvnnDashboard extends Component {
                     value: this.money(f.income),
                     icon: "fa-money",
                     tone: "success",
+                    onClick: () => this.openFinance("income"),
                 },
                 {
                     key: "cost",
@@ -100,6 +101,7 @@ export class OwlGvnnDashboard extends Component {
                     value: this.money(f.cost),
                     icon: "fa-credit-card",
                     tone: "warning",
+                    onClick: () => this.openFinance("cost"),
                 },
                 {
                     key: "flow",
@@ -107,6 +109,7 @@ export class OwlGvnnDashboard extends Component {
                     value: this.money(f.cash_flow),
                     icon: "fa-line-chart",
                     tone: f.cash_flow >= 0 ? "info" : "danger",
+                    onClick: () => this.openFinance("flow"),
                 },
                 {
                     key: "balance",
@@ -114,6 +117,7 @@ export class OwlGvnnDashboard extends Component {
                     value: this.money(f.balance),
                     icon: "fa-bank",
                     tone: "primary",
+                    onClick: () => this.openStudentBalances(),
                 }
             );
         }
@@ -145,7 +149,7 @@ export class OwlGvnnDashboard extends Component {
             { key: "session", label: "Buổi học", icon: "fa-calendar-check-o", xmlid: "edu_gvnn.action_edu_session" },
             { key: "student", label: "Học viên", icon: "fa-users", xmlid: "edu_gvnn.action_edu_student" },
             { key: "payment", label: "Thu học phí", icon: "fa-money", xmlid: "edu_gvnn.action_edu_tuition_payment" },
-            { key: "alert", label: "Cảnh báo tuần", icon: "fa-bell", xmlid: "edu_gvnn.action_edu_week_alert_wizard" },
+            { key: "alert", label: "Cảnh báo học viên", icon: "fa-bell", xmlid: "edu_gvnn.action_edu_week_alert" },
             { key: "export", label: "Xuất điểm danh", icon: "fa-file-excel-o", xmlid: "edu_gvnn.action_edu_export_week_wizard" },
         ];
         if (this.state.data.is_manager) {
@@ -210,12 +214,57 @@ export class OwlGvnnDashboard extends Component {
     // ---- Hành động ----------------------------------------------------
 
     openAction(xmlid) {
-        this.actionService.doAction(xmlid);
+        return this.actionService.doAction(xmlid);
+    }
+
+    openFinance(kind) {
+        if (!this.state.data.finance) {
+            return;
+        }
+        const year = this.state.data.finance.year;
+        const sources = {
+            income: ["income"],
+            cost: ["salary", "expense"],
+            flow: ["income", "salary", "expense"],
+        };
+        const labels = { income: "Tiền thu", cost: "Tổng chi", flow: "Dòng tiền sau chi" };
+        return this.actionService.doAction({
+            name: `${labels[kind]} năm ${year}`,
+            type: "ir.actions.act_window",
+            res_model: "edu.report.finance",
+            views: [[false, "pivot"], [false, "graph"]],
+            domain: [["date", ">=", `${year}-01-01`], ["date", "<", `${year + 1}-01-01`],
+                ["source", "in", sources[kind]]],
+            context: { pivot_measures: [kind === "income" ? "income" : kind === "cost" ? "total_cost" : "cash_flow"] },
+            target: "current",
+        });
+    }
+
+    openStudentBalances() {
+        return this.actionService.doAction({
+            name: "Số dư học phí — Học viên đang học",
+            type: "ir.actions.act_window",
+            res_model: "edu.student",
+            views: [[false, "list"], [false, "form"]],
+            domain: [["state", "=", "studying"]],
+            target: "current",
+        });
+    }
+
+    openStudent(studentId) {
+        return this.actionService.doAction({
+            type: "ir.actions.act_window",
+            res_model: "edu.student",
+            res_id: studentId,
+            views: [[false, "form"]],
+            target: "current",
+        });
     }
 
     openAlerts(name, filter) {
         const week = this.state.data.week;
-        this.actionService.doAction({
+        if (!week) { return; }
+        return this.actionService.doAction({
             name: `${name} - ${week.name}`,
             type: "ir.actions.act_window",
             res_model: "edu.week.alert",
@@ -227,7 +276,8 @@ export class OwlGvnnDashboard extends Component {
 
     openSessionWarnings() {
         const week = this.state.data.week;
-        this.actionService.doAction({
+        if (!week) { return; }
+        return this.actionService.doAction({
             name: `Buổi có cảnh báo - ${week.name}`,
             type: "ir.actions.act_window",
             res_model: "edu.session",

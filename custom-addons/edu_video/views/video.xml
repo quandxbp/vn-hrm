@@ -1,0 +1,71 @@
+<odoo>
+    <record id="view_video_job_tree" model="ir.ui.view">
+        <field name="name">edu.video.job.tree</field><field name="model">edu.video.job</field>
+        <field name="arch" type="xml">
+            <tree create="false" delete="false" decoration-success="state == 'done'" decoration-danger="state in ('failed', 'uncertain')">
+                <field name="create_date"/><field name="session_id"/><field name="title"/>
+                <field name="state" widget="badge"/><field name="progress" widget="progressbar"/>
+                <field name="video_url" widget="url"/><field name="error" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_video_job_form" model="ir.ui.view">
+        <field name="name">edu.video.job.form</field><field name="model">edu.video.job</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false" edit="false">
+                <header>
+                    <button name="action_retry" type="object" string="Thử lại" class="btn-primary" invisible="state not in ('failed', 'cancelled')"/>
+                    <button name="action_cancel" type="object" string="Hủy xử lý" invisible="state in ('done', 'cancelled')"
+                        confirm="Dừng yêu cầu tại Odoo. Video đã nhận trên YouTube không bị xóa; nếu upload đã bắt đầu, hãy kiểm tra kênh trước khi gửi lại."/>
+                    <button name="action_restart_checked" type="object" string="Tạo phiên mới sau kiểm tra" invisible="state not in ('uncertain', 'cancelled', 'failed')"
+                        confirm="Chỉ tiếp tục nếu bạn đã kiểm tra kênh và xác nhận video này CHƯA có trên YouTube. Phiên cũ sẽ không được tiếp tục; thao tác này có thể tạo video trùng nếu bạn kiểm tra thiếu. Bạn xác nhận tạo phiên upload mới?"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group><field name="session_id"/><field name="title"/>
+                        <field name="source_url" widget="url"/><field name="video_url" widget="url"/>
+                        <field name="channel_id"/><field name="progress" widget="progressbar"/>
+                        <field name="total_bytes"/><field name="uploaded_bytes"/>
+                        <field name="attempts"/><field name="next_attempt"/><field name="finished_at"/>
+                    </group>
+                    <field name="error" nolabel="1" readonly="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_video_job" model="ir.actions.act_window">
+        <field name="name">Video Drive → YouTube</field><field name="res_model">edu.video.job</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="menu_video_job" name="Video buổi học" parent="edu_gvnn.menu_edu_operation_root" sequence="70"
+              action="action_video_job" groups="edu_gvnn.group_edu_manager"/>
+    <record id="view_session_video_upload" model="ir.ui.view">
+        <field name="name">edu.session.video.upload</field><field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_gvnn.view_edu_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='session_videos']" position="inside">
+                <field name="video_upload_pending" invisible="1" groups="edu_gvnn.group_edu_manager"/>
+                <separator string="Upload YouTube" groups="edu_gvnn.group_edu_manager"/>
+                <button name="action_upload_youtube" type="object" string="Đẩy lên YouTube" class="btn-primary"
+                        groups="edu_gvnn.group_edu_manager" invisible="not video_upload_pending or state == 'cancel'"/>
+                <div class="text-muted mt-2" invisible="video_job_ids" groups="edu_gvnn.group_edu_manager">Chưa có yêu cầu upload video.</div>
+                <field name="video_job_ids" readonly="1" nolabel="1" invisible="not video_job_ids" groups="edu_gvnn.group_edu_manager">
+                    <tree create="false" delete="false">
+                        <field name="create_date"/><field name="part_number"/><field name="state" widget="badge"/>
+                        <field name="progress" widget="progressbar"/><field name="video_url" widget="url"/>
+                        <field name="error"/>
+                    </tree>
+                </field>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_session_video_state_tree" model="ir.ui.view">
+        <field name="name">edu.session.video.state.tree</field><field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_gvnn.view_edu_session_tree"/>
+        <field name="arch" type="xml">
+            <field name="youtube_url" position="after">
+                <field name="video_state" widget="badge" optional="hide" groups="edu_gvnn.group_edu_manager"/>
+            </field>
+        </field>
+    </record>
+</odoo>

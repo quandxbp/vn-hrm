@@ -1,0 +1,72 @@
+.edu_session_list_content {
+    .edu_session_week {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 5px 9px;
+        border-left: 3px solid;
+        border-radius: 5px;
+        white-space: nowrap;
+        text-align: start;
+    }
+    .edu_session_week_title { font-size: 12px; font-weight: 700; }
+    .edu_session_week_dates { font-size: 10px; font-weight: 400; opacity: .8; }
+
+    $week-colors: ($blue, $teal, $purple, $orange, $pink);
+    @for $index from 1 through length($week-colors) {
+        $color: nth($week-colors, $index);
+        .edu_session_week_#{$index - 1} {
+            color: mix($color, $o-gray-900, 65%);
+            border-color: $color;
+            background: mix($color, $o-view-background-color, 7%);
+        }
+    }
+
+    .o_group_header > th,
+    .o_group_header > td {
+        background: mix($blue, $o-view-background-color, 7%);
+        color: $o-gray-800;
+        border-top: 2px solid mix($blue, $o-view-background-color, 18%);
+    }
+
+    .edu_student_tags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 0;
+        white-space: normal;
+    }
+    .edu_student_tag {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 9px;
+        background: mix($blue, $o-view-background-color, 4%);
+        border: 1px solid mix($blue, $o-view-background-color, 14%);
+        border-radius: 7px;
+        color: $o-gray-800;
+        line-height: 1.25;
+        max-width: 100%;
+    }
+    .edu_student_icon { font-size: 12px; color: mix($blue, $o-gray-600, 55%); }
+    // Odoo's list char widget forces nested spans inline; keep the two name lines separate.
+    .edu_student_names { display: flex !important; flex-direction: column; gap: 2px; min-width: 0; }
+    .edu_student_vi { display: block !important; font-size: 12px; font-weight: 600; white-space: normal; }
+    .edu_student_en { display: block !important; font-size: 10px; color: $o-gray-600; font-weight: 400; white-space: normal; }
+    .edu_student_absent {
+        background: $o-gray-100;
+        border-color: $o-gray-200;
+        .edu_student_vi { color: $o-gray-600; }
+        .edu_student_icon { color: $o-gray-500; }
+    }
+    .edu_student_absence {
+        color: mix($orange, $o-gray-900, 65%);
+        background: mix($orange, $o-view-background-color, 10%);
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 500;
+    }
+    td[name="student_names"] { min-width: 280px; }
+}

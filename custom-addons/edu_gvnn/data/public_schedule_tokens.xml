@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function model="edu.teacher" name="_ensure_schedule_edit_tokens"/>
+</odoo>

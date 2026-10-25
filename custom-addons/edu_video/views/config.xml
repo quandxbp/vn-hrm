@@ -1,0 +1,52 @@
+<odoo>
+    <record id="config_default" model="edu.video.config">
+        <field name="name">Google Drive → YouTube</field>
+    </record>
+    <record id="view_config_form" model="ir.ui.view">
+        <field name="name">edu.video.config.form</field>
+        <field name="model">edu.video.config</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <button name="action_connect" type="object" string="Kết nối / đổi kênh YouTube" class="btn-primary"/>
+                    <button name="action_connect_drive" type="object" string="Kết nối Google Drive"/>
+                    <button name="action_disconnect" type="object" string="Ngắt kết nối" invisible="state != 'connected'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <h1><field name="name" readonly="1"/></h1>
+                    <div class="alert alert-info" role="status">Kết nối YouTube và Drive riêng. Chủ kênh cần tự cấp quyền YouTube nếu bạn chỉ được mời quản lý qua Studio. Bật xử lý nền sau khi xác nhận đúng kênh. Video mặc định không công khai.</div>
+                    <group>
+                        <group string="OAuth Google">
+                            <field name="credential_filename" invisible="1"/>
+                            <field name="credential_json" filename="credential_filename"/>
+                            <button name="action_import" type="object" string="Nhập cấu hình JSON"/>
+                            <field name="client_id" readonly="1"/>
+                            <field name="redirect_uri"/>
+                            <field name="drive_state" string="Kết nối Drive"/>
+                        </group>
+                        <group string="Kênh nhận video">
+                            <field name="expected_channel_handle" placeholder="@YUYONG90"/>
+                            <field name="channel_name"/>
+                            <field name="channel_handle"/>
+                            <field name="channel_id"/>
+                            <field name="privacy"/>
+                        </group>
+                        <group string="Xử lý video">
+                            <field name="processing_enabled"/>
+                            <field name="auto_upload"/>
+                            <field name="max_file_gb"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_config" model="ir.actions.act_window">
+        <field name="name">Kết nối Google Video</field>
+        <field name="res_model">edu.video.config</field>
+        <field name="view_mode">form</field>
+        <field name="res_id" ref="config_default"/>
+    </record>
+    <menuitem id="menu_config" name="Google Drive / YouTube" parent="edu_gvnn.menu_edu_config_connections" action="action_config" sequence="20" groups="base.group_system"/>
+</odoo>

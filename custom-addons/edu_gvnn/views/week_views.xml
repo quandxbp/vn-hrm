@@ -4,7 +4,7 @@
         <field name="name">edu.week.tree</field>
         <field name="model">edu.week</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <tree class="edu_list" editable="bottom">
                 <field name="number"/>
                 <field name="date_from"/>
                 <field name="date_to"/>

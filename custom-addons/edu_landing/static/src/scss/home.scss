@@ -153,15 +153,15 @@
 // Transparent navigation over the opening scene; Odoo keeps its own menu and offcanvas.
 // The fixed overlay never occupies layout space. StandardAffixedHeader otherwise
 // inserts a header-height padding on main mid-scroll, shifting every section.
-#wrapwrap:has(.edu-home) > main { padding-top: 0 !important; }
+#wrapwrap:has(.edu-landing) > main { padding-top: 0 !important; }
 
-#wrapwrap:has(.edu-home) > header {
+#wrapwrap:has(.edu-landing) > header {
     --edu-nav-h: 86px;
     position: fixed;
     inset: 0 0 auto;
     z-index: 1030;
     // StandardAffixedHeader hides the header between its height and 300px.
-    // This homepage header is fixed from the start, so it must never slide away.
+    // This landing header is fixed from the start, so it must never slide away.
     transform: none !important;
     border-bottom: 1px solid transparent;
     isolation: isolate;
@@ -406,7 +406,7 @@
 @keyframes edu-scene-float { 0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); } 50% { transform: translate3d(0, -18px, 0) rotate(4deg); } }
 
 @media (min-width: 992px) and (max-width: 1199.98px) {
-    #wrapwrap:has(.edu-home) > header {
+    #wrapwrap:has(.edu-landing) > header {
         .edu-nav-brand-name { font-size: 25px; }
         .navbar-brand img.edu-nav-logo { height: 48px; }
         .top_menu > .nav-item > .nav-link { padding: 10px 7px; font-size: 11px; }
@@ -414,7 +414,7 @@
     }
 }
 @media (max-width: 991.98px) {
-    #wrapwrap:has(.edu-home) > header {
+    #wrapwrap:has(.edu-landing) > header {
         --edu-nav-h: 76px;
         .edu-nav-brand-name { font-size: 26px; }
         .navbar-brand img.edu-nav-logo { height: 52px; }
@@ -433,7 +433,7 @@
     .edu-hero-spark-two { right: 12%; }
 }
 @media (max-width: 575.98px) {
-    #wrapwrap:has(.edu-home) > header {
+    #wrapwrap:has(.edu-landing) > header {
         .edu-nav-brand-name { font-size: 23px; }
         .navbar-brand img.edu-nav-logo { height: 46px; }
         .o_main_nav { gap: 8px; }
@@ -460,11 +460,11 @@
     .edu-hero-spark-two { top: 405px; right: 5%; font-size: 24px; }
 }
 // Keep the Website editor usable and all content visible without animation support.
-body.editor_enable #wrapwrap:has(.edu-home) > header { position: relative; }
-body.editor_enable #wrapwrap:has(.edu-home) > main { padding-top: revert !important; }
+body.editor_enable #wrapwrap:has(.edu-landing) > header { position: relative; }
+body.editor_enable #wrapwrap:has(.edu-landing) > main { padding-top: revert !important; }
 #wrapwrap:has(.offcanvas.show) .edu-sticky-cta { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
-    .edu-home .edu-hero *, #wrapwrap:has(.edu-home) > header, #wrapwrap:has(.edu-home) > header::before, #wrapwrap:has(.edu-home) > header * {
+    .edu-home .edu-hero *, #wrapwrap:has(.edu-landing) > header, #wrapwrap:has(.edu-landing) > header::before, #wrapwrap:has(.edu-landing) > header * {
         animation: none !important;
         transition: none !important;
     }

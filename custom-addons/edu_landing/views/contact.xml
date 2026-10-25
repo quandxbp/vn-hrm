@@ -5,7 +5,7 @@
             <t t-set="title">Liên hệ | Kim Academy</t>
             <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
             <div id="wrap" class="oe_structure edu-landing edu-contact">
-                <section class="ka-contact-hero">
+                <section class="ka-contact-hero ka-opening">
                     <div class="container">
                         <nav class="ka-contact-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><span>Liên hệ</span></nav>
                         <div class="row align-items-end g-4">
@@ -28,7 +28,7 @@
 
                 <section class="ka-contact-visit" id="dia-chi">
                     <div class="container"><div class="row g-5 align-items-center">
-                        <div class="col-lg-6"><div class="ka-contact-photo"><img t-att-src="img + 'hero.jpg'" alt="Hoạt động tập thể tại Kim Academy" loading="lazy"/><span>Hẹn gặp bạn tại Kim Academy.</span></div></div>
+                        <div class="col-lg-6"><div class="ka-contact-photo"><img t-att-src="img + 'kim/community.jpg'" alt="Hoạt động tập thể tại Kim Academy" loading="lazy"/><span>Hẹn gặp bạn tại Kim Academy.</span></div></div>
                         <div class="col-lg-5 offset-lg-1"><p class="ka-contact-eyebrow">Ghé thăm trung tâm</p><h2 class="edu-display">Gặp gỡ trực tiếp.<br/>Hiểu nhau nhiều hơn.</h2><div class="ka-contact-address"><i class="fa fa-map-marker" aria-hidden="true"/><div><h3>Kim Academy Language Center</h3><address>257 Lý Thường Kiệt, KP Tân Phú 2,<br/>P. Bình Phước, TP. Đồng Nai</address></div></div><p class="ka-contact-visit-note">Bạn có thể gọi trước để trung tâm hỗ trợ sắp xếp buổi trao đổi phù hợp.</p><t t-call="edu_landing.directions_link"><t t-set="map_link_class">btn edu-btn edu-btn-pri</t><t t-set="map_link_icon" t-value="True"/></t></div>
                     </div></div>
                 </section>

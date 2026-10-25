@@ -6,7 +6,7 @@
             <t t-set="meta_description" t-value="course.introduction"/>
             <t t-set="img" t-value="'/edu_landing/static/src/img/'"/>
             <div id="wrap" class="oe_structure edu-landing edu-course-detail" t-att-data-program="course.program_value">
-                <section class="ka-course-hero">
+                <section class="ka-course-hero ka-opening">
                     <div class="container">
                         <nav class="ka-course-breadcrumb" aria-label="Đường dẫn trang"><a href="/">Trang chủ</a><span aria-hidden="true">/</span><a href="/#chuong-trinh">Chương trình học</a><span aria-hidden="true">/</span><span t-field="course.name"/></nav>
                         <div class="row g-5 align-items-center">

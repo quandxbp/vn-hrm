@@ -13,23 +13,25 @@
                             <t t-esc="greeting"/><t t-if="firstName">, <span t-esc="firstName"/></t>
                         </h1>
                         <p class="vd-hero-sub">
-                            Trung tâm GVNN
+                            Tổng quan GVNN
                             <t t-if="state.data.week"> · <span t-esc="state.data.week.name"/></t>
                         </p>
                     </div>
+                    <div class="vd-hero-mark" aria-hidden="true"><i class="fa fa-graduation-cap"/></div>
                 </section>
 
                 <!-- Chỉ số tổng quan -->
                 <div class="vd-kpis">
                     <t t-foreach="kpis" t-as="kpi" t-key="kpi.key">
-                        <section t-attf-class="vd-card vd-kpi vd-tone-{{ kpi.tone }} {{ kpi.onClick ? 'vd-clickable' : '' }}"
-                                 t-on-click="kpi.onClick">
+                        <button type="button" t-attf-class="vd-card vd-kpi vd-tone-{{ kpi.tone }} vd-clickable"
+                                 t-on-click="() => kpi.onClick()">
                             <span class="vd-kpi-icon"><i t-attf-class="fa {{ kpi.icon }}" role="img"/></span>
                             <div class="vd-kpi-body">
                                 <div class="vd-kpi-value" t-esc="kpi.value"/>
                                 <div class="vd-kpi-label" t-esc="kpi.label"/>
                             </div>
-                        </section>
+                            <i class="fa fa-angle-right vd-kpi-go" aria-hidden="true"/>
+                        </button>
                     </t>
                 </div>
 
@@ -55,24 +57,24 @@
                     <t t-if="state.data.week">
                         <ul class="vd-alert-list">
                             <t t-foreach="alertItems" t-as="alert" t-key="alert.key">
-                                <li t-attf-class="vd-alert vd-tone-{{ alert.tone }} vd-clickable" t-on-click="alert.onClick">
+                                <li><button type="button" t-attf-class="vd-alert vd-tone-{{ alert.tone }} vd-clickable" t-on-click="() => alert.onClick()">
                                     <span class="vd-alert-icon"><i t-attf-class="fa {{ alert.icon }}" role="img"/></span>
                                     <span class="vd-alert-label" t-esc="alert.label"/>
                                     <span class="vd-alert-count" t-esc="alert.count"/>
                                     <i class="fa fa-angle-right vd-alert-go" role="img"/>
-                                </li>
+                                </button></li>
                             </t>
-                            <li class="vd-alert vd-tone-warning vd-clickable" t-on-click="openSessionWarnings">
+                            <li><button type="button" class="vd-alert vd-tone-warning vd-clickable" t-on-click="openSessionWarnings">
                                 <span class="vd-alert-icon"><i class="fa fa-flag" role="img"/></span>
                                 <span class="vd-alert-label">Buổi học có cảnh báo</span>
                                 <span class="vd-alert-count" t-esc="state.data.alerts.session_warnings"/>
                                 <i class="fa fa-angle-right vd-alert-go" role="img"/>
-                            </li>
+                            </button></li>
                         </ul>
                     </t>
                     <div class="vd-empty" t-else="">
                         <i class="fa fa-calendar" role="img"/>
-                        <span>Chưa có tuần nào. Hãy tạo tuần trong Cấu hình hoặc import dữ liệu.</span>
+                        <span>Chưa có tuần học. Hãy tạo tuần trong Lịch học hoặc nhập dữ liệu Excel.</span>
                     </div>
                 </section>
 
@@ -97,7 +99,7 @@
                             <tbody>
                                 <t t-foreach="state.data.priority_list" t-as="row" t-key="row.id">
                                     <tr>
-                                        <td t-esc="row.student"/>
+                                        <td><button type="button" class="vd-student-link" t-on-click="() => this.openStudent(row.student_id)" t-esc="row.student"/></td>
                                         <td>
                                             <span t-attf-class="vd-pill vd-tone-{{ priorityTone(row.priority) }}"
                                                   t-esc="priorityLabel(row.priority)"/>

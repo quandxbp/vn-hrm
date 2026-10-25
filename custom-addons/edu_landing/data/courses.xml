@@ -6,27 +6,27 @@
         <field name="age_range">3–5 tuổi</field><field name="target">Làm quen tiếng Anh, hướng đến Pre-Starters</field>
         <field name="introduction">Khơi gợi niềm yêu thích tiếng Anh qua trò chơi, hoạt động khám phá và sáng tạo phù hợp với trẻ nhỏ.</field>
         <field name="description" type="html"><div><h3>Những bước đầu với tiếng Anh</h3><p>Chương trình hướng đến việc giúp trẻ làm quen với âm thanh, từ vựng và cách giao tiếp đơn giản trong những tình huống gần gũi.</p><h3>Mục tiêu học tập</h3><ul><li>Hình thành sự hứng thú khi nghe và tiếp xúc với tiếng Anh.</li><li>Làm quen từ vựng theo chủ đề và các mẫu câu ngắn.</li><li>Tập tương tác qua trò chơi, bài hát và hoạt động lớp học.</li></ul><p>Lộ trình cụ thể được tư vấn theo độ tuổi và khả năng của trẻ.</p></div></field>
-        <field name="fallback_image">/edu_landing/static/src/img/prog_kinder.jpg</field><field name="program_value">Tiếng Anh mầm non</field>
+        <field name="fallback_image">/edu_landing/static/src/img/kim/learning-materials.jpg</field><field name="program_value">Tiếng Anh mầm non</field>
     </record>
     <record id="course_primary" model="edu.landing.course">
         <field name="name">Tiếng Anh tiểu học</field><field name="slug">tieng-anh-tieu-hoc</field><field name="sequence">20</field><field name="is_published">True</field>
         <field name="age_range">6–10 tuổi</field><field name="target">Xây dựng nền tảng tiếng Anh, hướng đến Cambridge Flyers</field>
         <field name="introduction">Phát triển nền tảng tiếng Anh qua những chủ đề gần gũi, hoạt động tương tác và lộ trình định hướng Cambridge.</field>
         <field name="description" type="html"><div><h3>Xây nền tảng, thêm tự tin</h3><p>Học viên được làm quen và luyện tập các kỹ năng ngôn ngữ trong những hoạt động phù hợp với lứa tuổi tiểu học.</p><h3>Mục tiêu học tập</h3><ul><li>Phát triển nghe, nói, đọc và viết theo từng giai đoạn.</li><li>Mở rộng từ vựng và sử dụng mẫu câu trong tình huống quen thuộc.</li><li>Làm quen dạng bài Cambridge phù hợp với trình độ.</li></ul><p>Điểm bắt đầu và mục tiêu cụ thể được tư vấn sau khi tìm hiểu năng lực của học viên.</p></div></field>
-        <field name="fallback_image">/edu_landing/static/src/img/prog_primary.jpg</field><field name="program_value">Tiếng Anh tiểu học</field>
+        <field name="fallback_image">/edu_landing/static/src/img/kim/classroom-boards.jpg</field><field name="program_value">Tiếng Anh tiểu học</field>
     </record>
     <record id="course_teen" model="edu.landing.course">
         <field name="name">Tiếng Anh thiếu niên</field><field name="slug">tieng-anh-thieu-nien</field><field name="sequence">30</field><field name="is_published">True</field>
         <field name="age_range">11–14 tuổi</field><field name="target">Phát triển tiếng Anh học thuật, định hướng IELTS 5.5+</field>
         <field name="introduction">Kết nối việc học tiếng Anh với tư duy phản biện, kỹ năng trình bày và những chủ đề học viên quan tâm.</field>
         <field name="description" type="html"><div><h3>Học ngôn ngữ, mở rộng tư duy</h3><p>Chương trình định hướng xây dựng kỹ năng ngôn ngữ và khả năng sử dụng tiếng Anh để chia sẻ ý tưởng, trao đổi và tìm hiểu kiến thức mới.</p><h3>Mục tiêu học tập</h3><ul><li>Củng cố bốn kỹ năng nghe, nói, đọc và viết.</li><li>Luyện trình bày ý tưởng và tương tác bằng tiếng Anh.</li><li>Từng bước tiếp cận kỹ năng học thuật phù hợp trình độ.</li></ul><p>Mục tiêu IELTS là định hướng lộ trình; thời gian và điểm xuất phát được tư vấn riêng cho từng học viên.</p></div></field>
-        <field name="fallback_image">/edu_landing/static/src/img/prog_teen.jpg</field><field name="program_value">Tiếng Anh thiếu niên</field>
+        <field name="fallback_image">/edu_landing/static/src/img/kim/classroom-speaking.jpg</field><field name="program_value">Tiếng Anh thiếu niên</field>
     </record>
     <record id="course_ielts_sat" model="edu.landing.course">
         <field name="name">IELTS / SAT</field><field name="slug">ielts-sat</field><field name="sequence">40</field><field name="is_published">True</field>
         <field name="age_range">Từ 15 tuổi</field><field name="target">Lộ trình hướng đến IELTS 7.0+ hoặc SAT 1250+ theo nhu cầu</field>
         <field name="introduction">Tìm lộ trình luyện thi phù hợp với mục tiêu học thuật, kế hoạch du học và năng lực hiện tại.</field>
         <field name="description" type="html"><div><h3>Chuẩn bị cho mục tiêu học thuật</h3><p>Học viên được tư vấn lựa chọn hướng học IELTS hoặc SAT theo nhu cầu. Nội dung và lộ trình cụ thể phụ thuộc vào trình độ đầu vào và mục tiêu kỳ thi.</p><h3>Mục tiêu học tập</h3><ul><li>Hiểu yêu cầu và cấu trúc của kỳ thi lựa chọn.</li><li>Phát triển kỹ năng làm bài và kiến thức cần thiết.</li><li>Lập kế hoạch học tập hướng đến mục tiêu cá nhân.</li></ul><p>Liên hệ Kim Academy để được tư vấn chương trình và kế hoạch học phù hợp.</p></div></field>
-        <field name="fallback_image">/edu_landing/static/src/img/prog_ielts.jpg</field><field name="program_value">IELTS / SAT</field>
+        <field name="fallback_image">/edu_landing/static/src/img/kim/study-together.jpg</field><field name="program_value">IELTS / SAT</field>
     </record>
 </odoo>

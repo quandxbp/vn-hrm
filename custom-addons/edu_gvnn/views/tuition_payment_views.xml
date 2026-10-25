@@ -23,7 +23,7 @@
         <field name="name">edu.tuition.payment.form</field>
         <field name="model">edu.tuition.payment</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <header>
                     <button name="%(action_report_edu_tuition_receipt)d" type="action"
                             string="In phiếu" class="btn-primary" invisible="not id"/>

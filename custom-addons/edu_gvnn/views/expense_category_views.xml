@@ -4,7 +4,7 @@
         <field name="name">edu.expense.category.tree</field>
         <field name="model">edu.expense.category</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <tree class="edu_list" editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
             </tree>

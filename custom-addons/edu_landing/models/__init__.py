@@ -5,3 +5,4 @@ from . import activity
 from . import activity_upload
 from . import student_showcase
 from . import teacher_showcase
+from . import kim_media

@@ -61,6 +61,11 @@ notepad C:\ProgramData\KimAcademyDeploy\config.json
 
 Chỉnh `RepoPath`, `Database`, `BackupPath`, `HealthUrl`; `Database` và tham số `db=` trong URL phải trùng nhau.
 `Modules` phải liệt kê các module đã cài cần tự upgrade. Với thay đổi website hiện tại, dùng `["edu_landing"]`.
+
+Với video Drive → YouTube, xem [VIDEO_AUTOMATION.md](VIDEO_AUTOMATION.md).
+Module mới `edu_video` cần cài bằng `-i edu_video` trước khi thêm vào danh sách upgrade
+`Modules`; sau khi installed, thêm `edu_gvnn` và `edu_video` cho các lần deploy sau.
+Giữ xử lý nền tắt đến khi cấu hình callback HTTPS và chủ kênh cấp OAuth đúng kênh.
 Nếu server cũng chạy nghiệp vụ GVNN và muốn cập nhật cả phần đó, dùng
 `["edu_landing", "edu_gvnn", "vnpt_hrm_dashboard"]` sau khi kiểm tra chúng đã installed trên DB.
 Worker không tự suy luận danh sách module phụ thuộc từ diff; thêm module khi mở rộng phạm vi deploy.

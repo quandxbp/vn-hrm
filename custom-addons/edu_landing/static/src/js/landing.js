@@ -3,12 +3,12 @@
 import publicWidget from "@web/legacy/js/public/public_widget";
 import "@website/js/content/menu";
 
-// The homepage already owns a fixed overlay header. Running Odoo's standard
+// Kim landing pages already own a fixed overlay header. Running Odoo's standard
 // affix loop as well causes inline style writes and synchronous layout reads
 // at its 87/300px thresholds, even when CSS cancels their visible effects.
 publicWidget.registry.StandardAffixedHeader.include({
     _updateHeaderOnScroll() {
-        if (!this.editableMode && this.el.closest("#wrapwrap")?.querySelector(".edu-home")) {
+        if (!this.editableMode && this.el.closest("#wrapwrap")?.querySelector(".edu-landing")) {
             return;
         }
         return this._super(...arguments);

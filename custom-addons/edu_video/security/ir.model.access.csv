@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_config_admin,video.config.admin,model_edu_video_config,base.group_system,1,1,0,0
+access_video_job_manager,video.job.manager,model_edu_video_job,edu_gvnn.group_edu_manager,1,0,0,0

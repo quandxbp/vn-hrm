@@ -4,12 +4,12 @@
         <field name="name">edu.teacher.tree</field>
         <field name="model">edu.teacher</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree class="edu_list">
                 <field name="name"/>
                 <field name="teaching_title"/>
                 <field name="meeting_url" widget="url" optional="show"/>
                 <field name="code"/>
-                <field name="teacher_type"/>
+                <field name="teacher_type" widget="badge" decoration-info="teacher_type == 'direct'" decoration-warning="teacher_type == 'agency'"/>
                 <field name="agency_id"/>
                 <field name="current_rate" groups="edu_gvnn.group_edu_manager"/>
             </tree>
@@ -20,14 +20,19 @@
         <field name="name">edu.teacher.form</field>
         <field name="model">edu.teacher</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="edu_form">
                 <sheet>
                     <widget name="web_ribbon" title="Đã lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="edu_profile_heading">
+                        <span class="edu_profile_icon fa fa-user" aria-hidden="true"/>
+                        <div class="oe_title"><div class="edu_eyebrow">HỒ SƠ GIÁO VIÊN</div><h1><field name="name" placeholder="Tên giáo viên"/></h1></div>
+                    </div>
                     <group>
-                        <group>
-                            <field name="name"/>
+                        <group string="Thông tin giảng dạy">
                             <field name="teaching_title"/>
                             <field name="meeting_url" widget="url" placeholder="https://meet.google.com/xxx-xxxx-xxx"/>
+                            <field name="public_schedule_url" widget="url" readonly="1"/>
+                            <field name="schedule_edit_url" widget="url" readonly="1" groups="edu_gvnn.group_edu_manager"/>
                             <field name="code"/>
                             <field name="teacher_type"/>
                             <field name="agency_id" required="teacher_type == 'agency'"
@@ -35,11 +40,11 @@
                                    context="{'default_is_company': True}"
                                    domain="[('is_company', '=', True)]"/>
                         </group>
-                        <group>
-                            <field name="phone"/>
-                            <field name="email"/>
+                        <group string="Liên hệ và quản lý">
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
                             <field name="active"/>
-                            <field name="current_rate" groups="edu_gvnn.group_edu_manager"/>
+                            <field name="current_rate" class="edu_metric" groups="edu_gvnn.group_edu_manager"/>
                         </group>
                     </group>
                     <notebook>
