@@ -52,17 +52,43 @@ class EduSessionAttendee(models.Model):
         if any(self.mapped('session_id.paid')):
             raise UserError('Buổi học thuộc kỳ lương đã chốt, không thể sửa học viên trong buổi.')
 
+    def _change_snapshot(self):
+        self.ensure_one()
+        return {
+            'Học viên': self.student_id.display_name,
+            'Điểm danh': 'Có mặt' if self.present else 'Nghỉ',
+            'Điểm': str(self.score),
+            'Đơn giá/buổi (đ)': '%g' % self.block_price,
+        }
+
     @api.model_create_multi
     def create(self, vals_list):
         sessions = self.env['edu.session'].browse([v['session_id'] for v in vals_list if v.get('session_id')])
         if any(sessions.mapped('paid')):
             raise UserError('Buổi học thuộc kỳ lương đã chốt, không thể thêm học viên vào buổi.')
-        return super().create(vals_list)
+        attendees = super().create(vals_list)
+        for attendee in attendees:
+            attendee.session_id._log_related_change('Thêm học viên', after=attendee._change_snapshot())
+        return attendees
 
     def write(self, vals):
         self._check_session_unlocked()
-        return super().write(vals)
+        previous = {rec.id: (rec.session_id, rec._change_snapshot()) for rec in self}
+        result = super().write(vals)
+        for rec in self:
+            session, before = previous[rec.id]
+            after = rec._change_snapshot()
+            if session != rec.session_id:
+                session._log_related_change('Xóa học viên khỏi buổi', before=before)
+                rec.session_id._log_related_change('Thêm học viên', after=after)
+            else:
+                session._log_related_change('Cập nhật học viên: %s' % rec.student_id.display_name, before, after)
+        return result
 
     def unlink(self):
         self._check_session_unlocked()
-        return super().unlink()
+        previous = [(rec.session_id, rec._change_snapshot()) for rec in self]
+        result = super().unlink()
+        for session, before in previous:
+            session._log_related_change('Xóa học viên khỏi buổi', before=before)
+        return result

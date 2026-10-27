@@ -32,6 +32,14 @@ class SessionRecordingPart(models.Model):
     def _check_video_history(self):
         """Extended by edu_video; never detach a part from upload history."""
 
+    def _change_snapshot(self):
+        self.ensure_one()
+        return {
+            'Phần': str(self.number),
+            'Google Drive': self.google_drive_url or '—',
+            'YouTube': self.youtube_url or '—',
+        }
+
     @api.constrains('google_drive_url', 'session_id')
     def _check_drive(self):
         for part in self:
@@ -47,7 +55,10 @@ class SessionRecordingPart(models.Model):
             session.check_access_rights('write')
             session.check_access_rule('write')
             vals['google_drive_url'] = (vals.get('google_drive_url') or '').strip()
-        return super().create(vals_list)
+        parts = super().create(vals_list)
+        for part in parts:
+            part.session_id._log_related_change('Thêm phần video', after=part._change_snapshot())
+        return parts
 
     def write(self, vals):
         self._check_parent_access()
@@ -59,11 +70,20 @@ class SessionRecordingPart(models.Model):
             if any(p.youtube_url for p in changed) and vals.get('youtube_url', True):
                 raise UserError('Đoạn đã có YouTube. Hãy kiểm tra và bỏ link YouTube trước khi thay video gốc.')
             changed._check_video_history()
-        return super().write(vals)
+        previous = {part.id: part._change_snapshot() for part in self}
+        result = super().write(vals)
+        for part in self:
+            part.session_id._log_related_change(
+                'Cập nhật video Phần %s' % part.number, previous[part.id], part._change_snapshot())
+        return result
 
     def unlink(self):
         self._check_parent_access()
         if any(self.mapped('youtube_url')):
             raise UserError('Đoạn đã có link YouTube, không thể xóa trực tiếp.')
         self._check_video_history()
-        return super().unlink()
+        previous = [(part.session_id, part._change_snapshot()) for part in self]
+        result = super().unlink()
+        for session, before in previous:
+            session._log_related_change('Xóa phần video', before=before)
+        return result
