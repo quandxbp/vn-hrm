@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from markupsafe import Markup
 from ..tools import youtube_recording_url
 
 WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
@@ -9,29 +10,30 @@ WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 class EduSession(models.Model):
     _name = 'edu.session'
     _description = 'Buổi học'
+    _inherit = ['mail.thread']
     _order = 'date desc, time_start desc, id desc'
 
-    date = fields.Date('Ngày', required=True, default=fields.Date.context_today, index=True)
+    date = fields.Date('Ngày', required=True, default=fields.Date.context_today, index=True, tracking=True)
     week_id = fields.Many2one(
-        'edu.week', 'Tuần', compute='_compute_week', store=True, readonly=False, index=True)
+        'edu.week', 'Tuần', compute='_compute_week', store=True, readonly=False, index=True, tracking=True)
     weekday = fields.Selection(
         [(d, d) for d in WEEKDAYS], string='Thứ', compute='_compute_weekday', store=True)
     session_type = fields.Selection(
         [('lesson', 'Buổi học'), ('testing', 'Buổi testing')],
-        string='Loại buổi', required=True, default='lesson', index=True)
-    teacher_id = fields.Many2one('edu.teacher', 'Giáo viên', required=True, index=True)
+        string='Loại buổi', required=True, default='lesson', index=True, tracking=True)
+    teacher_id = fields.Many2one('edu.teacher', 'Giáo viên', required=True, index=True, tracking=True)
     class_ids = fields.Many2many(
-        'edu.class', 'edu_session_class_rel', 'session_id', 'class_id', 'Lớp')
-    time_start = fields.Float('Giờ bắt đầu')
-    time_end = fields.Float('Giờ kết thúc')
-    minutes = fields.Float('Phút', compute='_compute_minutes', store=True, readonly=False)
+        'edu.class', 'edu_session_class_rel', 'session_id', 'class_id', 'Lớp', tracking=True)
+    time_start = fields.Float('Giờ bắt đầu', tracking=True)
+    time_end = fields.Float('Giờ kết thúc', tracking=True)
+    minutes = fields.Float('Phút', compute='_compute_minutes', store=True, readonly=False, tracking=True)
     student_hours = fields.Float(
-        'Giờ tính cho HV', compute='_compute_hours', store=True, readonly=False)
+        'Giờ tính cho HV', compute='_compute_hours', store=True, readonly=False, tracking=True)
     teacher_hours = fields.Float(
-        'Giờ tính cho GV', compute='_compute_hours', store=True, readonly=False)
+        'Giờ tính cho GV', compute='_compute_hours', store=True, readonly=False, tracking=True)
     state = fields.Selection(
         [('done', 'Đã dạy'), ('cancel', 'Nghỉ buổi học')],
-        string='Trạng thái', required=True, default='done', index=True)
+        string='Trạng thái', required=True, default='done', index=True, tracking=True)
     attendee_ids = fields.One2many('edu.session.attendee', 'session_id', 'Học viên')
     student_names = fields.Char('Danh sách học viên', compute='_compute_student_names')
     student_badge_data = fields.Json('Thông tin hiển thị học viên', compute='_compute_student_badge_data')
@@ -45,13 +47,13 @@ class EduSession(models.Model):
                 'english': attendee.student_id.name_en or '',
                 'present': attendee.present,
             } for attendee in session.attendee_ids]
-    completion_note = fields.Char('Hoàn thành / ghi chú nhanh')
-    note = fields.Text('Ghi chú')
+    completion_note = fields.Char('Hoàn thành / ghi chú nhanh', tracking=True)
+    note = fields.Text('Ghi chú', tracking=True)
     google_drive_url = fields.Char(
-        'Link video Google Drive', copy=False,
+        'Link video Google Drive', copy=False, tracking=True,
         help='Link video gốc do giáo viên gửi sau buổi học.')
     youtube_url = fields.Char(
-        'Link video YouTube', copy=False,
+        'Link video YouTube', copy=False, tracking=True,
         help='Link video buổi học sau khi được đăng lên YouTube.')
     recording_part_ids = fields.One2many(
         'edu.session.recording.part', 'session_id', 'Các đoạn video bổ sung', copy=False)
@@ -62,12 +64,12 @@ class EduSession(models.Model):
             {'id': p.id, 'number': p.number, 'drive': p.google_drive_url or '', 'youtube': p.youtube_url or ''}
             for p in self.recording_part_ids.sorted('number')]
     # Retained for historical Excel compatibility; current UI uses the Video tab.
-    recording_url = fields.Char('Recording (Excel cũ)',
+    recording_url = fields.Char('Recording (Excel cũ)', tracking=True,
         help='Dữ liệu tương thích Excel cũ. Dùng Link video Google Drive / YouTube cho buổi học mới.')
-    video_posted = fields.Boolean('Đã đăng video (Excel cũ)',
+    video_posted = fields.Boolean('Đã đăng video (Excel cũ)', tracking=True,
         help='Dấu đánh đăng video trong Excel cũ; không phải trạng thái upload YouTube hiện tại.')
-    extra_participants = fields.Char('Người tham gia khác')
-    paid = fields.Boolean('Đã chốt lương', copy=False, readonly=True)
+    extra_participants = fields.Char('Người tham gia khác', tracking=True)
+    paid = fields.Boolean('Đã chốt lương', copy=False, readonly=True, tracking=True)
     period_id = fields.Many2one(
         'edu.payroll.period', 'Kỳ lương', compute='_compute_period', groups='edu_gvnn.group_edu_manager')
     locked = fields.Boolean('Tháng đã chốt', compute='_compute_period')
@@ -76,6 +78,25 @@ class EduSession(models.Model):
     _sql_constraints = [
         ('import_key_uniq', 'unique(import_key)', 'Buổi học này đã được import.'),
     ]
+
+    def _log_related_change(self, title, before=None, after=None):
+        """Keep attendance and recording edits in their session's history."""
+        self.ensure_one()
+        if self.env.context.get('tracking_disable') or self.env.context.get('mail_notrack'):
+            return
+        before, after = before or {}, after or {}
+        lines = [
+            Markup('<li><strong>%s</strong>: %s → %s</li>') % (
+                label, before.get(label, '—'), after.get(label, '—'))
+            for label in dict.fromkeys([*before, *after])
+            if before.get(label) != after.get(label)
+        ]
+        if lines:
+            self.check_access_rights('write')
+            self.check_access_rule('write')
+            self._message_log(
+                body=Markup('<p>%s</p><ul>%s</ul>') % (title, Markup('').join(lines)),
+            )
 
     @api.model
     def _migrate_legacy_recordings(self):
@@ -95,11 +116,11 @@ class EduSession(models.Model):
         self.invalidate_model(['youtube_url'])
         return count
     teacher_rate = fields.Float(
-        'Đơn giá GV (đ/giờ)', digits=(16, 0), copy=False, groups='edu_gvnn.group_edu_manager')
-    paid_hours = fields.Float('Giờ tính lương', compute='_compute_paid_hours', store=True)
+        'Đơn giá GV (đ/giờ)', digits=(16, 0), copy=False, tracking=True, groups='edu_gvnn.group_edu_manager')
+    paid_hours = fields.Float('Giờ tính lương', compute='_compute_paid_hours', store=True, tracking=True)
     teacher_amount = fields.Float(
         'Lương buổi (đ)', digits=(16, 2), compute='_compute_teacher_amount', store=True,
-        groups='edu_gvnn.group_edu_manager')
+        groups='edu_gvnn.group_edu_manager', tracking=True)
     warning = fields.Selection(
         [('ok', 'OK'), ('zero_hours', 'Giờ dạy = 0'), ('no_rate', 'Chưa có đơn giá'),
          ('duplicate', 'Trùng buổi'), ('no_student', 'Thiếu học viên')],

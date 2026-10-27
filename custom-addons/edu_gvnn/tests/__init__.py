@@ -4,3 +4,4 @@ from . import test_export_week
 from . import test_import_history
 from . import test_public_schedule
 from . import test_recording_parts
+from . import test_session_history

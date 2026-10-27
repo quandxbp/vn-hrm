@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'GVNN',
-    'version': '17.0.1.15.9',
+    'version': '17.0.1.16.0',
     'summary': 'Quản lý lớp luyện nói online với giáo viên nước ngoài',
     'description': """
 Thay cho file TỔNG HỢP_GVNN.xlsx: giáo viên và đơn giá, lớp, học viên, buổi học,
