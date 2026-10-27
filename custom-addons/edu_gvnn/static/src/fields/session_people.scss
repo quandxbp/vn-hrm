@@ -68,5 +68,31 @@
         font-size: 10px;
         font-weight: 500;
     }
-    td[name="student_names"] { min-width: 280px; }
+    td[name="student_names"], td[name="attendee_ids"] { min-width: 280px; }
+
+    .edu_inline_attendees { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+    .edu_inline_attendee {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        .o_field_many2one { flex: 1; min-width: 150px; }
+    }
+    .edu_inline_attendance {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        font-size: 11px;
+        cursor: pointer;
+        margin: 0;
+    }
+    .edu_inline_attendee_absent .edu_inline_attendance { color: $o-gray-600; }
+    .edu_session_state_toggle {
+        white-space: nowrap;
+        .o-checkbox { margin: 0; }
+        .form-check-label { font-size: 11px; }
+    }
+    .o_list_renderer .o_data_row:not(.o_selected_row) .o_data_cell .edu_session_state_toggle .form-check {
+        pointer-events: auto;
+    }
 }

@@ -1,0 +1,13 @@
+.edu_session_list_content .edu_session_video_links {
+    min-width: 240px;
+    width: 100%;
+    .edu_video_link_part {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 30px;
+        > span { flex: 0 0 44px; font-size: 11px; }
+        > .o_field_widget { flex: 1; min-width: 0; }
+        a { display: block; overflow-wrap: anywhere; white-space: normal; }
+    }
+}

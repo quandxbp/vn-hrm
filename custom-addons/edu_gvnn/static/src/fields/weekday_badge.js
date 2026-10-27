@@ -2,6 +2,8 @@
 
 import { registry } from "@web/core/registry";
 import { BadgeField, badgeField } from "@web/views/fields/badge/badge_field";
+import { DateTimeField, dateField } from "@web/views/fields/datetime/datetime_field";
+import { xml } from "@odoo/owl";
 
 class WeekdayBadgeField extends BadgeField {
     get classFromDecoration() {
@@ -16,6 +18,16 @@ class WeekdayBadgeField extends BadgeField {
     }
 }
 
+class EditableDateBadgeField extends WeekdayBadgeField {
+    static template = xml`
+        <t t-if="props.readonly" t-call="web.BadgeField"/>
+        <DateTimeField t-else="" t-props="props"/>
+    `;
+    static components = { DateTimeField };
+    static props = DateTimeField.props;
+    static defaultProps = DateTimeField.defaultProps;
+}
+
 registry.category("fields").add("edu_weekday_badge", {
     ...badgeField,
     component: WeekdayBadgeField,
@@ -23,7 +35,7 @@ registry.category("fields").add("edu_weekday_badge", {
 });
 
 registry.category("fields").add("edu_weekday_date_badge", {
-    ...badgeField,
-    component: WeekdayBadgeField,
+    ...dateField,
+    component: EditableDateBadgeField,
     supportedTypes: ["date"],
 });

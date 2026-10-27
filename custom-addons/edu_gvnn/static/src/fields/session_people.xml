@@ -1,6 +1,38 @@
 <templates xml:space="preserve">
+    <t t-name="edu_gvnn.SessionStateToggleField">
+        <div class="edu_session_state_toggle" t-on-click.stop="() => {}">
+            <CheckBox value="isDone" disabled="props.readonly" onChange.bind="onChange"
+                      className="'o_field_boolean o_boolean_toggle form-switch'">
+                <span t-if="isDone">Đã dạy</span>
+                <span t-else="">Nghỉ buổi học</span>
+            </CheckBox>
+        </div>
+    </t>
     <t t-name="edu_gvnn.SessionStudentsField">
-        <div class="edu_student_tags">
+        <div t-if="canEditStudents" class="edu_inline_attendees">
+            <div t-foreach="list.records" t-as="attendee" t-key="attendee.id"
+                 class="edu_inline_attendee" t-att-class="{'edu_inline_attendee_absent': !attendee.data.present}">
+                <Many2OneField record="attendee" name="'student_id'" readonly="false"
+                    canOpen="false" canCreate="false" canQuickCreate="false" canCreateEdit="false"
+                    domain="studentDomain(attendee)"/>
+                <label class="edu_inline_attendance">
+                    <input type="checkbox" t-att-checked="attendee.data.present"
+                        t-att-aria-label="'Có mặt: ' + (attendee.data.student_id ? attendee.data.student_id[1] : 'Học viên mới')"
+                        t-on-click.stop="() => {}" t-on-change="(event) => this.setPresent(attendee, event)"/>
+                    <span t-esc="attendee.data.present ? 'Có mặt' : 'Nghỉ'"/>
+                </label>
+                <button t-if="activeActions.delete" type="button" class="btn btn-link text-danger p-1"
+                    title="Bỏ học viên khỏi buổi" aria-label="Bỏ học viên khỏi buổi"
+                    t-on-click.stop="() => this.removeStudent(attendee)">
+                    <i class="fa fa-times" aria-hidden="true"/>
+                </button>
+            </div>
+            <button t-if="activeActions.create and list.records.length &lt; 2" type="button"
+                class="btn btn-link p-0 align-self-start" t-on-click.stop="addStudent">
+                <i class="fa fa-plus me-1" aria-hidden="true"/>Thêm học viên
+            </button>
+        </div>
+        <div t-else="" class="edu_student_tags">
             <t t-foreach="students" t-as="student" t-key="student.id">
                 <span class="edu_student_tag" t-att-class="{'edu_student_absent': !student.present}">
                     <i class="fa fa-user edu_student_icon" aria-hidden="true"/>

@@ -37,7 +37,7 @@
         <field name="name">Video Drive → YouTube</field><field name="res_model">edu.video.job</field>
         <field name="view_mode">tree,form</field>
     </record>
-    <menuitem id="menu_video_job" name="Video buổi học" parent="edu_gvnn.menu_edu_operation_root" sequence="70"
+    <menuitem id="menu_video_job" name="Xử lý Drive → YouTube" parent="edu_gvnn.menu_edu_operation_root" sequence="70"
               action="action_video_job" groups="edu_gvnn.group_edu_manager"/>
     <record id="view_session_video_upload" model="ir.ui.view">
         <field name="name">edu.session.video.upload</field><field name="model">edu.session</field>

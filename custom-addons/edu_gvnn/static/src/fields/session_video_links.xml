@@ -1,0 +1,22 @@
+<templates xml:space="preserve">
+    <t t-name="edu_gvnn.SessionVideoLinksField">
+        <div class="edu_session_video_links" t-on-click="onClick">
+            <div class="edu_video_link_part">
+                <span class="text-muted">Phần 1</span>
+                <UrlField t-if="!props.readonly or props.record.data[props.linkField]"
+                          record="props.record" name="props.linkField" readonly="props.readonly"/>
+                <span t-else="" class="text-muted">—</span>
+            </div>
+            <div t-foreach="parts" t-as="part" t-key="part.id" class="edu_video_link_part">
+                <span class="text-muted">Phần <t t-esc="part.data.number"/></span>
+                <UrlField t-if="!props.readonly or part.data[props.linkField]"
+                          record="part" name="props.linkField" readonly="props.readonly"/>
+                <span t-else="" class="text-muted">—</span>
+            </div>
+            <button t-if="!props.readonly and activeActions.create and props.linkField === 'google_drive_url'"
+                    type="button" class="btn btn-link p-0 mt-1" t-on-click.stop="addPart">
+                <i class="fa fa-plus me-1"/>Thêm phần video
+            </button>
+        </div>
+    </t>
+</templates>

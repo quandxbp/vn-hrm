@@ -27,14 +27,17 @@
                             <field name="account"/>
                             <field name="qr" widget="image" options="{'size': [280, 280]}" invisible="not qr"/>
                             <field name="preferred_group"/>
+                            <button name="action_select_preferred_group" type="object" string="Chọn nhóm theo tên"
+                                class="btn-secondary" colspan="2" invisible="state != 'connected'"/>
                             <field name="group_id" options="{'no_create': True, 'no_open': True}"/>
                             <button name="action_confirm_group" type="object" string="Xác nhận nhóm nhận" class="btn-secondary"
-                                invisible="state != 'connected' or not group_id" confirm="Xác nhận dùng nhóm đang chọn để nhận lịch học?"/>
+                                colspan="2" invisible="state != 'connected' or not group_id" confirm="Xác nhận dùng nhóm đang chọn để nhận lịch học?"/>
                             <field name="confirmed_group_id"/>
                         </group>
                         <group string="Gửi lịch">
                             <field name="auto_send"/>
-                            <label for="auto_send" string="12:00 giờ Việt Nam; máy chủ cần hoạt động."/>
+                            <field name="send_hour" widget="float_time"/>
+                            <div colspan="2" class="text-muted">Giờ Việt Nam; máy chủ cần hoạt động trong vòng 30 phút kể từ giờ gửi.</div>
                             <field name="preview_date"/>
                         </group>
                     </group>

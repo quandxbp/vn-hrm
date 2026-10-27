@@ -4,7 +4,7 @@
         <field name="name">edu.session.tree</field>
         <field name="model">edu.session</field>
         <field name="arch" type="xml">
-            <tree class="edu_list" js_class="edu_session_list" expand="1" default_order="week_id asc,date desc,time_start desc,id desc" decoration-muted="state == 'cancel'"
+            <tree class="edu_list" js_class="edu_session_list" editable="bottom" expand="1" default_order="week_id asc,date desc,time_start desc,id desc" decoration-muted="state == 'cancel'"
                   decoration-info="session_type == 'testing' and state == 'done'">
                 <header>
                     <button name="%(action_edu_import_wizard)d" type="action" display="always"
@@ -19,23 +19,69 @@
                             string="Xuất điểm danh" icon="fa-file-excel-o" class="edu_session_action_file"
                             help="Xuất điểm danh của tuần đã chọn theo mẫu Weekly."/>
                 </header>
-                <field name="week_id" widget="edu_session_week"/>
-                <field name="date" widget="edu_weekday_date_badge"/>
+                <field name="paid" column_invisible="1"/>
+                <field name="week_id" widget="edu_session_week" readonly="1"/>
+                <field name="date" widget="edu_weekday_date_badge" readonly="paid"/>
                 <field name="weekday" widget="edu_weekday_badge"/>
-                <field name="teacher_id" widget="edu_teacher_badge"/>
-                <field name="session_type" optional="hide"/>
-                <field name="time_start" widget="float_time"/>
-                <field name="time_end" widget="float_time"/>
-                <field name="minutes" optional="hide"/>
-                <field name="class_ids" widget="many2many_tags"/>
+                <field name="teacher_id" widget="edu_teacher_badge" readonly="paid" options="{'no_open': True}"/>
+                <field name="session_type" optional="hide" readonly="paid"/>
+                <field name="time_start" widget="float_time" readonly="paid"/>
+                <field name="time_end" widget="float_time" readonly="paid"/>
+                <field name="minutes" optional="hide" readonly="paid"/>
+                <field name="class_ids" widget="many2many_tags" readonly="paid"/>
                 <field name="student_badge_data" column_invisible="1"/>
-                <field name="student_names" widget="edu_session_students"/>
-                <field name="google_drive_url" widget="url" optional="hide"/>
-                <field name="youtube_url" widget="url" optional="hide"/>
-                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-muted="state == 'cancel'"/>
+                <field name="attendee_ids" widget="edu_session_students" string="Danh sách học viên"
+                       readonly="paid or session_type == 'testing'">
+                    <tree editable="bottom">
+                        <field name="student_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="present"/>
+                    </tree>
+                </field>
+                <field name="google_drive_url" widget="url" optional="hide" readonly="paid"/>
+                <field name="youtube_url" widget="url" optional="hide" readonly="paid"/>
+                <field name="state" widget="edu_session_state_toggle" readonly="paid"/>
                 <field name="warning" widget="badge" decoration-success="warning == 'ok'" decoration-danger="warning != 'ok'"/>
                 <field name="paid_hours" optional="hide"/>
                 <field name="teacher_amount" groups="edu_gvnn.group_edu_manager" optional="hide" sum="Tổng"/>
+                <button name="get_formview_action" type="object" string="Chi tiết"
+                        icon="fa-external-link" class="btn-link"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_edu_session_video_tree" model="ir.ui.view">
+        <field name="name">edu.session.video.tree</field>
+        <field name="model">edu.session</field>
+        <field name="arch" type="xml">
+            <tree class="edu_list" js_class="edu_session_list" editable="bottom" create="0" delete="0"
+                  expand="1" default_order="week_id asc,date desc,time_start desc,id desc"
+                  decoration-muted="state == 'cancel'">
+                <field name="paid" column_invisible="1"/>
+                <field name="google_drive_url" column_invisible="1"/>
+                <field name="youtube_url" column_invisible="1"/>
+                <field name="student_badge_data" column_invisible="1"/>
+                <field name="week_id" widget="edu_session_week" readonly="1"/>
+                <field name="date" widget="edu_weekday_date_badge" readonly="1"/>
+                <field name="weekday" widget="edu_weekday_badge" readonly="1"/>
+                <field name="teacher_id" widget="edu_teacher_badge" readonly="1" options="{'no_open': True}"/>
+                <field name="student_names" widget="edu_session_student_names" string="Danh sách học viên" readonly="1"/>
+                <field name="state" widget="edu_session_state_toggle" readonly="1"/>
+                <field name="recording_part_ids" widget="edu_session_video_links" string="Link GG Drive"
+                       readonly="paid" options="{'link_field': 'google_drive_url'}">
+                    <tree editable="bottom">
+                        <field name="number"/>
+                        <field name="google_drive_url"/>
+                        <field name="youtube_url"/>
+                    </tree>
+                </field>
+                <field name="recording_part_ids" widget="edu_session_video_links" string="Link YouTube"
+                       readonly="paid" options="{'link_field': 'youtube_url'}">
+                    <tree editable="bottom">
+                        <field name="number"/>
+                        <field name="google_drive_url"/>
+                        <field name="youtube_url"/>
+                    </tree>
+                </field>
             </tree>
         </field>
     </record>
@@ -170,6 +216,14 @@
         <field name="name">Buổi học</field>
         <field name="res_model">edu.session</field>
         <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_group_week': 1}</field>
+    </record>
+    <record id="action_edu_session_video" model="ir.actions.act_window">
+        <field name="name">Video buổi học</field>
+        <field name="res_model">edu.session</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_edu_session_video_tree"/>
+        <field name="search_view_id" ref="view_edu_session_search"/>
         <field name="context">{'search_default_group_week': 1}</field>
     </record>
 </odoo>

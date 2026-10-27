@@ -7,8 +7,10 @@ from ..tools import get_param, normalize_name
 class EduStudent(models.Model):
     _name = 'edu.student'
     _description = 'Học viên'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'image.mixin']
     _order = 'code'
+
+    image_1920 = fields.Image(string='Avatar')
 
     code = fields.Char(
         'Mã HV', required=True, copy=False, tracking=True,

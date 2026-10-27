@@ -6,7 +6,7 @@ import pytz
 import requests
 
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 TZ = pytz.timezone('Asia/Ho_Chi_Minh')
 
@@ -46,11 +46,14 @@ class ZaloConfig(models.Model):
         default='disconnected', readonly=True)
     qr = fields.Binary('Mã QR đăng nhập', readonly=True, attachment=False)
     account = fields.Char('Tài khoản Zalo', readonly=True)
-    preferred_group = fields.Char('Tên nhóm cần tìm')
+    preferred_group = fields.Char('Tên nhóm cần tìm',
+        help='Nhập tên, bấm Chọn nhóm theo tên, rồi Xác nhận nhóm nhận để đổi nhóm gửi mặc định.')
     group_id = fields.Many2one('edu.zalo.group', 'Nhóm nhận lịch', ondelete='restrict')
     confirmed_group_id = fields.Many2one('edu.zalo.group', 'Nhóm đã xác nhận', readonly=True, ondelete='restrict')
-    auto_send = fields.Boolean('Tự động gửi lúc 12:00 mỗi ngày', default=False,
-        help='Theo giờ Việt Nam. Chỉ gửi trong khoảng 12:00–12:30 khi máy chủ hoạt động.')
+    auto_send = fields.Boolean('Tự động gửi hằng ngày', default=False,
+        help='Theo giờ Việt Nam. Gửi trong vòng 30 phút kể từ giờ đã chọn khi máy chủ hoạt động.')
+    send_hour = fields.Float('Giờ gửi (giờ Việt Nam)', required=True, default=9.0,
+        help='Ví dụ 09:00. Máy chủ cần hoạt động trong vòng 30 phút kể từ giờ gửi.')
     preview_date = fields.Date('Ngày gửi lịch', default=lambda self: datetime.now(TZ).date(), required=True)
     preview = fields.Text('Nội dung lịch', compute='_compute_preview')
     log_ids = fields.One2many('edu.zalo.message', 'config_id', 'Lịch sử gửi')
@@ -121,6 +124,35 @@ class ZaloConfig(models.Model):
         self._bridge('POST', '/target', {'group_id': self.group_id.zalo_id})
         self.confirmed_group_id = self.group_id
         return self._reopen()
+
+    def action_select_preferred_group(self):
+        self.ensure_one()
+        self._manager()
+        wanted = ' '.join((self.preferred_group or '').split()).casefold()
+        if not wanted:
+            raise UserError('Hãy nhập tên nhóm cần tìm.')
+        groups = self._bridge('GET', '/groups')['groups']
+        matches = [g for g in groups if ' '.join(g['name'].split()).casefold() == wanted]
+        if len(matches) != 1:
+            raise UserError('Không tìm thấy một nhóm duy nhất có tên này. Hãy kiểm tra tên nhóm và tài khoản Zalo.')
+        match = matches[0]
+        Group = self.env['edu.zalo.group'].sudo()
+        group = Group.search([('zalo_id', '=', match['id'])], limit=1)
+        if group:
+            group.name = match['name']
+        else:
+            group = Group.create({'name': match['name'], 'zalo_id': match['id']})
+        values = {'group_id': group.id}
+        if group != self.confirmed_group_id:
+            values['auto_send'] = False
+        self.write(values)
+        return self._reopen()
+
+    @api.constrains('send_hour')
+    def _check_send_hour(self):
+        for config in self:
+            if not 0 <= config.send_hour < 24:
+                raise ValidationError('Giờ gửi phải từ 00:00 đến trước 24:00.')
 
     def _reopen(self):
         return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': self.id,
@@ -239,7 +271,9 @@ class ZaloConfig(models.Model):
             return
         now = datetime.now(TZ)
         for config in self.search([('auto_send', '=', True)]):
-            if now.hour == 12 and now.minute < 30:
+            scheduled_minute = round(config.send_hour * 60) % 1440
+            # Stay within the configured day's window; never send before its start.
+            if 0 <= now.hour * 60 + now.minute - scheduled_minute < 30:
                 with self.env.cr.savepoint():
                     if self.env['edu.session'].search_count([('date', '=', now.date()), ('state', '!=', 'cancel')]):
                         config._queue(now.date())

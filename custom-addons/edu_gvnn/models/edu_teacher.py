@@ -11,8 +11,10 @@ from ..tools import normalize_name
 class EduTeacher(models.Model):
     _name = 'edu.teacher'
     _description = 'Giáo viên'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'image.mixin']
     _order = 'name'
+
+    image_1920 = fields.Image(string='Avatar')
 
     name = fields.Char('Tên giáo viên', required=True, tracking=True)
     code = fields.Char('Mã')

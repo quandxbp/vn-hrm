@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'GVNN',
-    'version': '17.0.1.15.3',
+    'version': '17.0.1.15.9',
     'summary': 'Quản lý lớp luyện nói online với giáo viên nước ngoài',
     'description': """
 Thay cho file TỔNG HỢP_GVNN.xlsx: giáo viên và đơn giá, lớp, học viên, buổi học,
@@ -48,6 +48,9 @@ Kế hoạch chi tiết: docs/GVNN_PLAN.md
             'edu_gvnn/static/src/fields/session_people.js',
             'edu_gvnn/static/src/fields/session_people.xml',
             'edu_gvnn/static/src/fields/session_people.scss',
+            'edu_gvnn/static/src/fields/session_video_links.js',
+            'edu_gvnn/static/src/fields/session_video_links.xml',
+            'edu_gvnn/static/src/fields/session_video_links.scss',
         ],
     },
     'installable': True,

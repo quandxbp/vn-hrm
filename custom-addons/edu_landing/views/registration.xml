@@ -7,7 +7,7 @@
                         <div class="row align-items-center g-5">
                             <div class="col-lg-5 edu-register-intro">
                                 <span class="edu-head-sub">Bắt đầu ngay</span>
-                                <h2 class="edu-display" t-out="registration_title or 'Khai phóng tiềm năng học thuật'"/>
+                                <h2 class="edu-display" t-out="registration_title or 'Ươm mầm tài năng học thuật'"/>
                                 <p t-out="registration_description or 'Để lại thông tin, chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ.'"/>
                                 <a href="tel:0766777793" class="edu-register-hotline">
                                     <i class="fa fa-phone" role="img" aria-label=""/> Hotline: 0766.7777.93

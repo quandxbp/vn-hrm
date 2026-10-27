@@ -108,8 +108,10 @@ class TestZaloSchedule(TransactionCase):
         self.assertEqual(message.state, 'queued')
         self.assertEqual((message.request_key, message.content), original)
 
-    def test_noon_timezone_and_default_disabled(self):
+    def test_configured_hour_timezone_and_default_disabled(self):
         self.assertFalse(self.env.ref('edu_zalo.config_default').auto_send)
+        self.assertEqual(self.config.send_hour, 9)
+        self.config.send_hour = 12
         self.config.auto_send = True
         class BeforeNoon(datetime):
             @classmethod
@@ -125,6 +127,45 @@ class TestZaloSchedule(TransactionCase):
         with patch('odoo.addons.edu_zalo.models.zalo.datetime', AtNoon), patch.object(type(self.config), '_bridge', return_value={'state': 'sent', 'message_ids': ['test']}):
             self.config._cron_send()
         self.assertEqual(self.config.log_ids.state, 'sent')
+
+    def test_nine_am_window_and_validation(self):
+        self.config.write({'auto_send': True, 'send_hour': 9})
+        for hour, minute, expected in [(8, 59, 0), (9, 0, 1), (9, 29, 1), (9, 30, 0), (12, 0, 0)]:
+            with self.subTest(hour=hour, minute=minute), self.env.cr.savepoint():
+                self.config.log_ids.unlink()
+                class AtTime(datetime):
+                    @classmethod
+                    def now(cls, tz=None):
+                        return TZ.localize(datetime(2026, 10, 23, hour, minute))
+                with patch('odoo.addons.edu_zalo.models.zalo.datetime', AtTime), patch.object(
+                        type(self.config), '_bridge', return_value={'state': 'sent', 'message_ids': ['test']}):
+                    self.config._cron_send()
+                self.assertEqual(len(self.config.log_ids), expected)
+        for invalid in (-1, 24):
+            with self.assertRaises(ValidationError), self.env.cr.savepoint():
+                self.config.send_hour = invalid
+
+    def test_choose_named_group_requires_confirmation(self):
+        self.config.write({'auto_send': True, 'preferred_group': '  Target   Group '})
+        with patch.object(type(self.config), '_bridge', return_value={
+                'groups': [{'id': 'new-target', 'name': 'Target Group'}]}) as bridge:
+            self.config.action_select_preferred_group()
+        self.assertEqual(bridge.call_args.args, ('GET', '/groups'))
+        self.assertEqual(self.config.group_id.zalo_id, 'new-target')
+        self.assertEqual(self.config.confirmed_group_id, self.group)
+        self.assertFalse(self.config.auto_send)
+        with self.assertRaises(UserError):
+            self.config._queue(self.day)
+        with patch.object(type(self.config), '_bridge', return_value={}):
+            self.config.action_confirm_group()
+        self.assertEqual(self.config.confirmed_group_id, self.config.group_id)
+
+    def test_choose_named_group_rejects_missing_or_duplicate(self):
+        self.config.preferred_group = 'Target Group'
+        for groups in ([], [{'id': 'one', 'name': 'Target Group'}, {'id': 'two', 'name': 'Target Group'}]):
+            with patch.object(type(self.config), '_bridge', return_value={'groups': groups}), self.assertRaises(UserError):
+                self.config.action_select_preferred_group()
+        self.assertEqual(self.config.group_id, self.group)
 
     def test_manager_permissions_and_group_sync(self):
         user = self.env['res.users'].with_context(no_reset_password=True).create({

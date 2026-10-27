@@ -6,6 +6,8 @@
     <menuitem id="menu_edu_operation_root" name="Lịch học" parent="menu_edu_root" sequence="10"/>
     <menuitem id="menu_edu_session" name="Buổi học" parent="menu_edu_operation_root"
               action="action_edu_session" sequence="10"/>
+    <menuitem id="menu_edu_session_video" name="Video buổi học" parent="menu_edu_operation_root"
+              action="action_edu_session_video" sequence="15"/>
     <!-- Legacy shortcuts stay addressable; their functions are now on list toolbars. -->
     <menuitem id="menu_edu_week_alert" name="Cảnh báo tuần" parent="menu_edu_operation_root"
               action="action_edu_week_alert_wizard" sequence="30"/>
