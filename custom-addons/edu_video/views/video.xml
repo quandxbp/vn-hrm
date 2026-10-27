@@ -22,11 +22,12 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <group><field name="session_id"/><field name="title"/>
+                    <group><field name="session_id"/><field name="title"/><field name="description"/>
                         <field name="source_url" widget="url"/><field name="video_url" widget="url"/>
                         <field name="channel_id"/><field name="progress" widget="progressbar"/>
                         <field name="total_bytes"/><field name="uploaded_bytes"/>
                         <field name="attempts"/><field name="next_attempt"/><field name="finished_at"/>
+                        <field name="cache_started_at"/><field name="cache_expired"/>
                     </group>
                     <field name="error" nolabel="1" readonly="1"/>
                 </sheet>

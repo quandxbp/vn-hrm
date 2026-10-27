@@ -33,10 +33,13 @@ class TestVideoTransfer(TransactionCase):
             'expires_at': time.time() + 3600, 'youtube_access_token': 'fake-youtube-token',
             'youtube_refresh_token': 'fake-youtube-refresh', 'youtube_expires_at': time.time() + 3600,
             'processing_enabled': False, 'auto_upload': False})
-        teacher = self.env['edu.teacher'].create({'name': 'Video Transfer Test Teacher'})
+        self.env['edu.week'].create({'number': 99890, 'date_from': '2030-01-01', 'date_to': '2030-01-07'})
+        teacher = self.env['edu.teacher'].create({'name': 'Video Transfer Test Teacher', 'teaching_title': 'mr'})
+        student = self.env['edu.student'].create({'name_vi': 'Video Transfer Test Student', 'name_en': 'Alex'})
         self.session = self.env['edu.session'].create({'teacher_id': teacher.id,
             'date': '2030-01-02', 'time_start': 17.5, 'time_end': 18,
-            'google_drive_url': 'https://drive.google.com/file/d/test_file_123456/view'})
+            'google_drive_url': 'https://drive.google.com/file/d/test_file_123456/view',
+            'attendee_ids': [(0, 0, {'student_id': student.id})]})
         self.job = self.session._enqueue_video()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -80,7 +83,7 @@ class TestVideoTransfer(TransactionCase):
         self.assertEqual(len(jobs), 2)
         second = jobs.filtered('recording_part_id')
         self.assertEqual(second.recording_part_id, part)
-        self.assertIn('Part 2', second.title)
+        self.assertTrue(second.title.endswith('(WEEK 99890) (2)'))
         self.assertEqual(self.session._enqueue_video(), jobs)
         second._complete({'id': 'parttwovide'})
         self.assertEqual(part.youtube_url, 'https://youtu.be/parttwovide')
@@ -117,7 +120,7 @@ class TestVideoTransfer(TransactionCase):
         self.assertEqual(jobs.source_url, part.google_drive_url)
 
     @patch('odoo.addons.edu_video.models.job.requests.request')
-    def test_cron_end_to_end_unlisted_and_separate_tokens(self, request):
+    def test_cron_end_to_end_public_not_for_kids_and_separate_tokens(self, request):
         content = b'fake video data'
         request.side_effect = [
             response(body={'size': str(len(content)), 'mimeType': 'video/mp4',
@@ -134,7 +137,11 @@ class TestVideoTransfer(TransactionCase):
         self.assertFalse(self.path.exists())
         self.assertFalse(self.job.upload_url)
         init = request.call_args_list[3]
-        self.assertEqual(init.kwargs['json']['status']['privacyStatus'], 'unlisted')
+        self.assertEqual(init.kwargs['json']['status']['privacyStatus'], 'public')
+        self.assertIs(init.kwargs['json']['status']['selfDeclaredMadeForKids'], False)
+        self.assertIn('17:30', init.kwargs['json']['snippet']['description'])
+        self.assertIn('02/01/2030', init.kwargs['json']['snippet']['description'])
+        self.assertIn('Thứ Tư', init.kwargs['json']['snippet']['description'])
         self.assertEqual(init.kwargs['params']['notifySubscribers'], 'false')
         self.assertEqual(request.call_args_list[0].kwargs['headers']['Authorization'], 'Bearer fake-drive-token')
         self.assertEqual(init.kwargs['headers']['Authorization'], 'Bearer fake-youtube-token')

@@ -1,5 +1,79 @@
 # Video buổi học: Google Drive → YouTube
 
+## Thông tin và hiển thị upload — 27/10/2026
+
+Từ `edu_video` **17.0.1.6.0**, upload mới đặt **Công khai** và
+**Không, nội dung này không dành cho trẻ em**. Thay thế mặc định unlisted cũ.
+Mô tả lấy lịch Việt Nam của buổi học, ví dụ:
+
+```text
+KIMENGLISH
+
+Giờ học: 17:30–18:00 (giờ Việt Nam, UTC+7)
+Ngày học: 27/10/2026
+Thứ: Thứ Ba
+```
+
+Mô tả được xem trong chi tiết job; tính lại cùng tiêu đề trước khi bắt đầu upload.
+Phiên resumable đã mở giữ metadata đã gửi. Video đã đăng không tự thay đổi.
+Nâng cấp module sẽ chuyển cấu hình hiện có sang public; không thay OAuth/token.
+
+**Bình luận:** API upload không có thuộc tính bật/tắt bình luận.
+Chủ kênh cần vào **YouTube Studio → Cài đặt → Kiểm duyệt cộng đồng → Kiểm soát nội dung**,
+bật bình luận về video mới rồi **Lưu**. Không đặt kênh/video là dành cho trẻ em
+nếu muốn cho phép bình luận. Odoo không thể bảo đảm bình luận bật nếu YouTube hạn chế video.
+
+Tham khảo: [videos.insert](https://developers.google.com/youtube/data/reference/rest/v3/videos/insert),
+[cài đặt bình luận của kênh](https://support.google.com/youtube/answer/16622701?hl=vi&co=GENIE.Platform%3DDesktop).
+
+## Tiêu đề upload — 27/10/2026
+
+Từ `edu_video` **17.0.1.5.0**, tiêu đề tự tạo theo mẫu:
+
+```text
+KIMENGLISH - MS HOPE - Kelly & Lily (WEEK 102)
+KIMENGLISH - MS HOPE - Kelly & Lily (WEEK 102) (1)
+KIMENGLISH - MS HOPE - Kelly & Lily (WEEK 102) (2)
+```
+
+- Danh xưng Thầy/Cô trong hồ sơ giáo viên tương ứng MR/MS; tên giáo viên in hoa.
+- Ưu tiên tên tiếng Anh học sinh, nếu trống dùng tên tiếng Việt; hiển thị dạng Kelly/Lily,
+  nối bằng ` & `. Lấy danh sách học sinh của buổi, kể cả học sinh được đánh vắng.
+  Buổi không có học viên liên kết có thể dùng Người tham gia khác nếu đã nhập.
+- Lấy số từ tuần gắn với buổi học. Một đoạn không có hậu tố; nhiều đoạn dùng số phần
+  đã lưu tương ứng, gồm cả `(1)` cho đoạn đầu.
+- Preview được tạo khi xếp hàng; trước khi tải và trước khi mở phiên upload sẽ tính lại
+  để nhận thông tin mới hoặc đoạn bổ sung vừa thêm. Cần lưu đủ các phần trước khi upload
+  nếu muốn video đầu tiên mang hậu tố `(1)`.
+- Thiếu danh xưng, tuần hoặc tên học sinh sẽ báo lỗi trước khi mở phiên upload;
+  bổ sung thông tin trong Odoo rồi Thử lại. Không tự đoán giới tính hoặc số tuần.
+- Kiểm tra giới hạn YouTube 100 ký tự và loại ký tự `<`, `>`; không tự cắt mất tên/tuần/phần.
+- Phiên resumable đã bắt đầu giữ tiêu đề đã gửi; video đã đăng không tự đổi tên.
+
+Nguồn giới hạn API: https://developers.google.com/youtube/data/reference/rest/v3/videos#snippet.title
+
+## Dọn file tạm — 27/10/2026
+
+Từ `edu_video` **17.0.1.4.0**, cron **GVNN: dọn video tạm quá hạn 7 ngày** chạy mỗi
+15 phút, độc lập với bật/tắt xử lý upload. Sau khi upload thành công vẫn xóa file ngay như trước.
+
+- Tính hạn từ lần bắt đầu tải (`cache_started_at`), không gia hạn theo mỗi lần ghi thêm dữ liệu.
+  File của job cũ chưa có mốc này dùng ngày tạo job; file mồ côi dùng thời gian sửa cuối.
+- Chỉ dọn các file `<job_id>.video` trong thư mục cache `data_dir/edu_video/<hash-database>`
+  của database đang chạy. Không dọn filestore, attachment, thư mục DB khác hoặc theo symlink.
+- Hết hạn 7 ngày sẽ được dọn ở lượt cron tiếp theo. Nếu file đang được worker khóa,
+  bỏ qua và thử ở lượt sau; worker cũng chặn tiếp tục xử lý cache đã quá hạn.
+- Job chưa upload chuyển **Đã hủy**; job đã có phiên upload chuyển **Cần kiểm tra YouTube**
+  để không tự đăng trùng. Job hoàn tất giữ trạng thái/link YouTube và lịch sử.
+- Có thể thử lại từ đầu sau khi file đã dọn. Với phiên upload có kết quả chưa rõ,
+  kiểm tra kênh rồi dùng **Tạo phiên mới sau kiểm tra**.
+- Nếu ổ đĩa từ chối xóa, cron ghi cảnh báo và thử lại; không tự gia hạn cache hoặc tiếp tục upload.
+  Video gốc trên Drive và video đã đăng YouTube không bị xóa.
+
+Để áp dụng trên server, cần nâng cấp module `edu_video` và khởi động lại Odoo.
+Kiểm tra Scheduled Action mới đang Active và cron worker của Odoo được bật.
+Phần trạng thái ngày 24/10 bên dưới là ghi chú lịch sử, không mô tả kết nối production hiện tại.
+
 ## Trạng thái — 24/10/2026
 
 - Module `edu_video` **17.0.1.2.0**, phụ thuộc `edu_gvnn` **17.0.1.1.1**, chạy Odoo 17. Đã nâng cấp DB local `gvnn`, chưa deploy Internet.
@@ -19,7 +93,7 @@
 7. Trong **Buổi học → Video buổi học**, nhập link Drive rồi lưu. Có nút **Đẩy lên YouTube** để xếp hàng thủ công kể cả khi chưa kết nối; yêu cầu chỉ chạy khi xử lý nền được bật và kết nối hợp lệ.
 8. Xem tiến độ/lỗi trong tab Video hoặc **GVNN → Lịch học → Video buổi học**. List buổi học có cột tùy chọn **Video YouTube**. Tải lại màn hình để xem trạng thái mới.
 
-Upload mặc định **Không công khai (unlisted)**, không thông báo người đăng ký. Tiêu đề tự tạo theo ngày, giáo viên và giờ học; không tự đưa tên học viên vào mô tả. Khi Google trả ID video, hệ thống điền `youtube_url`. YouTube có thể cần thêm thời gian xử lý sau upload.
+Upload mặc định **Công khai**, không thông báo người đăng ký. Tiêu đề theo mẫu KIMENGLISH bên trên; mô tả có giờ, ngày và thứ. Khi Google trả ID video, hệ thống điền `youtube_url`. YouTube có thể cần thêm thời gian xử lý sau upload.
 
 ## Lỗi và tiếp tục
 
@@ -55,7 +129,7 @@ Upload mặc định **Không công khai (unlisted)**, không thông báo ngư�
 5. Trong Odoo, đổi **Redirect URI** thành cùng địa chỉ và lưu. Không còn hardcode localhost. Nếu nhập lại JSON, tải bản JSON mới có redirect đó. Không cần tạo client mới chỉ vì đổi domain.
 6. Nếu OAuth còn Testing, thêm email tải Drive và email chủ kênh vào **Audience → Test users**. Refresh token Testing của các scope này hết hạn sau 7 ngày; cần hoàn thiện trạng thái ứng dụng trước vận hành lâu dài.
 7. Chủ kênh mở Odoo ở domain trên, dùng phiên Odoo có quyền quản trị để bấm kết nối YouTube và tự đăng nhập Google. Quyền được mời qua **YouTube Studio → Quyền** không hỗ trợ API cho kênh được mời. Không yêu cầu chia sẻ mật khẩu Google.
-8. Xác nhận đúng **@YUYONG90**, kết nối Drive. Bật xử lý nền, thử một video trước, kiểm tra đúng kênh và unlisted; sau đó bật tự xếp hàng nếu muốn.
+8. Xác nhận đúng kênh đích, kết nối Drive. Bật xử lý nền, thử một video trước, kiểm tra đúng kênh, Công khai, không dành cho trẻ em và bình luận; sau đó bật tự xếp hàng nếu muốn.
 
 DB mới không có OAuth client/token local: nhập JSON trên server qua cấu hình. Nếu restore DB local, vẫn nên kết nối lại trên domain thật. Callback kiểm tra phiên Odoo, user/DB, nonce một lần và hạn 10 phút.
 

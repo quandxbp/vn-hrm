@@ -1,6 +1,8 @@
 <odoo>
     <record id="config_default" model="edu.video.config">
         <field name="name">Google Drive → YouTube</field>
+        <field name="privacy">public</field>
+        <field name="audience">not_for_kids</field>
     </record>
     <record id="view_config_form" model="ir.ui.view">
         <field name="name">edu.video.config.form</field>
@@ -15,7 +17,7 @@
                 </header>
                 <sheet>
                     <h1><field name="name" readonly="1"/></h1>
-                    <div class="alert alert-info" role="status">Kết nối YouTube và Drive riêng. Chủ kênh cần tự cấp quyền YouTube nếu bạn chỉ được mời quản lý qua Studio. Bật xử lý nền sau khi xác nhận đúng kênh. Video mặc định không công khai.</div>
+                    <div class="alert alert-info" role="status">Kết nối YouTube và Drive riêng. Chủ kênh cần tự cấp quyền YouTube nếu bạn chỉ được mời quản lý qua Studio. Bật xử lý nền sau khi xác nhận đúng kênh. Video mới được đặt Công khai và không dành cho trẻ em.</div>
                     <group>
                         <group string="OAuth Google">
                             <field name="credential_filename" invisible="1"/>
@@ -31,6 +33,7 @@
                             <field name="channel_handle"/>
                             <field name="channel_id"/>
                             <field name="privacy"/>
+                            <field name="audience"/>
                         </group>
                         <group string="Xử lý video">
                             <field name="processing_enabled"/>
@@ -38,6 +41,17 @@
                             <field name="max_file_gb"/>
                         </group>
                     </group>
+                    <div class="alert alert-info mt-3" role="status">
+                        Bình luận: vào YouTube Studio → Cài đặt → Kiểm duyệt cộng đồng → Kiểm soát nội dung,
+                        bật bình luận về video mới rồi Lưu.
+                        YouTube API không hỗ trợ bật/tắt bình luận khi upload;
+                        không đặt kênh/video là dành cho trẻ em nếu muốn cho phép bình luận.
+                    </div>
+                    <div class="alert alert-info mt-3" role="status">
+                        Video tạm trên máy chủ được xóa ngay sau khi upload thành công.
+                        Các file còn lại hết hạn sau 7 ngày kể từ khi bắt đầu tải; tác vụ dọn chạy mỗi 15 phút,
+                        kể cả khi xử lý video nền đang tắt. Video gốc trên Google Drive và YouTube được giữ nguyên.
+                    </div>
                 </sheet>
             </form>
         </field>

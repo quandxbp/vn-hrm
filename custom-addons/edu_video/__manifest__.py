@@ -1,6 +1,6 @@
 {
     'name': 'GVNN - Google Video',
-    'version': '17.0.1.3.3',
+    'version': '17.0.1.6.0',
     'license': 'LGPL-3',
     'depends': ['edu_gvnn'],
     'external_dependencies': {'python': ['requests']},
