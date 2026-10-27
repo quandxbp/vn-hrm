@@ -58,7 +58,10 @@ class GoogleVideoConfig(models.Model):
         help='Ví dụ @YUYONG90. Kết nối sẽ bị từ chối nếu Google trả về kênh khác.')
     drive_state = fields.Selection([('disconnected', 'Chưa kết nối'), ('connected', 'Đã kết nối')],
                                    default='disconnected', readonly=True)
-    privacy = fields.Selection([('unlisted', 'Không công khai')], default='unlisted', readonly=True)
+    privacy = fields.Selection([('public', 'Công khai'), ('unlisted', 'Không công khai')],
+                               default='public', readonly=True)
+    audience = fields.Selection([('not_for_kids', 'Không, nội dung này không dành cho trẻ em')],
+                                string='Đối tượng người xem', default='not_for_kids', readonly=True)
     refresh_token = fields.Char(copy=False, groups='base.group_no_one')
     access_token = fields.Char(copy=False, groups='base.group_no_one')
     expires_at = fields.Float(copy=False, groups='base.group_no_one')

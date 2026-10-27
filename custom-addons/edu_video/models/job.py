@@ -4,7 +4,7 @@ import os
 import re
 import shutil
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -67,6 +67,7 @@ class EduVideoJob(models.Model):
         self.ensure_one()
         return self.recording_part_id or self.session_id
     title = fields.Char('Tiêu đề YouTube', required=True, default='Video buổi học GVNN')
+    description = fields.Text('Mô tả YouTube', readonly=True, copy=False)
     source_url = fields.Char('Link Drive', required=True, readonly=True)
     file_id = fields.Char(required=True, readonly=True, index=True)
     resource_key = fields.Char(groups='base.group_no_one')
@@ -74,6 +75,8 @@ class EduVideoJob(models.Model):
     error = fields.Text('Chi tiết / lỗi', readonly=True)
     video_url = fields.Char('Video YouTube', readonly=True)
     finished_at = fields.Datetime('Hoàn tất', readonly=True)
+    cache_started_at = fields.Datetime('Bắt đầu lưu video tạm', readonly=True, copy=False)
+    cache_expired = fields.Boolean('Đã hết hạn lưu file tạm', readonly=True, copy=False)
     # PostgreSQL INTEGER cannot hold videos > 2GB; store byte counts as numeric floats (exact up to 2^53).
     total_bytes = fields.Float('Dung lượng (byte)', digits=(20, 0), readonly=True)
     uploaded_bytes = fields.Float('Đã gửi (byte)', digits=(20, 0), readonly=True)
@@ -101,20 +104,64 @@ class EduVideoJob(models.Model):
                 part = self.env['edu.session.recording.part'].browse(vals['recording_part_id'])
                 if part.session_id != session:
                     raise UserError('Recording part does not belong to this lesson.')
-            def clock(value):
-                minutes = round(value * 60)
-                return '%02d:%02d' % divmod(minutes, 60)
-            vals.setdefault('title', ('GVNN | %s | %s | %s–%s' % (
-                session.date.strftime('%d/%m/%Y'), session.teacher_id.name,
-                clock(session.time_start), clock(session.time_end)))[:100])
-            if vals.get('recording_part_id'):
-                vals['title'] = (vals['title'][:85] + ' | Part %s' % part.number)[:100]
+            vals.setdefault('title', self._youtube_title(
+                session, part if vals.get('recording_part_id') else None))
+            vals.setdefault('description', self._youtube_description(session))
         return super().create(vals_list)
+
+    @api.model
+    def _youtube_title(self, session, part=None, strict=False):
+        teacher = session.teacher_id
+        salutation = {'mr': 'MR', 'ms': 'MS'}.get(teacher.teaching_title, '')
+        names = [' '.join((a.student_id.name_en or a.student_id.name_vi or '').split()).title()
+                 for a in session.attendee_ids]
+        names = [name for name in names if name]
+        if not names and session.extra_participants:
+            names = [' '.join(session.extra_participants.split()).title()]
+        if strict:
+            if not salutation:
+                raise UserError('Hãy chọn danh xưng Thầy/Cô trong hồ sơ giáo viên để tạo tiêu đề MR/MS.')
+            if not session.week_id:
+                raise UserError('Buổi học chưa có tuần. Hãy chọn tuần trước khi upload YouTube.')
+            if not names:
+                raise UserError('Buổi học chưa có tên học sinh để tạo tiêu đề YouTube.')
+        teacher_name = ' '.join(teacher.name.split()).upper()
+        label = ' '.join(filter(None, [salutation, teacher_name]))
+        week = session.week_id.number if session.week_id else '?'
+        title = 'KIMENGLISH - %s - %s (WEEK %s)' % (label, ' & '.join(names) or '?', week)
+        if sum(bool(p['drive'] or p['youtube']) for p in session._recording_parts()) > 1:
+            title += ' (%s)' % (part.number if part else 1)
+        if strict and (len(title) > 100 or '<' in title or '>' in title):
+            raise UserError('Tiêu đề YouTube tối đa 100 ký tự và không chứa dấu < hoặc >. Hãy kiểm tra tên hiển thị giáo viên/học sinh.')
+        return title
+
+    def _refresh_upload_title(self):
+        self.ensure_one()
+        # A resumable session already contains its metadata; never change it mid-transfer.
+        if not self.upload_url:
+            self.write({
+                'title': self._youtube_title(self.session_id, self.recording_part_id or None, strict=True),
+                'description': self._youtube_description(self.session_id),
+            })
+
+    @api.model
+    def _youtube_description(self, session):
+        weekdays = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
+        def clock(value):
+            return '%02d:%02d' % divmod(round(value * 60) % 1440, 60)
+        lesson_time = ('%s–%s' % (clock(session.time_start), clock(session.time_end))
+                       if session.time_start or session.time_end else 'Chưa cập nhật')
+        return 'KIMENGLISH\n\nGiờ học: %s (giờ Việt Nam, UTC+7)\nNgày học: %s\nThứ: %s' % (
+            lesson_time, session.date.strftime('%d/%m/%Y'), weekdays[session.date.weekday()])
+
+    @api.model
+    def _cache_folder(self):
+        db_key = hashlib.sha256(self.env.cr.dbname.encode()).hexdigest()[:20]
+        return Path(server_config['data_dir']) / 'edu_video' / db_key
 
     def _path(self):
         self.ensure_one()
-        db_key = hashlib.sha256(self.env.cr.dbname.encode()).hexdigest()[:20]
-        folder = Path(server_config['data_dir']) / 'edu_video' / db_key
+        folder = self._cache_folder()
         folder.mkdir(parents=True, exist_ok=True, mode=0o700)
         return folder / ('%s.video' % self.id)
 
@@ -125,9 +172,64 @@ class EduVideoJob(models.Model):
         except OSError:
             _logger.warning('Could not remove temporary video for job %s', self.id)
 
+    @api.model
+    def _cron_cleanup_video_cache(self):
+        """Remove only this database's numbered cache files, never Drive files or attachments."""
+        folder = self._cache_folder()
+        root = Path(server_config['data_dir']) / 'edu_video'
+        if (not folder.is_dir() or folder.is_symlink()
+                or folder.resolve().parent != root.resolve()):
+            return 0
+        cutoff = fields.Datetime.now() - timedelta(days=7)
+        removed = 0
+        for path in folder.iterdir():
+            if not re.fullmatch(r'[1-9][0-9]*\.video', path.name) or path.is_symlink() or not path.is_file():
+                continue
+            job_id = int(path.stem)
+            if job_id > 2147483647:
+                continue
+            self.env.cr.execute('SELECT pg_try_advisory_lock(%s, %s)', [LOCK_NAMESPACE, job_id])
+            if not self.env.cr.fetchone()[0]:
+                continue  # A worker owns this file; retry on the next sweep.
+            try:
+                job = self.sudo().browse(job_id).exists()
+                if job:
+                    job.invalidate_recordset()
+                    started = job.cache_started_at or job.create_date
+                else:
+                    # Orphan files have no job timestamp; use their last modification time.
+                    started = datetime.utcfromtimestamp(path.stat().st_mtime)
+                if started > cutoff:
+                    continue
+                if job:
+                    vals = {'cache_expired': True, 'next_attempt': False}
+                    if job.state not in ('done', 'cancelled'):
+                        vals['state'] = 'uncertain' if job.upload_url else 'cancelled'
+                    if not job.cache_expired:
+                        message = 'File video tạm đã hết hạn lưu 7 ngày. Yêu cầu đã dừng để dọn file tự động.'
+                        if job.upload_url and job.state != 'done':
+                            message += ' Kiểm tra YouTube trước khi tạo phiên upload mới.'
+                        vals['error'] = '\n'.join(filter(None, [job.error, message]))
+                    job.write(vals)
+                    # Persist the stop before deleting bytes. Session advisory lock survives commit.
+                    job._checkpoint()
+                path.unlink(missing_ok=True)
+                removed += 1
+            except OSError:
+                _logger.warning('Could not expire temporary video for job %s', job_id)
+            finally:
+                self.env.cr.execute('SELECT pg_advisory_unlock(%s, %s)', [LOCK_NAMESPACE, job_id])
+        _logger.info('Expired %s temporary video files for this database', removed)
+        return removed
+
     def _checkpoint(self):
         # Only the cron entry point calls this in production. Tests replace this method.
         self.env.cr.commit()
+
+    def _cache_is_expired(self):
+        self.ensure_one()
+        return bool(self.cache_expired or (self.cache_started_at and
+                    self.cache_started_at <= fields.Datetime.now() - timedelta(days=7)))
 
     def _request(self, service, method, url, **kwargs):
         c = self.env.ref('edu_video.config_default').sudo()
@@ -149,6 +251,9 @@ class EduVideoJob(models.Model):
 
     def _guard(self):
         self.invalidate_recordset()
+        if self._cache_is_expired():
+            raise TransferError('Video tạm đã hết hạn lưu 7 ngày. Kiểm tra lịch sử trước khi thử lại.',
+                                uncertain=bool(self.upload_url))
         c = self.env.ref('edu_video.config_default').sudo()
         c.invalidate_recordset()
         c._ready()
@@ -168,6 +273,7 @@ class EduVideoJob(models.Model):
         return {'X-Goog-Drive-Resource-Keys': '%s/%s' % (self.file_id, self.resource_key)} if self.resource_key else {}
 
     def _metadata(self, c):
+        self._refresh_upload_title()
         with self._request('drive', 'GET', 'https://www.googleapis.com/drive/v3/files/' + self.file_id,
                 params={'fields': 'size,mimeType,md5Checksum,capabilities(canDownload)', 'supportsAllDrives': 'true'},
                 headers=self._drive_headers()) as response:
@@ -186,7 +292,8 @@ class EduVideoJob(models.Model):
         if shutil.disk_usage(path.parent).free < max(0, size - cached) + 512 * 1024 ** 2:
             raise TransferError('Máy chủ không đủ dung lượng trống để tải video.')
         self.write({'total_bytes': size, 'mime_type': info['mimeType'],
-                    'checksum': info['md5Checksum'], 'state': 'downloading'})
+                    'checksum': info['md5Checksum'], 'state': 'downloading',
+                    'cache_started_at': self.cache_started_at or fields.Datetime.now()})
 
     def _download(self):
         path = self._path()
@@ -230,6 +337,8 @@ class EduVideoJob(models.Model):
             self.write({'state': 'uploading'})
 
     def _start_upload(self, c):
+        # Also refresh older queued jobs and account for a second part added after enqueue.
+        self._refresh_upload_title()
         with self._request('youtube', 'GET', 'https://www.googleapis.com/youtube/v3/channels',
                 params={'part': 'snippet', 'mine': 'true'}) as response:
             items = response.json().get('items', [])
@@ -239,8 +348,8 @@ class EduVideoJob(models.Model):
         with self._request('youtube', 'POST', 'https://www.googleapis.com/upload/youtube/v3/videos',
                 params={'uploadType': 'resumable', 'part': 'snippet,status', 'notifySubscribers': 'false'},
                 json={'snippet': {'title': self.title, 'categoryId': '27',
-                                   'description': 'Video buổi học GVNN'},
-                      'status': {'privacyStatus': 'unlisted'}},
+                                   'description': self.description},
+                      'status': {'privacyStatus': c.privacy, 'selfDeclaredMadeForKids': False}},
                 headers={'X-Upload-Content-Length': str(int(self.total_bytes)),
                          'X-Upload-Content-Type': self.mime_type}, allow_redirects=False) as response:
             url = response.headers.get('Location', '')
@@ -371,8 +480,15 @@ class EduVideoJob(models.Model):
         self._action_lock()
         if self.state != 'failed' and not (self.state == 'cancelled' and not self.upload_url):
             raise UserError('Chỉ thử lại yêu cầu lỗi hoặc đã hủy trước upload. Trạng thái chưa rõ cần kiểm tra trên YouTube.')
-        self.sudo().write({'state': 'uploading' if self.upload_url else 'queued',
-                           'error': False, 'attempts': 0, 'next_attempt': False})
+        vals = {'state': 'uploading' if self.upload_url else 'queued',
+                'error': False, 'attempts': 0, 'next_attempt': False}
+        if self._cache_is_expired():
+            self._cleanup()
+            if self._path().exists():
+                raise UserError('Chưa dọn được file tạm quá hạn. Kiểm tra quyền ghi ổ đĩa trước khi thử lại.')
+            vals.update(cache_started_at=False, cache_expired=False, uploaded_bytes=0,
+                        total_bytes=0, checksum=False, mime_type=False)
+        self.sudo().write(vals)
         return True
 
     def action_cancel(self):
@@ -390,7 +506,10 @@ class EduVideoJob(models.Model):
         if self._recording_target().youtube_url:
             raise UserError('Buổi học đã có link YouTube; không tạo thêm bản upload.')
         self._cleanup()
+        if self._cache_is_expired() and self._path().exists():
+            raise UserError('Chưa dọn được file tạm quá hạn. Kiểm tra quyền ghi ổ đĩa trước khi tạo phiên mới.')
         self.sudo().write({'state': 'queued', 'upload_url': False, 'channel_id': False,
+            'cache_started_at': False, 'cache_expired': False,
             'uploaded_bytes': 0, 'total_bytes': 0, 'checksum': False, 'mime_type': False,
             'attempts': 0, 'next_attempt': False,
             'error': 'Quản lý đã xác nhận kiểm tra trên YouTube và yêu cầu tạo phiên upload mới.'})

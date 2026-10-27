@@ -18,7 +18,8 @@ class TestGoogleConnection(TransactionCase):
     def test_import_and_disconnect(self):
         self.config._import_credentials(self.raw)
         self.assertEqual(self.config.client_id, 'test.apps.googleusercontent.com')
-        self.assertEqual(self.config.privacy, 'unlisted')
+        self.assertEqual(self.config.privacy, 'public')
+        self.assertEqual(self.config.audience, 'not_for_kids')
         self.config.sudo().write({'refresh_token': 'fake-refresh', 'state': 'connected'})
         self.config.action_disconnect()
         self.assertFalse(self.config.sudo().refresh_token)
