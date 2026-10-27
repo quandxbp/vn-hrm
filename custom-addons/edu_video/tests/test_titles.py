@@ -78,13 +78,15 @@ class TestVideoTitles(TransactionCase):
     def test_description_uses_vietnamese_schedule_and_handles_midnight(self):
         lesson = SimpleNamespace(date=date(2026, 10, 27), time_start=23.5, time_end=0.0)
         self.assertEqual(self.Job._youtube_description(lesson),
-                         'KIMENGLISH\n\nGiờ học: 23:30–00:00 (giờ Việt Nam, UTC+7)'
-                         '\nNgày học: 27/10/2026\nThứ: Thứ Ba')
+                         '23:30–00:00 Thứ Ba 27/10/2026')
+        lesson.date = date(2026, 10, 26)
+        lesson.time_start, lesson.time_end = 20.5, 21.0
+        self.assertEqual(self.Job._youtube_description(lesson),
+                         '20:30–21:00 Thứ Hai 26/10/2026')
         lesson.date = date(2026, 11, 1)
         lesson.time_start = lesson.time_end = 0.0
         description = self.Job._youtube_description(lesson)
-        self.assertIn('Giờ học: Chưa cập nhật', description)
-        self.assertIn('Ngày học: 01/11/2026\nThứ: Chủ Nhật', description)
+        self.assertEqual(description, 'Chưa cập nhật Chủ Nhật 01/11/2026')
 
     def test_missing_fields_stop_before_google_request(self):
         job = self.session._enqueue_video()

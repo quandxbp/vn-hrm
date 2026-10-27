@@ -2,7 +2,8 @@
 
 ## Metadata upload mới
 
-- Source `edu_video` **17.0.1.6.0**: description có giờ VN/UTC+7, ngày dd/mm/yyyy, thứ tiếng Việt.
+- Source `edu_video` **17.0.1.6.1**: description rút gọn một dòng theo mẫu
+  `20:30–21:00 Thứ Hai 26/10/2026` (giờ Việt Nam).
 - `status.privacyStatus=public`, `status.selfDeclaredMadeForKids=false` trong videos.insert.
   XML config_default cập nhật singleton hiện có sang public khi upgrade, giữ nguyên OAuth/token.
 - Job lưu description để xem, refresh trước upload cùng title; resumable đang chạy giữ metadata cũ.

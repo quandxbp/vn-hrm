@@ -151,8 +151,8 @@ class EduVideoJob(models.Model):
             return '%02d:%02d' % divmod(round(value * 60) % 1440, 60)
         lesson_time = ('%s–%s' % (clock(session.time_start), clock(session.time_end))
                        if session.time_start or session.time_end else 'Chưa cập nhật')
-        return 'KIMENGLISH\n\nGiờ học: %s (giờ Việt Nam, UTC+7)\nNgày học: %s\nThứ: %s' % (
-            lesson_time, session.date.strftime('%d/%m/%Y'), weekdays[session.date.weekday()])
+        return '%s %s %s' % (
+            lesson_time, weekdays[session.date.weekday()], session.date.strftime('%d/%m/%Y'))
 
     @api.model
     def _cache_folder(self):

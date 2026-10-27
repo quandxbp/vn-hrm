@@ -4,14 +4,10 @@
 
 Từ `edu_video` **17.0.1.6.0**, upload mới đặt **Công khai** và
 **Không, nội dung này không dành cho trẻ em**. Thay thế mặc định unlisted cũ.
-Mô tả lấy lịch Việt Nam của buổi học, ví dụ:
+Từ **17.0.1.6.1**, mô tả lấy lịch Việt Nam của buổi học và rút gọn một dòng, ví dụ:
 
 ```text
-KIMENGLISH
-
-Giờ học: 17:30–18:00 (giờ Việt Nam, UTC+7)
-Ngày học: 27/10/2026
-Thứ: Thứ Ba
+20:30–21:00 Thứ Hai 26/10/2026
 ```
 
 Mô tả được xem trong chi tiết job; tính lại cùng tiêu đề trước khi bắt đầu upload.
