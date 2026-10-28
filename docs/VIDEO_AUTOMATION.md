@@ -1,14 +1,74 @@
 # Video buổi học: Google Drive → YouTube
 
+## Ngôn ngữ, ảnh bìa và playlist — 28/10/2026
+
+Từ `edu_video` **17.0.1.7.0**:
+
+- Cấu hình ngôn ngữ âm thanh (mặc định tiếng Anh) và ngôn ngữ tiêu đề/mô tả
+  (mặc định tiếng Việt), gửi qua `defaultAudioLanguage` và `defaultLanguage` lúc upload.
+  Đổi cho đúng ngôn ngữ thực tế; không tự tạo phụ đề hoặc dịch âm thanh.
+- Mặc định bật tự tạo thumbnail JPEG 1280×720, gồm logo Kim Academy, giáo viên,
+  tuần, ngày và số phần nếu có nhiều đoạn. Dùng Pillow + font DejaVu Sans/Arial.
+  Ảnh được lưu trong chi tiết job để xem lại. Không nén lại hoặc thay đổi video gốc.
+- Mặc định tự tạo/reuse playlist `KIMENGLISH - MR/MS TÊN GIÁO VIÊN` trên đúng kênh.
+  Playlist mới theo chế độ hiển thị đang cấu hình; các đoạn cùng buổi được xếp cạnh nhau.
+  Lưu ID playlist vào job, dùng lại giữa các buổi và khi đổi tên giáo viên.
+- Xử lý ảnh bìa/playlist bằng cron riêng mỗi 2 phút, chỉ khi xử lý nền được bật,
+  chỉ cho job vừa upload xong. Job cũ được đánh dấu Không xếp hàng, không tự sửa video cũ.
+  Video đã upload giữ trạng thái/link ngay cả khi ảnh bìa hoặc playlist lỗi.
+- Trong **Xử lý Drive → YouTube**, xem trạng thái Ảnh bìa / Playlist và lỗi chi tiết.
+  Nút **Thử lại ảnh bìa / playlist** chỉ làm hai bước này, không gửi lại video.
+  Bước đã thành công được bỏ qua; trước khi thêm lại kiểm tra video đã nằm trong playlist chưa.
+  Khi tạo playlist mất phản hồi, giữ dấu chưa xác nhận và yêu cầu kiểm tra trước khi thử lại.
+
+**Kết nối YouTube cũ cần cấp quyền lại:** OAuth mới yêu cầu thêm `youtube.force-ssl`
+để tạo/sửa playlist. Bấm **Kết nối / đổi kênh YouTube** và chọn đúng kênh, chấp thuận quyền.
+Không cần kết nối lại Drive. Chưa có quyền playlist vẫn upload và đặt thumbnail được,
+nhưng job báo cần kết nối lại cho bước playlist. Kênh phải có quyền dùng custom thumbnails;
+nếu YouTube từ chối ảnh, job giữ lỗi để xử lý sau. Có thể tắt riêng từng tính năng ở cấu hình.
+
+API tham khảo: [ngôn ngữ](https://developers.google.com/youtube/data/reference/rest/v3/videos),
+[ảnh bìa](https://developers.google.com/youtube/data/reference/rest/v3/thumbnails/set),
+[tạo playlist](https://developers.google.com/youtube/data/reference/rest/v3/playlists/insert),
+[xếp video](https://developers.google.com/youtube/data/reference/rest/v3/playlistItems/insert).
+
 ## Thông tin và hiển thị upload — 27/10/2026
 
 Từ `edu_video` **17.0.1.6.0**, upload mới đặt **Công khai** và
 **Không, nội dung này không dành cho trẻ em**. Thay thế mặc định unlisted cũ.
-Từ **17.0.1.6.1**, mô tả lấy lịch Việt Nam của buổi học và rút gọn một dòng, ví dụ:
+Từ **17.0.1.6.2**, mô tả giữ lịch Việt Nam ở dòng đầu và bổ sung mẫu giới thiệu:
 
 ```text
 20:30–21:00 Thứ Hai 26/10/2026
+
+Buổi học tiếng Anh trực tuyến cùng MS HOPE tại Kim Academy — tuần 103.
+Video ghi lại buổi học để học viên xem lại và ôn tập.
+
+THÔNG TIN BUỔI HỌC
+• Giáo viên: MS HOPE
+• Tuần học: 103
+• Ngày học: Thứ Hai, 26/10/2026
+• Giờ học: 20:30–21:00 (giờ Việt Nam)
+
+KHÁM PHÁ KIM ACADEMY
+Thông tin chương trình học: https://kimacademy.uk/
+
+#KimAcademy #HocTiengAnh #TiengAnhOnline
+
+--------------------------------------
+► FOLLOW KIM ACADEMY OFFICIAL:
+YouTube: https://www.youtube.com/@YURYONG90
+Facebook: https://www.facebook.com/mskim.kimacademy
+Email: kimacademy.edu@gmail.com
+
+© Bản quyền thuộc về Kim Academy Official ☞ Do not Reup
+© Copyright by Kim Academy Official ☞ Do not Reup
 ```
+
+Từ **17.0.1.6.3**, cuối mô tả bổ sung khối FOLLOW và bản quyền theo nội dung người dùng cung cấp.
+
+Giáo viên/danh xưng, số tuần, ngày và giờ lấy từ buổi học thực tế.
+Không tự thêm chủ đề bài học, trình độ hoặc tên học sinh vào mô tả.
 
 Mô tả được xem trong chi tiết job; tính lại cùng tiêu đề trước khi bắt đầu upload.
 Phiên resumable đã mở giữ metadata đã gửi. Video đã đăng không tự thay đổi.

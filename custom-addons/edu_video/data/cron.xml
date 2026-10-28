@@ -1,4 +1,12 @@
 <odoo noupdate="1">
+    <record id="cron_optimize_video" model="ir.cron">
+        <field name="name">GVNN: ảnh bìa và playlist YouTube</field>
+        <field name="model_id" ref="model_edu_video_job"/>
+        <field name="state">code</field><field name="code">model._cron_optimize()</field>
+        <field name="interval_number">2</field><field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field><field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
     <record id="cron_process_video" model="ir.cron">
         <field name="name">GVNN: xử lý video Drive → YouTube</field>
         <field name="model_id" ref="model_edu_video_job"/>

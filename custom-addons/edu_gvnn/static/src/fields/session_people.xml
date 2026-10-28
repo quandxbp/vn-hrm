@@ -37,8 +37,8 @@
                 <span class="edu_student_tag" t-att-class="{'edu_student_absent': !student.present}">
                     <i class="fa fa-user edu_student_icon" aria-hidden="true"/>
                     <span class="edu_student_names">
-                        <span class="edu_student_vi" t-esc="student.name"/>
-                        <span t-if="student.english" class="edu_student_en" t-esc="student.english"/>
+                        <span class="edu_student_en" t-esc="student.english || student.name"/>
+                        <span t-if="student.english and student.name" class="edu_student_vi" t-esc="student.name"/>
                     </span>
                     <span t-if="!student.present" class="edu_student_absence">Nghỉ</span>
                 </span>

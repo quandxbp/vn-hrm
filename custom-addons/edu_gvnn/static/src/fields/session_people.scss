@@ -52,12 +52,12 @@
     .edu_student_icon { font-size: 12px; color: mix($blue, $o-gray-600, 55%); }
     // Odoo's list char widget forces nested spans inline; keep the two name lines separate.
     .edu_student_names { display: flex !important; flex-direction: column; gap: 2px; min-width: 0; }
-    .edu_student_vi { display: block !important; font-size: 12px; font-weight: 600; white-space: normal; }
-    .edu_student_en { display: block !important; font-size: 10px; color: $o-gray-600; font-weight: 400; white-space: normal; }
+    .edu_student_en { display: block !important; font-size: 12px; font-weight: 600; white-space: normal; }
+    .edu_student_vi { display: block !important; font-size: 10px; color: $o-gray-600; font-weight: 400; white-space: normal; }
     .edu_student_absent {
         background: $o-gray-100;
         border-color: $o-gray-200;
-        .edu_student_vi { color: $o-gray-600; }
+        .edu_student_en { color: $o-gray-600; }
         .edu_student_icon { color: $o-gray-500; }
     }
     .edu_student_absence {

@@ -1,5 +1,30 @@
 # Bàn giao — 27/10/2026
 
+## Cập nhật 28/10/2026 — tối ưu upload
+
+- `edu_video` **17.0.1.7.0**: cấu hình ngôn ngữ âm thanh/metadata, thumbnail JPEG 1280×720
+  với logo + giáo viên + tuần + ngày/phần, playlist riêng theo giáo viên/kênh.
+- Cron sau upload xử lý ảnh bìa/playlist riêng, lỗi không làm mất link hoặc upload lại video.
+  Nút retry riêng, lưu kết quả từng bước, dò lại playlist/item trước khi tạo lại sau mất mạng.
+- OAuth thêm youtube.force-ssl. Kết nối cũ cần người dùng kết nối lại YouTube/cấp quyền;
+  không tự mở consent hoặc chỉnh quyền thật. Chưa có scope vẫn giữ upload/thumbnail hoạt động.
+- Không tự tối ưu video đã upload trước lần nâng cấp. Các tùy chọn bật mặc định cho upload mới.
+- Xem VIDEO_AUTOMATION.md để vận hành. Source nằm trong commit bàn giao trên
+  `feature/edu-gvnn`; chưa deploy production.
+- 57 tests edu_video đạt trên DB clone; thumbnail JPEG đã kiểm tra trực quan.
+  Đã backup DB + filestore và nâng cấp module local trên `kimacademy`, `gvnn`.
+  Ba job đã upload trong bản sao production vẫn Không xếp hàng, không gọi Google thật.
+- Buổi học / Video buổi học: tên tiếng Anh nổi bật trên tên Việt; thứ tự ngày trong
+  tuần mặc định MON → SUN, giữ thứ tự giờ giảm dần như trước. Đã kiểm tra trên local `kimacademy`.
+
+## Cập nhật 28/10/2026 — mẫu mô tả giới thiệu
+
+- `edu_video` **17.0.1.6.2** áp dụng mẫu cũ đã được người dùng chọn: dòng lịch ở đầu,
+  giới thiệu học tiếng Anh trực tuyến, thông tin giáo viên/tuần/ngày/giờ, website và 3 hashtag.
+- Lấy dữ liệu thực tế từ buổi học; không tự suy luận chủ đề, không thêm tên học sinh vào mô tả.
+- Đã chạy hai kiểm tra logic mô tả (mẫu, MR/MS, ngày/giờ, thiếu tuần/giờ) và restart web local.
+  Chưa deploy production; không sửa video đã đăng hoặc metadata của phiên upload đã mở.
+
 ## Metadata upload mới
 
 - Source `edu_video` **17.0.1.6.1**: description rút gọn một dòng theo mẫu

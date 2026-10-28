@@ -6,6 +6,7 @@
                 <field name="create_date"/><field name="session_id"/><field name="title"/>
                 <field name="state" widget="badge"/><field name="progress" widget="progressbar"/>
                 <field name="video_url" widget="url"/><field name="error" optional="hide"/>
+                <field name="optimization_state" widget="badge" optional="show"/>
             </tree>
         </field>
     </record>
@@ -14,6 +15,9 @@
         <field name="arch" type="xml">
             <form create="false" delete="false" edit="false">
                 <header>
+                    <button name="action_retry_optimization" type="object" string="Thử lại ảnh bìa / playlist"
+                        invisible="state != 'done' or optimization_state != 'failed'"
+                        confirm="Chỉ cập nhật ảnh bìa và playlist, không upload lại video. Nếu lần tạo playlist trước chưa rõ kết quả, hãy kiểm tra danh sách playlist trên YouTube trước khi tiếp tục."/>
                     <button name="action_retry" type="object" string="Thử lại" class="btn-primary" invisible="state not in ('failed', 'cancelled')"/>
                     <button name="action_cancel" type="object" string="Hủy xử lý" invisible="state in ('done', 'cancelled')"
                         confirm="Dừng yêu cầu tại Odoo. Video đã nhận trên YouTube không bị xóa; nếu upload đã bắt đầu, hãy kiểm tra kênh trước khi gửi lại."/>
@@ -30,6 +34,17 @@
                         <field name="cache_started_at"/><field name="cache_expired"/>
                     </group>
                     <field name="error" nolabel="1" readonly="1"/>
+                    <group string="Ảnh bìa và playlist">
+                        <group>
+                            <field name="optimization_state"/>
+                            <field name="thumbnail_applied"/>
+                            <field name="playlist_url" widget="url"/>
+                            <field name="optimization_error"/>
+                        </group>
+                        <group>
+                            <field name="thumbnail_image" widget="image" options="{'size': [480, 270]}" nolabel="1"/>
+                        </group>
+                    </group>
                 </sheet>
             </form>
         </field>
@@ -55,6 +70,7 @@
                         <field name="create_date"/><field name="part_number"/><field name="state" widget="badge"/>
                         <field name="progress" widget="progressbar"/><field name="video_url" widget="url"/>
                         <field name="error"/>
+                        <field name="optimization_state" widget="badge"/>
                     </tree>
                 </field>
             </xpath>

@@ -15,6 +15,7 @@ DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.readonly'
 YOUTUBE_SCOPES = ' '.join([
     'https://www.googleapis.com/auth/youtube.upload',
     'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/youtube.force-ssl',
 ])
 SCOPES = DRIVE_SCOPES + ' ' + YOUTUBE_SCOPES
 
@@ -33,6 +34,22 @@ class GoogleVideoConfig(models.Model):
     auto_upload = fields.Boolean('Tự xếp hàng khi nhập link Drive', default=False)
     processing_enabled = fields.Boolean('Cho phép xử lý video nền', default=False)
     max_file_gb = fields.Integer('Dung lượng video tối đa (GB)', default=10, required=True)
+    audio_language = fields.Selection([('en', 'Tiếng Anh'), ('vi', 'Tiếng Việt')],
+                                     string='Ngôn ngữ âm thanh', default='en', required=True)
+    metadata_language = fields.Selection([('vi', 'Tiếng Việt'), ('en', 'Tiếng Anh')],
+                                        string='Ngôn ngữ tiêu đề / mô tả', default='vi', required=True)
+    auto_thumbnail = fields.Boolean('Tự tạo ảnh bìa', default=True)
+    auto_playlist = fields.Boolean('Tự xếp playlist theo giáo viên', default=True)
+    youtube_scopes = fields.Char('Quyền YouTube đã cấp', readonly=True, copy=False)
+    playlist_authorized = fields.Boolean('Đủ quyền playlist', compute='_compute_playlist_authorized')
+
+    @api.depends('youtube_scopes')
+    def _compute_playlist_authorized(self):
+        for rec in self:
+            rec.playlist_authorized = bool(set((rec.youtube_scopes or '').split()) & {
+                'https://www.googleapis.com/auth/youtube.force-ssl',
+                'https://www.googleapis.com/auth/youtube',
+                'https://www.googleapis.com/auth/youtubepartner'})
 
     @api.constrains('redirect_uri', 'max_file_gb')
     def _validate_settings(self):
@@ -91,6 +108,7 @@ class GoogleVideoConfig(models.Model):
             'credential_json': False, 'credential_filename': False,
             'refresh_token': False, 'access_token': False, 'expires_at': 0,
             'youtube_refresh_token': False, 'youtube_access_token': False, 'youtube_expires_at': 0,
+            'youtube_scopes': False,
             'state': 'disconnected', 'drive_state': 'disconnected',
             'channel_name': False, 'channel_id': False, 'channel_handle': False,
             'processing_enabled': False,
@@ -175,6 +193,7 @@ class GoogleVideoConfig(models.Model):
             'youtube_expires_at': time.time() + int(token.get('expires_in', 3600)),
             'channel_id': items[0]['id'], 'channel_name': items[0]['snippet']['title'],
             'channel_handle': handle, 'state': 'connected',
+            'youtube_scopes': token.get('scope', ''),
         })
 
     def action_disconnect(self):
@@ -184,6 +203,7 @@ class GoogleVideoConfig(models.Model):
                            'drive_state': 'disconnected',
                            'youtube_refresh_token': False, 'youtube_access_token': False,
                            'youtube_expires_at': 0,
+                           'youtube_scopes': False,
                            'processing_enabled': False,
                            'channel_id': False, 'channel_name': False, 'channel_handle': False})
         return True

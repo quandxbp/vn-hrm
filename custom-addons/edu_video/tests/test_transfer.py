@@ -138,6 +138,8 @@ class TestVideoTransfer(TransactionCase):
         self.assertFalse(self.job.upload_url)
         init = request.call_args_list[3]
         self.assertEqual(init.kwargs['json']['status']['privacyStatus'], 'public')
+        self.assertEqual(init.kwargs['json']['snippet']['defaultLanguage'], 'vi')
+        self.assertEqual(init.kwargs['json']['snippet']['defaultAudioLanguage'], 'en')
         self.assertIs(init.kwargs['json']['status']['selfDeclaredMadeForKids'], False)
         self.assertIn('17:30', init.kwargs['json']['snippet']['description'])
         self.assertIn('02/01/2030', init.kwargs['json']['snippet']['description'])

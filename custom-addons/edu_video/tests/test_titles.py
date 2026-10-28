@@ -62,7 +62,8 @@ class TestVideoTitles(TransactionCase):
                 response(body={'items': [{'id': 'title-channel'}]}),
                 response(headers={'Location': 'https://www.googleapis.com/upload/youtube/v3/videos?upload_id=fake'})
                 ]) as request, patch.object(type(self.Job), '_checkpoint'):
-            job._start_upload(SimpleNamespace(channel_id='title-channel', privacy='public'))
+            job._start_upload(SimpleNamespace(channel_id='title-channel', privacy='public',
+                                             metadata_language='vi', audio_language='en'))
         expected = 'KIMENGLISH - MS TITLE TEST HOPE - Kelly & Lily (WEEK 99891) (1)'
         self.assertEqual(request.call_args_list[1].kwargs['json']['snippet']['title'], expected)
         self.assertEqual(job.title, expected)
@@ -76,17 +77,42 @@ class TestVideoTitles(TransactionCase):
         self.assertEqual(job.description, sent_description)
 
     def test_description_uses_vietnamese_schedule_and_handles_midnight(self):
-        lesson = SimpleNamespace(date=date(2026, 10, 27), time_start=23.5, time_end=0.0)
-        self.assertEqual(self.Job._youtube_description(lesson),
+        lesson = SimpleNamespace(date=date(2026, 10, 27), time_start=23.5, time_end=0.0,
+                                 teacher_id=SimpleNamespace(name='Hope', teaching_title='ms'),
+                                 week_id=SimpleNamespace(number=103))
+        self.assertEqual(self.Job._youtube_description(lesson).splitlines()[0],
                          '23:30–00:00 Thứ Ba 27/10/2026')
         lesson.date = date(2026, 10, 26)
         lesson.time_start, lesson.time_end = 20.5, 21.0
-        self.assertEqual(self.Job._youtube_description(lesson),
+        description = self.Job._youtube_description(lesson)
+        self.assertEqual(description.splitlines()[0],
                          '20:30–21:00 Thứ Hai 26/10/2026')
+        self.assertIn('Buổi học tiếng Anh trực tuyến cùng MS HOPE tại Kim Academy — tuần 103.', description)
+        self.assertIn('• Giáo viên: MS HOPE\n• Tuần học: 103', description)
+        self.assertIn('• Ngày học: Thứ Hai, 26/10/2026\n• Giờ học: 20:30–21:00 (giờ Việt Nam)', description)
+        self.assertIn('Thông tin chương trình học: https://kimacademy.uk/', description)
+        self.assertIn('#KimAcademy #HocTiengAnh #TiengAnhOnline', description)
+        self.assertTrue(description.endswith(
+            '--------------------------------------\n'
+            '► FOLLOW KIM ACADEMY OFFICIAL:\n'
+            'YouTube: https://www.youtube.com/@YURYONG90\n'
+            'Facebook: https://www.facebook.com/mskim.kimacademy\n'
+            'Email: kimacademy.edu@gmail.com\n\n'
+            '© Bản quyền thuộc về Kim Academy Official ☞ Do not Reup\n'
+            '© Copyright by Kim Academy Official ☞ Do not Reup'))
         lesson.date = date(2026, 11, 1)
         lesson.time_start = lesson.time_end = 0.0
         description = self.Job._youtube_description(lesson)
-        self.assertEqual(description, 'Chưa cập nhật Chủ Nhật 01/11/2026')
+        self.assertEqual(description.splitlines()[0], 'Chưa cập nhật Chủ Nhật 01/11/2026')
+
+    def test_description_uses_actual_teacher_and_handles_missing_week(self):
+        lesson = SimpleNamespace(date=date(2026, 10, 28), time_start=17.5, time_end=18.0,
+                                 teacher_id=SimpleNamespace(name='  Moshood  ', teaching_title='mr'),
+                                 week_id=False)
+        description = self.Job._youtube_description(lesson)
+        self.assertIn('cùng MR MOSHOOD tại Kim Academy', description)
+        self.assertIn('• Tuần học: Chưa cập nhật', description)
+        self.assertNotIn('HOPE', description)
 
     def test_missing_fields_stop_before_google_request(self):
         job = self.session._enqueue_video()

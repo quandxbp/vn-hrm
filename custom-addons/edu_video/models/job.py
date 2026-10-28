@@ -151,8 +151,31 @@ class EduVideoJob(models.Model):
             return '%02d:%02d' % divmod(round(value * 60) % 1440, 60)
         lesson_time = ('%s–%s' % (clock(session.time_start), clock(session.time_end))
                        if session.time_start or session.time_end else 'Chưa cập nhật')
-        return '%s %s %s' % (
-            lesson_time, weekdays[session.date.weekday()], session.date.strftime('%d/%m/%Y'))
+        weekday = weekdays[session.date.weekday()]
+        lesson_date = session.date.strftime('%d/%m/%Y')
+        salutation = {'mr': 'MR', 'ms': 'MS'}.get(session.teacher_id.teaching_title, '')
+        teacher = ' '.join(filter(None, [salutation, ' '.join(session.teacher_id.name.split()).upper()]))
+        week = session.week_id.number if session.week_id else 'Chưa cập nhật'
+        return (
+            f'{lesson_time} {weekday} {lesson_date}\n\n'
+            f'Buổi học tiếng Anh trực tuyến cùng {teacher} tại Kim Academy — tuần {week}.\n'
+            'Video ghi lại buổi học để học viên xem lại và ôn tập.\n\n'
+            'THÔNG TIN BUỔI HỌC\n'
+            f'• Giáo viên: {teacher}\n'
+            f'• Tuần học: {week}\n'
+            f'• Ngày học: {weekday}, {lesson_date}\n'
+            f'• Giờ học: {lesson_time} (giờ Việt Nam)\n\n'
+            'KHÁM PHÁ KIM ACADEMY\n'
+            'Thông tin chương trình học: https://kimacademy.uk/\n\n'
+            '#KimAcademy #HocTiengAnh #TiengAnhOnline\n\n'
+            '--------------------------------------\n'
+            '► FOLLOW KIM ACADEMY OFFICIAL:\n'
+            'YouTube: https://www.youtube.com/@YURYONG90\n'
+            'Facebook: https://www.facebook.com/mskim.kimacademy\n'
+            'Email: kimacademy.edu@gmail.com\n\n'
+            '© Bản quyền thuộc về Kim Academy Official ☞ Do not Reup\n'
+            '© Copyright by Kim Academy Official ☞ Do not Reup'
+        )
 
     @api.model
     def _cache_folder(self):
@@ -348,7 +371,9 @@ class EduVideoJob(models.Model):
         with self._request('youtube', 'POST', 'https://www.googleapis.com/upload/youtube/v3/videos',
                 params={'uploadType': 'resumable', 'part': 'snippet,status', 'notifySubscribers': 'false'},
                 json={'snippet': {'title': self.title, 'categoryId': '27',
-                                   'description': self.description},
+                                   'description': self.description,
+                                   'defaultLanguage': c.metadata_language,
+                                   'defaultAudioLanguage': c.audio_language},
                       'status': {'privacyStatus': c.privacy, 'selfDeclaredMadeForKids': False}},
                 headers={'X-Upload-Content-Length': str(int(self.total_bytes)),
                          'X-Upload-Content-Type': self.mime_type}, allow_redirects=False) as response:
@@ -414,7 +439,8 @@ class EduVideoJob(models.Model):
         else:
             message = 'Video đã tải lên. Link buổi học đã thay đổi nên không ghi đè; dùng link trong lịch sử này.'
         self.write({'state': 'done', 'video_url': url, 'uploaded_bytes': self.total_bytes,
-                    'finished_at': fields.Datetime.now(), 'error': message, 'upload_url': False})
+                    'finished_at': fields.Datetime.now(), 'error': message, 'upload_url': False,
+                    'optimization_state': 'pending', 'optimization_teacher_id': session.teacher_id.id})
         self._checkpoint()
         self._cleanup()
 

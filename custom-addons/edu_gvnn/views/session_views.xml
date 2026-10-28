@@ -4,7 +4,7 @@
         <field name="name">edu.session.tree</field>
         <field name="model">edu.session</field>
         <field name="arch" type="xml">
-            <tree class="edu_list" js_class="edu_session_list" editable="bottom" expand="1" default_order="week_id asc,date desc,time_start desc,id desc" decoration-muted="state == 'cancel'"
+            <tree class="edu_list" js_class="edu_session_list" editable="bottom" expand="1" default_order="week_id asc,date asc,time_start desc,id desc" decoration-muted="state == 'cancel'"
                   decoration-info="session_type == 'testing' and state == 'done'">
                 <header>
                     <button name="%(action_edu_import_wizard)d" type="action" display="always"
@@ -54,7 +54,7 @@
         <field name="model">edu.session</field>
         <field name="arch" type="xml">
             <tree class="edu_list" js_class="edu_session_list" editable="bottom" create="0" delete="0"
-                  expand="1" default_order="week_id asc,date desc,time_start desc,id desc"
+                  expand="1" default_order="week_id asc,date asc,time_start desc,id desc"
                   decoration-muted="state == 'cancel'">
                 <field name="paid" column_invisible="1"/>
                 <field name="google_drive_url" column_invisible="1"/>
