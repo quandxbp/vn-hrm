@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+review_manager,session.review.manager,model_edu_session_review,edu_gvnn.group_edu_manager,1,0,0,0
+review_part_manager,session.review.part.manager,model_edu_session_review_part,edu_gvnn.group_edu_manager,1,0,0,0

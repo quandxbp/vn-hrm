@@ -1,0 +1,92 @@
+<odoo>
+    <record id="review_form" model="ir.ui.view">
+        <field name="name">edu.session.review.form</field><field name="model">edu.session.review</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_cancel" type="object" string="Hủy phân tích" invisible="state in ['done','failed','cancelled']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="queued,processing,analyzing,done"/>
+                </header>
+                <sheet>
+                    <h1><field name="name"/></h1>
+                    <field name="source_current" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="source_current">
+                        Link Drive đã thay đổi. Báo cáo này thuộc phiên bản video trước; hãy phân tích lại.
+                    </div>
+                    <div class="alert alert-info" role="status">
+                        Nhận xét AI hỗ trợ người quản lý, không phải kết luận đánh giá giáo viên.
+                        Thời gian dạy/học và dẫn chứng là ước lượng; bao gồm cả học sinh thực hành và suy nghĩ có chủ đích.
+                    </div>
+                    <group>
+                        <group><field name="session_id"/><field name="requested_by"/><field name="create_date" string="Thời gian yêu cầu"/><field name="finished_at"/></group>
+                        <group><field name="model_name"/><field name="prompt_version"/><field name="cleanup_pending"/></group>
+                    </group>
+                    <field name="error" invisible="not error"/>
+                    <group invisible="state != 'done'">
+                        <group string="Thời gian và tương tác">
+                            <field name="total_minutes"/><field name="sufficient_data"/>
+                            <field name="teaching_minutes" invisible="not sufficient_data"/>
+                            <field name="teaching_percent" invisible="not sufficient_data"/>
+                            <field name="interaction_level" widget="badge"/><field name="interaction_comment"/>
+                        </group>
+                        <group string="Nhận xét tổng quát"><field name="summary" nolabel="1"/><field name="quality_note"/></group>
+                    </group>
+                    <group invisible="state != 'done'">
+                        <group string="Điểm mạnh"><field name="strengths" nolabel="1"/></group>
+                        <group string="Điểm cần cải thiện"><field name="improvements" nolabel="1"/></group>
+                    </group>
+                    <separator string="Video đã sử dụng"/>
+                    <field name="part_ids" nolabel="1">
+                        <tree create="0" delete="0"><field name="number"/><field name="source_url" widget="url"/><field name="state"/><field name="duration"/></tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="session_review_page" model="ir.ui.view">
+        <field name="name">edu.session.ai.review</field><field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_gvnn.view_edu_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="ai_review" string="Nhận xét AI" groups="edu_gvnn.group_edu_manager">
+                    <button name="action_analyze_lesson" type="object" string="Phân tích / phân tích lại" class="btn-primary"
+                            invisible="state == 'cancel'" help="Gửi các video Drive của buổi học đến Gemini để nhận xét."/>
+                    <div class="text-muted my-2">Báo cáo có thời gian dạy/học ước lượng, mức tương tác, điểm mạnh, góp ý và dẫn chứng. Mở một lần phân tích để xem đầy đủ.</div>
+                    <field name="ai_review_id" invisible="1"/><field name="ai_review_current" invisible="1"/>
+                    <group invisible="not ai_review_id"><field name="ai_review_state" widget="badge"/><field name="ai_review_summary" nolabel="1"/></group>
+                    <div class="alert alert-warning" role="alert" invisible="not ai_review_id or ai_review_current">Link Drive đã thay đổi; cần phân tích lại.</div>
+                    <field name="ai_review_ids" nolabel="1" readonly="1">
+                        <tree create="0" delete="0" default_order="id desc">
+                            <field name="create_date" string="Thời gian yêu cầu"/><field name="requested_by"/><field name="state" widget="badge"/>
+                            <field name="interaction_level"/><field name="total_minutes"/>
+                            <button name="get_formview_action" type="object" string="Xem nhận xét" icon="fa-external-link"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="review_config_form" model="ir.ui.view">
+        <field name="name">edu.video.config.review</field><field name="model">edu.video.config</field>
+        <field name="inherit_id" ref="edu_video.view_config_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <separator string="Nhận xét AI buổi học — Gemini"/>
+                <div class="alert alert-info" role="status">
+                    Khi bật phân tích, video Drive được gửi đến Google Gemini để tạo nhận xét nội bộ.
+                    Không cần đăng công khai video. API key Gemini độc lập với OAuth Drive/YouTube.
+                    Chỉ các link mới/thay đổi được tự xếp hàng; không tự phân tích các video cũ.
+                </div>
+                <group>
+                    <group><field name="review_key_input" password="True" placeholder="Nhập key để thay; để trống giữ key hiện có"/>
+                        <field name="review_key_set"/><field name="review_model"/>
+                        <button name="action_test_review_connection" type="object" string="Kiểm tra kết nối Gemini"/>
+                        <button name="action_clear_review_key" type="object" string="Xóa API key Gemini" confirm="Tắt phân tích và xóa key đã lưu?"/>
+                    </group>
+                    <group><field name="review_enabled"/><field name="review_auto"/>
+                        <field name="review_max_mb"/><field name="review_max_minutes"/></group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
