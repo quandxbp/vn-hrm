@@ -32,6 +32,10 @@ Từ tiêu chí **2.0**, báo cáo gồm bốn phần chính:
 4. Điểm /10 do server cộng từ bốn tiêu chí /2,5: nội dung, hướng dẫn/sửa lỗi, tương tác,
    tổ chức/thời gian. Từng điểm có lý do và dẫn chứng; thiếu dữ liệu thì để chưa chấm, không gán 0.
 
+Schema gửi Gemini bỏ các ràng buộc độ dài mảng lồng nhau để tránh lỗi `INVALID_ARGUMENT`
+ở bộ tạo structured output. Giới hạn nội dung/ưu điểm/góp ý/dẫn chứng vẫn được kiểm tra
+tại server trước khi công bố báo cáo; không bỏ kiểm tra dữ liệu.
+
 Báo cáo cũ được giữ nguyên và ghi rõ chưa có tiêu chí mới. Bấm **Phân tích lại** để tạo
 phiên bản mới; không tự chấm thêm điểm cho nhận xét cũ hoặc tự chạy lại toàn bộ video.
 

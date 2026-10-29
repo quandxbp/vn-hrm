@@ -14,7 +14,7 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import config as server_config
 
-from .report import PROMPT, SCHEMA, clock, validate_report
+from .report import PROMPT, clock, generation_schema, validate_report
 
 API = 'https://generativelanguage.googleapis.com'
 CHUNK = 8 * 1024 * 1024
@@ -212,7 +212,7 @@ class SessionReview(models.Model):
             ])
         generation = {
             'temperature': 0.2, 'maxOutputTokens': 8192,
-            'responseMimeType': 'application/json', 'responseJsonSchema': SCHEMA,
+            'responseMimeType': 'application/json', 'responseJsonSchema': generation_schema(),
         }
         if self.model_name.startswith('gemini-3'):
             generation['thinkingConfig'] = {'thinkingLevel': 'low'}

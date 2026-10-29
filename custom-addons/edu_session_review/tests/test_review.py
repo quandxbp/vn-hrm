@@ -11,7 +11,7 @@ from odoo import fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
 
-from ..models.report import validate_report
+from ..models.report import SCHEMA, generation_schema, validate_report
 from ..models.review import API, CHUNK, ReviewError, safe_upload_url
 
 
@@ -82,6 +82,19 @@ class TestSessionReview(TransactionCase):
         self.review.write(dict(values, state='done'))
         self.assertEqual(self.review.score_display, '7.5 / 10')
         self.assertEqual(self.review.time_display, '01:20 / 02:00')
+
+    def test_provider_schema_avoids_nested_array_cardinality_limits(self):
+        schema = generation_schema()
+        self.assertEqual(schema['required'], SCHEMA['required'])
+        self.assertEqual(schema['properties']['rubric']['required'],
+                         ['content', 'instruction', 'interaction', 'management'])
+        self.assertNotIn('maxItems', json.dumps(schema))
+        self.assertNotIn('minItems', json.dumps(schema))
+        self.assertEqual(SCHEMA['properties']['strengths']['maxItems'], 3)
+        data = report_v2()
+        data['strengths'] *= 4
+        with self.assertRaises(UserError):
+            validate_report(data, {1: 120}, require_v2=True)
 
     def test_v2_does_not_accept_legacy_report_as_new_criteria(self):
         with self.assertRaises(UserError):
