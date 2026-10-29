@@ -1,5 +1,6 @@
 """Validate model output locally; never render model-supplied HTML or trust its totals."""
 import math
+import re
 
 from odoo.exceptions import UserError
 
@@ -10,7 +11,10 @@ Viết nhận xét bằng tiếng Việt, ngắn gọn, thực tế; không ch�
 Tính thời gian có hoạt động dạy/học: giáo viên hướng dẫn, học sinh thực hành, kiểm tra
 hiểu bài, sửa lỗi, thời gian suy nghĩ có chủ đích. Loại thời gian chờ vào lớp, chuẩn bị
 thiết bị, mất kết nối và gián đoạn không phục vụ bài học. Không coi mọi khoảng im lặng
-là không dạy. Trả lại các khoảng hoạt động, không chồng lặp, theo GIÂY trong từng phần.
+là không dạy. Trả lại các khoảng hoạt động, không chồng lặp, trong từng phần.
+Mọi start/end phải là CHUỖI thời gian MM:SS tính từ đầu từng video, ví dụ "02:10".
+Không viết thành số 210 hoặc 2.10. Hệ thống tự đổi "02:10" thành 130 giây.
+Mốc kết thúc không vượt thời lượng phần video được cung cấp; không dùng giờ trên đồng hồ trong hình.
 Đánh giá tương tác low/medium/good dựa trên hỏi–đáp, học sinh được thực hành, phản hồi
 và phân bổ lượt nói; không chỉ đếm câu hỏi hoặc yêu cầu tỷ lệ nói cố định.
 Chỉ nêu hành vi quan sát được; không suy đoán tính cách, cảm xúc, quốc tịch, năng lực
@@ -28,10 +32,11 @@ def obj(properties):
     return {'type': 'object', 'properties': properties, 'required': list(properties), 'additionalProperties': False}
 
 
-NUMBER = {'type': 'number', 'minimum': 0}
-SPAN = obj({'start': NUMBER, 'end': NUMBER})
-EVIDENCE = obj({'part': {'type': 'integer'}, 'start': NUMBER, 'end': NUMBER})
-POINT = obj({'comment': {'type': 'string'}, 'evidence': {'type': 'array', 'items': EVIDENCE}})
+TIMESTAMP = {'type': 'string', 'description': 'Video offset MM:SS, e.g. 02:10 (130 seconds).'}
+SPAN = obj({'start': TIMESTAMP, 'end': TIMESTAMP})
+EVIDENCE = obj({'part': {'type': 'integer'}, 'start': TIMESTAMP, 'end': TIMESTAMP})
+POINT = obj({'comment': {'type': 'string'},
+             'evidence': {'type': 'array', 'items': EVIDENCE, 'minItems': 1, 'maxItems': 5}})
 SCHEMA = obj({
     'summary': {'type': 'string'}, 'sufficient_data': {'type': 'boolean'},
     'quality_note': {'type': 'string'},
@@ -54,6 +59,16 @@ def number(value):
 def clock(seconds):
     minutes, seconds = divmod(round(seconds), 60)
     return '%02d:%02d' % (minutes, seconds)
+
+
+def timestamp(value):
+    if isinstance(value, str):
+        if not re.fullmatch(r'[0-9]{1,3}:[0-5][0-9]', value):
+            raise ValueError('timestamp')
+        minutes, seconds = value.split(':')
+        return int(minutes) * 60 + int(seconds)
+    # Version 1.0 reports used numeric seconds. Never guess that a number is MMSS.
+    return number(value)
 
 
 def validate_report(data, durations):
@@ -80,8 +95,8 @@ def validate_report(data, durations):
                 raise ValueError('part')
             seen.add(index)
             previous = 0.0
-            for segment in sorted(part['teaching_segments'], key=lambda item: number(item['start'])):
-                start, end = number(segment['start']), number(segment['end'])
+            for segment in sorted(part['teaching_segments'], key=lambda item: timestamp(item['start'])):
+                start, end = timestamp(segment['start']), timestamp(segment['end'])
                 if start < previous or end <= start or end > durations[index]:
                     raise ValueError('segment')
                 teaching += end - start
@@ -102,7 +117,7 @@ def validate_report(data, durations):
                 references = []
                 for evidence in point['evidence']:
                     index = evidence['part']
-                    start, end = number(evidence['start']), number(evidence['end'])
+                    start, end = timestamp(evidence['start']), timestamp(evidence['end'])
                     if type(index) is not int or index not in durations or not 0 <= start < end <= durations[index]:
                         raise ValueError('timestamp')
                     references.append('Phần %s %s–%s' % (index, clock(start), clock(end)))
@@ -118,5 +133,10 @@ def validate_report(data, durations):
             'teaching_minutes': teaching / 60 if data['sufficient_data'] else 0,
             'teaching_percent': teaching * 100 / total if data['sufficient_data'] else 0,
         }
-    except (KeyError, ValueError, TypeError, AttributeError, OverflowError):
-        raise UserError('Gemini trả về nhận xét thiếu dữ liệu hoặc mốc thời gian không hợp lệ. Hãy phân tích lại.')
+    except (KeyError, ValueError, TypeError, AttributeError, OverflowError) as exc:
+        # Only expose our own validation codes, never model text or a raw exception.
+        codes = {'schema', 'text', 'summary', 'level', 'insufficient', 'duration', 'parts',
+                 'part', 'segment', 'missing part', 'points', 'point', 'evidence', 'timestamp', 'number'}
+        reason = str(exc) if type(exc) is ValueError and str(exc) in codes else 'structure'
+        raise UserError('Gemini trả về nhận xét thiếu dữ liệu hoặc mốc thời gian không hợp lệ '
+                        '(%s). Kết quả đã được giữ lại để kiểm tra.' % reason) from exc

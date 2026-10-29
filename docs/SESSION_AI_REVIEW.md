@@ -44,6 +44,9 @@ URL cần bấm phân tích lại thủ công. Không tự phát hiện chỉnh 
 - HTTP quá tải/hạn mức được thử lại tối đa 3 lần. Yêu cầu phân tích mất phản hồi không
   được gửi lại tự động vì có thể phát sinh chi phí trùng; tạo lần phân tích mới sau khi kiểm tra.
 - Mỗi báo cáo lưu người yêu cầu, model, phiên bản prompt, link nguồn và kết quả đã xác thực.
+  Từ prompt 1.1, AI trả mốc `MM:SS`; server quy đổi sang giây và kiểm tra giới hạn video,
+  tránh nhầm `29:46` thành 2946 giây. Kết quả JSON bị từ chối cũng được lưu nội bộ để chẩn đoán,
+  không hiển thị thành báo cáo hợp lệ và không tự gửi lại yêu cầu phân tích.
 - Database neutralized không chạy gửi video. Môi trường local sao chép production vẫn cần
   kết nối Drive riêng; không tự sao chép OAuth/token production vào local.
 - Các bài test dùng mock mạng và thư mục tạm; không dùng video học sinh hoặc key thật.

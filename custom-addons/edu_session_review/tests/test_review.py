@@ -61,6 +61,21 @@ class TestSessionReview(TransactionCase):
         self.assertAlmostEqual(values['teaching_percent'], 80 / 120 * 100)
         self.assertIn('Phần 1 00:20–00:30', values['strengths'])
 
+    def test_timecodes_are_converted_to_seconds(self):
+        data = report()
+        data['parts'][0]['teaching_segments'] = [{'start': '05:56', 'end': '29:46'}]
+        data['strengths'][0]['evidence'] = [{'part': 1, 'start': '16:30', 'end': '18:20'}]
+        values = validate_report(data, {1: 1786})
+        self.assertAlmostEqual(values['teaching_minutes'], (1786 - 356) / 60)
+        self.assertIn('16:30–18:20', values['strengths'])
+
+    def test_timecodes_reject_outside_video_and_ambiguous_numbers(self):
+        for start, end in [('05:56', '29:47'), ('05:60', '29:46'), ('5.56', '29:46'), (556, 2946)]:
+            data = report()
+            data['parts'][0]['teaching_segments'] = [{'start': start, 'end': end}]
+            with self.assertRaises(UserError):
+                validate_report(data, {1: 1786})
+
     def test_report_rejects_overlap_nan_missing_and_bad_evidence(self):
         for mutate in (
             lambda d: d['parts'][0]['teaching_segments'].append({'start': 40, 'end': 80}),
@@ -215,6 +230,21 @@ class TestSessionReview(TransactionCase):
             with self.assertRaises(UserError):
                 self.review._step()
         call.assert_not_called()
+
+    def test_invalid_report_is_kept_without_publishing_or_resubmitting(self):
+        data = report()
+        data['strengths'][0]['evidence'][0]['end'] = 999
+        self.part.duration = 120
+        try:
+            self.review._apply_result({'candidates': [{'finishReason': 'STOP',
+                'content': {'parts': [{'text': json.dumps(data)}]}}]})
+        except UserError as exc:
+            self.assertIn('(timestamp)', str(exc))
+        else:
+            self.fail('Invalid evidence must be rejected')
+        self.assertEqual(self.review.result_json, data)
+        self.assertNotEqual(self.review.state, 'done')
+        self.assertFalse(self.review.summary)
 
     def test_cleanup_only_deletes_review_files(self):
         self.path.write_bytes(b'temporary')

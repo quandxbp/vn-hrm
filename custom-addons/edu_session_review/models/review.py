@@ -14,7 +14,7 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import config as server_config
 
-from .report import PROMPT, SCHEMA, validate_report
+from .report import PROMPT, SCHEMA, clock, validate_report
 
 API = 'https://generativelanguage.googleapis.com'
 CHUNK = 8 * 1024 * 1024
@@ -59,7 +59,7 @@ class SessionReview(models.Model):
     session_id = fields.Many2one('edu.session', 'Buổi học', required=True, ondelete='restrict', index=True)
     source_signature = fields.Char(index=True)
     model_name = fields.Char('Model sử dụng', required=True)
-    prompt_version = fields.Char('Phiên bản tiêu chí', default='1.0', readonly=True)
+    prompt_version = fields.Char('Phiên bản tiêu chí', default='1.1', readonly=True)
     state = fields.Selection(STATES, string='Trạng thái', default='queued', required=True, index=True)
     requested_by = fields.Many2one('res.users', 'Người yêu cầu', default=lambda self: self.env.user, readonly=True)
     part_ids = fields.One2many('edu.session.review.part', 'review_id')
@@ -128,6 +128,9 @@ class SessionReview(models.Model):
         content = candidates[0].get('content', {}).get('parts', [])
         text = ''.join(item.get('text', '') for item in content if not item.get('thought'))
         data = json.loads(text)
+        # Keep the response for diagnosis/revalidation without another paid request.
+        # This field has the same manager-only ACL as the rest of the review.
+        self.result_json = data
         values = validate_report(data, self._durations())
         self.write(dict(values, state='done', result_json=data, finished_at=fields.Datetime.now(),
                         error=False, cleanup_pending=True))
@@ -174,7 +177,8 @@ class SessionReview(models.Model):
         parts = [{'text': PROMPT}]
         for item in self.part_ids.sorted('number'):
             parts.extend([
-                {'text': 'Phần %s; thời lượng %.3f giây.' % (item.number, item.duration)},
+                {'text': 'Phần %s; thời lượng %s (%.3f giây). start/end dùng chuỗi MM:SS từ 00:00, '
+                         'không vượt thời lượng này.' % (item.number, clock(math.floor(item.duration)), item.duration)},
                 {'fileData': {'fileUri': item.gemini_uri, 'mimeType': item.mime_type}},
             ])
         generation = {
