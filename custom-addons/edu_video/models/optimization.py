@@ -2,6 +2,8 @@ import base64
 import hashlib
 import io
 import re
+from datetime import timedelta
+from functools import lru_cache
 
 import requests
 from PIL import Image, ImageDraw, ImageFont
@@ -13,6 +15,7 @@ from odoo.modules.module import get_module_resource
 from .job import LOCK_NAMESPACE, TransferError
 
 
+@lru_cache(maxsize=64)
 def _font(size, bold=False):
     candidates = (['DejaVuSans-Bold.ttf', 'arialbd.ttf'] if bold else
                   ['DejaVuSans.ttf', 'arial.ttf'])
@@ -25,51 +28,69 @@ def _font(size, bold=False):
 
 
 def render_thumbnail(teacher, week, lesson_date, part=None):
-    """Create a branded JPEG; never stretch/re-encode the lesson video."""
-    image = Image.new('RGB', (1280, 720), '#f4f8fc')
+    """Render text at native 4K resolution; never upscale an old thumbnail."""
+    image = Image.new('RGB', (3840, 2160), '#f7fafc')
     draw = ImageDraw.Draw(image)
-    draw.rectangle((0, 0, 1280, 164), fill='#123e63')
-    draw.rectangle((0, 164, 16, 720), fill='#19adab')
+    draw.rectangle((2550, 0, 3840, 2160), fill='#123e63')
+    draw.ellipse((3050, -550, 4550, 950), outline='#1e5278', width=80)
+    draw.ellipse((2670, 1450, 4170, 2950), outline='#1e5278', width=80)
+    draw.rectangle((0, 0, 2550, 24), fill='#19adab')
     logo_path = get_module_resource('vnpt_base', 'static', 'src', 'img', 'kim-academy-logo.png')
     if logo_path:
-        draw.rounded_rectangle((48, 20, 178, 144), radius=12, fill='white')
+        draw.rounded_rectangle((160, 115, 440, 395), radius=40, fill='white')
         with Image.open(logo_path) as logo:
             logo = logo.convert('RGBA')
-            logo.thumbnail((112, 112))
-            image.paste(logo, (58, 26), logo)
-    draw.text((198, 44), 'KIM ACADEMY', font=_font(48, True), fill='white')
-    draw.text((200, 103), 'ENGLISH CLASS RECORDING', font=_font(22), fill='#b9e6ec')
-    # Fit long teacher names on two lines, including individual long words.
-    words = teacher.split()
-    lines, line = [], ''
-    for word in words:
-        candidate = (line + ' ' + word).strip()
-        if draw.textbbox((0, 0), candidate, font=_font(58, True))[2] > 1130 and line:
-            lines.append(line)
-            line = word
-        else:
-            line = candidate
-    lines.append(line)
-    text = '\n'.join(lines[:2])
-    size = 58
-    while size > 18 and draw.multiline_textbbox((0, 0), text, font=_font(size, True))[2] > 1130:
-        size -= 2
+            bounds = logo.getchannel('A').getbbox()
+            if bounds:
+                logo = logo.crop(bounds)
+                logo.thumbnail((230, 230), getattr(Image, 'Resampling', Image).LANCZOS)
+                image.paste(logo, (300 - logo.width // 2, 255 - logo.height // 2), logo)
+    draw.text((500, 160), 'KIM ACADEMY', font=_font(100, True), fill='#123e63')
+    draw.text((505, 290), 'ENGLISH LEARNING', font=_font(48), fill='#607d91')
+    draw.rounded_rectangle((200, 530, 1390, 675), radius=34, fill='#e0f1ee')
+    draw.text((245, 555), 'BUỔI HỌC TIẾNG ANH', font=_font(76, True), fill='#1a746f')
+    # Wrap at word boundaries, shrink to two lines, and bound pathological names.
+    name = ' '.join(teacher.split()) or 'GIÁO VIÊN'
+    if len(name) > 240:
+        name = name[:240].rstrip() + '…'
+    for size in range(260, 71, -8):
+        lines, line = [], ''
+        for word in name.split():
+            candidate = (line + ' ' + word).strip()
+            if draw.textbbox((0, 0), candidate, font=_font(size, True))[2] > 2100 and line:
+                lines.append(line)
+                line = word
+            else:
+                line = candidate
+        lines.append(line)
+        if len(lines) <= 2 and all(draw.textbbox((0, 0), value, font=_font(size, True))[2] <= 2100 for value in lines):
+            break
     if len(lines) > 2:
-        text = teacher
-        while size > 12 and draw.textbbox((0, 0), text, font=_font(size, True))[2] > 1130:
-            size -= 2
-    draw.multiline_text((64, 226), text, font=_font(size, True), fill='#123e63', spacing=10)
-    label = 'WEEK %s' % week
+        lines = lines[:2]
+        lines[-1] += '…'
+    for index, line in enumerate(lines):
+        while line and draw.textbbox((0, 0), line, font=_font(size, True))[2] > 2100:
+            line = line[:-2].rstrip() + '…' if len(line) > 2 else '…'
+        draw.text((200, 800 + index * (size + 30)), line, font=_font(size, True), fill='#123e63')
+    draw.rectangle((210, 1455, 440, 1470), fill='#19adab')
+    draw.text((200, 1590), 'NGÀY HỌC', font=_font(58, True), fill='#607d91')
+    draw.text((195, 1685), lesson_date, font=_font(126, True), fill='#123e63')
+    draw.text((200, 1970), 'kimacademy.uk', font=_font(60), fill='#58768c')
+    draw.text((2760, 505), 'TUẦN HỌC', font=_font(84, True), fill='#a9dbe1')
+    week_text = str(week)
+    week_size = 570
+    while week_size > 100 and draw.textbbox((0, 0), week_text, font=_font(week_size, True))[2] > 930:
+        week_size -= 10
+    draw.text((2750, 790), week_text, font=_font(week_size, True), fill='white')
     if part is not None:
-        label += '  |  PART %s' % part
-    draw.rounded_rectangle((64, 421, 1216, 506), radius=18, fill='#e0eff7')
-    draw.text((90, 436), label, font=_font(40, True), fill='#145b88')
-    draw.text((68, 545), lesson_date, font=_font(32), fill='#4a657b')
-    draw.line((64, 622, 1216, 622), fill='#ccdde9', width=2)
-    draw.text((68, 648), 'kimacademy.uk', font=_font(24), fill='#316985')
-    output = io.BytesIO()
-    image.save(output, 'JPEG', quality=90, optimize=True)
-    return output.getvalue()
+        draw.rounded_rectangle((2750, 1580, 3650, 1780), radius=42, fill='#19adab')
+        draw.text((2810, 1620), 'PHẦN %s' % part, font=_font(100, True), fill='white')
+    for quality in (95, 92, 88):
+        output = io.BytesIO()
+        image.save(output, 'JPEG', quality=quality, subsampling=0, optimize=True)
+        if output.tell() < 2 * 1024 ** 2:
+            return output.getvalue()
+    raise UserError('Ảnh bìa vượt giới hạn dung lượng. Hãy kiểm tra mẫu ảnh trước khi thử lại.')
 
 
 class EduVideoOptimization(models.Model):
@@ -80,6 +101,8 @@ class EduVideoOptimization(models.Model):
         ('done', 'Hoàn tất'), ('failed', 'Cần xử lý')],
         string='Ảnh bìa / Playlist', default='skipped', readonly=True, copy=False)
     optimization_error = fields.Text('Lỗi ảnh bìa / playlist', readonly=True, copy=False)
+    optimization_attempts = fields.Integer('Số lần xử lý ảnh bìa / playlist', readonly=True, copy=False)
+    optimization_next_attempt = fields.Datetime('Lần thử lại tiếp theo', readonly=True, copy=False)
     optimization_teacher_id = fields.Many2one('edu.teacher', readonly=True, copy=False, ondelete='restrict')
     thumbnail_image = fields.Binary('Ảnh bìa tự tạo', attachment=True, readonly=True, copy=False)
     thumbnail_applied = fields.Boolean('Đã đặt ảnh bìa', readonly=True, copy=False)
@@ -218,12 +241,13 @@ class EduVideoOptimization(models.Model):
         video_id = self.video_url.rsplit('/', 1)[-1]
         if not re.fullmatch(r'[A-Za-z0-9_-]{11}', video_id):
             raise UserError('Video ID không hợp lệ.')
+        self.optimization_attempts += 1
         with self._request('youtube', 'GET', 'https://www.googleapis.com/youtube/v3/channels',
                            params={'part': 'snippet', 'mine': 'true'}) as response:
             channels = response.json().get('items', [])
         if len(channels) != 1 or channels[0]['id'] != self.channel_id:
             raise UserError('Quyền Google không thuộc kênh đã upload video. Hãy kết nối lại đúng kênh.')
-        errors = []
+        errors, retryable = [], []
         if config.auto_thumbnail and not self.thumbnail_applied:
             try:
                 with self._request('youtube', 'POST', 'https://www.googleapis.com/upload/youtube/v3/thumbnails/set',
@@ -233,6 +257,7 @@ class EduVideoOptimization(models.Model):
                 self.thumbnail_applied = True
                 self._checkpoint()
             except (requests.RequestException, TransferError, UserError, ValueError, OSError) as exc:
+                retryable.append(self._optimization_retryable(exc))
                 errors.append('Ảnh bìa: ' + (str(exc) if isinstance(exc, (TransferError, UserError)) else
                               'Không gửi được ảnh bìa. Kiểm tra kết nối rồi thử lại.'))
         if config.auto_playlist and not self.playlist_item_id:
@@ -241,16 +266,30 @@ class EduVideoOptimization(models.Model):
                     raise UserError('Cần kết nối lại YouTube và cấp thêm quyền quản lý playlist.')
                 self._add_to_playlist(config, video_id)
             except (requests.RequestException, TransferError, UserError, ValueError, KeyError) as exc:
+                retryable.append(self._optimization_retryable(exc))
                 errors.append('Playlist: ' + (str(exc) if isinstance(exc, (TransferError, UserError)) else
                               'Chưa xác nhận kết quả trên YouTube. Kiểm tra playlist rồi thử lại.'))
-        self.write({'optimization_state': 'failed' if errors else 'done',
-                    'optimization_error': '\n'.join(errors) or False})
+        self._optimization_result(errors, any(retryable))
+
+    def _optimization_retryable(self, exc):
+        # Newly uploaded videos/playlists may briefly be unavailable to the next API call.
+        return isinstance(exc, requests.RequestException) or isinstance(exc, TransferError) and (
+            exc.retry or exc.status == 404)
+
+    def _optimization_result(self, errors, retryable=False):
+        retry = bool(errors and retryable and self.optimization_attempts < 4)
+        self.write({'optimization_state': 'pending' if retry else 'failed' if errors else 'done',
+                    'optimization_error': '\n'.join(errors) or False,
+                    'optimization_next_attempt': fields.Datetime.now() + timedelta(
+                        minutes=2 ** self.optimization_attempts) if retry else False})
 
     def _cron_optimize(self):
         config = self.env.ref('edu_video.config_default').sudo()
         if not config.processing_enabled:
             return
-        job = self.sudo().search([('state', '=', 'done'), ('optimization_state', '=', 'pending')],
+        job = self.sudo().search([('state', '=', 'done'), ('optimization_state', '=', 'pending'),
+                                '|', ('optimization_next_attempt', '=', False),
+                                ('optimization_next_attempt', '<=', fields.Datetime.now())],
                                 order='id', limit=1)
         if not job:
             return
@@ -268,12 +307,14 @@ class EduVideoOptimization(models.Model):
             if job.optimization_state != 'pending' or job.state != 'done':
                 return
             try:
+                attempts_before = job.optimization_attempts
                 config._ready()
                 job._optimize_uploaded_video(config)
             except (requests.RequestException, TransferError, UserError, ValueError) as exc:
-                job.write({'optimization_state': 'failed', 'optimization_error':
-                           str(exc) if isinstance(exc, (TransferError, UserError)) else
-                           'Không kết nối được YouTube. Kiểm tra kết nối rồi thử lại.'})
+                if job.optimization_attempts == attempts_before:
+                    job.optimization_attempts += 1
+                message = str(exc) if isinstance(exc, (TransferError, UserError)) else 'Không kết nối được YouTube. Kiểm tra kết nối rồi thử lại.'
+                job._optimization_result([message], job._optimization_retryable(exc))
             job._checkpoint()
         finally:
             for lock in reversed(held):
@@ -284,5 +325,6 @@ class EduVideoOptimization(models.Model):
         if self.state != 'done' or self.optimization_state != 'failed':
             raise UserError('Chỉ thử lại ảnh bìa / playlist của video đã upload và đang báo lỗi.')
         self.sudo().write({'optimization_state': 'pending', 'optimization_error': False,
-                           'playlist_create_pending': False})
+                           'playlist_create_pending': False, 'optimization_attempts': 0,
+                           'optimization_next_attempt': False})
         return True

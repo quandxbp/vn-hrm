@@ -4,9 +4,12 @@ from unittest.mock import patch
 import requests
 from PIL import Image
 
+from odoo import fields
 from odoo.tests import TransactionCase, tagged
 from odoo.exceptions import UserError
 from .test_transfer import response
+from ..models.job import TransferError
+from ..models.optimization import render_thumbnail
 
 
 @tagged('post_install', '-at_install')
@@ -54,7 +57,7 @@ class TestVideoOptimization(TransactionCase):
         self.assertEqual(self.job.state, 'done')
         thumbnail_call = request.call_args_list[1]
         with Image.open(io.BytesIO(thumbnail_call.kwargs['data'])) as image:
-            self.assertEqual(image.size, (1280, 720))
+            self.assertEqual(image.size, (3840, 2160))
             self.assertEqual(image.format, 'JPEG')
         self.assertLess(len(thumbnail_call.kwargs['data']), 2 * 1024 ** 2)
         self.assertEqual(request.call_args_list[3].kwargs['json']['snippet']['title'], 'KIMENGLISH - MS OPTIMIZATION TEST HOPE')
@@ -184,5 +187,65 @@ class TestVideoOptimization(TransactionCase):
             self.job._optimize_uploaded_video(self.config)
         self.assertEqual(self.job.playlist_item_id, 'saved-item')
         self.assertFalse(self.job.thumbnail_applied)
-        self.assertEqual(self.job.optimization_state, 'failed')
+        self.assertEqual(self.job.optimization_state, 'pending')
+        self.assertTrue(self.job.optimization_next_attempt)
         self.assertEqual(self.job.state, 'done')
+
+    def test_temporary_playlist_404_retries_known_playlist_without_creating_another(self):
+        self.job.thumbnail_applied = True
+        self.job.playlist_id = 'PLopt1234567890'
+        with patch.object(type(self.job), '_request', side_effect=[self.channel(),
+                TransferError('Playlist not ready', status=404, reason='playlistNotFound')]):
+            self.job._optimize_uploaded_video(self.config)
+        self.assertEqual(self.job.optimization_state, 'pending')
+        self.assertEqual(self.job.optimization_attempts, 1)
+        self.assertTrue(self.job.optimization_next_attempt)
+        with patch.object(type(self.job), '_request', side_effect=[self.channel(),
+                response(body={'items': []}),response(body={'id': 'added-after-retry'})]) as request:
+            self.job._optimize_uploaded_video(self.config)
+        self.assertEqual(self.job.optimization_state, 'done')
+        self.assertEqual(self.job.playlist_id, 'PLopt1234567890')
+        self.assertEqual(self.job.playlist_item_id, 'added-after-retry')
+        self.assertFalse(self.job.optimization_next_attempt)
+        self.assertFalse(any(call.args[1]=='POST' and call.args[2].endswith('/playlists') for call in request.call_args_list))
+
+    def test_retry_stops_after_four_attempts_and_does_not_repeat_thumbnail(self):
+        self.job.thumbnail_applied = True
+        self.job.playlist_id = 'PLopt1234567890'
+        self.job.optimization_attempts = 3
+        with patch.object(type(self.job), '_request', side_effect=[self.channel(), requests.Timeout()]):
+            self.job._optimize_uploaded_video(self.config)
+        self.assertEqual(self.job.optimization_state, 'failed')
+        self.assertEqual(self.job.optimization_attempts, 4)
+        self.assertFalse(self.job.optimization_next_attempt)
+        self.assertTrue(self.job.thumbnail_applied)
+        self.job.action_retry_optimization()
+        self.assertEqual(self.job.optimization_attempts, 0)
+
+    def test_http_reason_is_preserved_and_only_transient_errors_retry(self):
+        for status, reason, retry in [(404, 'playlistNotFound', True), (403, 'forbidden', False)]:
+            with patch.object(type(self.config), '_token', return_value='test-token'), patch(
+                    'requests.request', return_value=response(status=status,
+                    body={'error': {'errors': [{'reason': reason}]}})):
+                try:
+                    self.job._request('youtube', 'GET', 'https://www.googleapis.com/youtube/v3/playlistItems')
+                except TransferError as exc:
+                    self.assertEqual(exc.status, status)
+                    self.assertEqual(exc.reason, reason)
+                    self.assertEqual(self.job._optimization_retryable(exc), retry)
+                else:
+                    self.fail('Expected YouTube error')
+
+    def test_cron_does_not_retry_before_scheduled_time(self):
+        self.job.optimization_next_attempt = fields.Datetime.add(fields.Datetime.now(), hours=1)
+        with patch.object(type(self.config), '_ready'), patch.object(type(self.job), '_request') as request:
+            self.config.processing_enabled = True
+            self.env['edu.video.job']._cron_optimize()
+        request.assert_not_called()
+
+    def test_thumbnail_is_sharp_4k_bounded_for_long_vietnamese_names(self):
+        data = render_thumbnail('MS NGUYỄN THỊ MINH ANH ' * 12, 103, '29/10/2026', part=2)
+        with Image.open(io.BytesIO(data)) as image:
+            self.assertEqual(image.size, (3840, 2160))
+            self.assertEqual(image.format, 'JPEG')
+        self.assertLess(len(data), 2 * 1024 ** 2)

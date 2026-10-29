@@ -2,12 +2,22 @@
 
 ## Ngôn ngữ, ảnh bìa và playlist — 28/10/2026
 
+Cập nhật `17.0.1.8.0`: ảnh bìa được dựng trực tiếp ở **3840×2160**, tên giáo viên và tuần
+được làm lớn, crop lề trong suốt của logo trước khi thu nhỏ, JPEG không giảm mẫu màu và
+giữ dưới 2 MB. Không phóng to lại ảnh 1280×720 đã lưu; đổi bìa video cũ cần tạo lại ảnh
+và cập nhật riêng sau khi người quản lý đồng ý.
+
+Lỗi mạng, 429/5xx và 404 ở bước tối ưu được thử lại tối đa 3 lần sau 2/4/8 phút.
+Mỗi bước giữ dấu đã thành công, tra lại video trong playlist trước khi thêm, giữ ID playlist
+để không tạo playlist mới khi tài nguyên chưa sẵn sàng. Lịch thử lại hiện trong chi tiết job.
+Job cũ đang lỗi không tự được xếp lại khi nâng module.
+
 Từ `edu_video` **17.0.1.7.0**:
 
 - Cấu hình ngôn ngữ âm thanh (mặc định tiếng Anh) và ngôn ngữ tiêu đề/mô tả
   (mặc định tiếng Việt), gửi qua `defaultAudioLanguage` và `defaultLanguage` lúc upload.
   Đổi cho đúng ngôn ngữ thực tế; không tự tạo phụ đề hoặc dịch âm thanh.
-- Mặc định bật tự tạo thumbnail JPEG 1280×720, gồm logo Kim Academy, giáo viên,
+- Mặc định bật tự tạo thumbnail JPEG (3840×2160 từ bản 1.8), gồm logo Kim Academy, giáo viên,
   tuần, ngày và số phần nếu có nhiều đoạn. Dùng Pillow + font DejaVu Sans/Arial.
   Ảnh được lưu trong chi tiết job để xem lại. Không nén lại hoặc thay đổi video gốc.
 - Mặc định tự tạo/reuse playlist `KIMENGLISH - MR/MS TÊN GIÁO VIÊN` trên đúng kênh.

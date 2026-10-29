@@ -42,10 +42,12 @@ def parse_drive_url(url):
 
 
 class TransferError(Exception):
-    def __init__(self, message, retry=False, uncertain=False):
+    def __init__(self, message, retry=False, uncertain=False, status=None, reason=None):
         super().__init__(message)
         self.retry = retry
         self.uncertain = uncertain
+        self.status = status
+        self.reason = reason
 
 
 class EduVideoJob(models.Model):
@@ -266,11 +268,21 @@ class EduVideoJob(models.Model):
         if response.status_code in (200, 201, 206, 308):
             return response
         status = response.status_code
+        reason = None
+        try:
+            for item in response.json().get('error', {}).get('errors', []):
+                value = item.get('reason', '')
+                if isinstance(value, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9]{0,60}', value):
+                    reason = value
+                    break
+        except (ValueError, TypeError, AttributeError):
+            pass
         response.close()
         if self.upload_url and status in (404, 410) and service == 'youtube':
             raise TransferError('Phiên upload đã hết hạn. Kiểm tra kênh YouTube trước khi tạo yêu cầu mới để tránh trùng video.', uncertain=True)
-        raise TransferError('%s trả về HTTP %s. Kiểm tra quyền, dung lượng hoặc hạn mức API.' % (service, status),
-                            retry=status == 429 or status >= 500)
+        raise TransferError('%s trả về HTTP %s%s. Kiểm tra quyền, dung lượng hoặc hạn mức API.' %
+                            (service, status, ' (%s)' % reason if reason else ''),
+                            retry=status == 429 or status >= 500, status=status, reason=reason)
 
     def _guard(self):
         self.invalidate_recordset()

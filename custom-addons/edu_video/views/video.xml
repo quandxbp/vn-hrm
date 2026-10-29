@@ -40,6 +40,7 @@
                             <field name="thumbnail_applied"/>
                             <field name="playlist_url" widget="url"/>
                             <field name="optimization_error"/>
+                            <field name="optimization_next_attempt" invisible="not optimization_next_attempt"/>
                         </group>
                         <group>
                             <field name="thumbnail_image" widget="image" options="{'size': [480, 270]}" nolabel="1"/>
