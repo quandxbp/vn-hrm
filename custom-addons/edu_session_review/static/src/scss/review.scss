@@ -22,3 +22,43 @@
         .edu_review_metric, .edu_review_section { padding: 18px; }
     }
 }
+
+.edu_session_review_panel {
+    padding: 4px 0 12px;
+    .edu_session_review_header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+    .edu_session_review_intro { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .edu_session_review_icon { display: flex; align-items: center; justify-content: center; flex: 0 0 46px; height: 46px; border-radius: 12px; background: #edf3f8; color: #2f6585; font-size: 22px; }
+    .edu_session_review_eyebrow { color: #6b7f8b; font-size: 10px; font-weight: 600; letter-spacing: 1px; }
+    h3 { font-size: 20px; font-weight: 600; margin: 4px 0 6px; color: #263f4c; }
+    .edu_session_review_intro p { color: #687b86; margin: 0; }
+    .edu_session_review_actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .edu_session_review_actions .btn { border-radius: 7px; padding: 9px 14px; }
+    .edu_session_review_status { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .edu_session_review_status > span { font-size: 10px; font-weight: 600; color: #6b7f8b; letter-spacing: .6px; }
+    .edu_session_review_status .o_field_widget { margin: 0; }
+    .edu_session_review_metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .edu_session_review_metric { display: flex; flex-direction: column; gap: 10px; padding: 20px; border: 1px solid #dce7e5; border-radius: 12px; }
+    .edu_session_review_time { background: #f0f7f5; }
+    .edu_session_review_score { background: #f5f3fb; border-color: #e5e0f0; }
+    .edu_session_review_label { color: #526b76; font-size: 10px; font-weight: 600; letter-spacing: .5px; }
+    .edu_session_review_value { font-size: clamp(24px, 2.5vw, 30px); line-height: 1.25; font-weight: 700; color: #214653; margin: 0; }
+    small { color: #687b86; }
+    .edu_session_review_summary { padding: 20px; border: 1px solid #e1e7ec; border-radius: 12px; margin-bottom: 20px; }
+    h4 { font-size: 15px; font-weight: 600; color: #2e4653; margin: 0 0 14px; }
+    .edu_session_review_prose { white-space: pre-wrap; line-height: 1.85; color: #405661; width: 100%; }
+    .edu_session_review_hint { margin: 14px 0 0; color: #788993; font-size: 12px; }
+    .edu_session_review_empty { text-align: center; padding: 36px 20px; background: #f8fafc; border: 1px dashed #d9e2e9; border-radius: 12px; }
+    .edu_session_review_empty > .fa { font-size: 28px; color: #8a9eab; margin-bottom: 18px; }
+    .edu_session_review_empty p { color: #657b87; margin-bottom: 10px; }
+    .edu_session_review_history { border: 1px solid #e1e7ec; border-radius: 10px; overflow: hidden; }
+    .edu_session_review_history > summary { cursor: pointer; padding: 15px 18px; color: #536c79; font-weight: 600; background: #f8fafc; }
+    .edu_session_review_history[open] > summary { border-bottom: 1px solid #e1e7ec; }
+    .edu_session_review_history .o_field_widget { margin-bottom: 0; }
+    @media (max-width: 767.98px) {
+        .edu_session_review_metrics { grid-template-columns: 1fr; }
+        .edu_session_review_header { gap: 16px; }
+        .edu_session_review_actions { width: 100%; }
+        .edu_session_review_actions .btn { flex: 1; }
+        .edu_session_review_metric, .edu_session_review_summary { padding: 16px; }
+    }
+}

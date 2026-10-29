@@ -99,23 +99,80 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page name="ai_review" string="Nhận xét AI" groups="edu_gvnn.group_edu_manager">
-                    <button name="action_analyze_lesson" type="object" string="Phân tích / phân tích lại" class="btn-primary"
-                            invisible="state == 'cancel'" help="Gửi các video Drive của buổi học đến Gemini để nhận xét."/>
-                    <button name="action_open_ai_review" type="object" string="Mở báo cáo mới nhất" class="btn-secondary ms-2" invisible="not ai_review_id"/>
-                    <div class="text-muted my-3">Thời gian thực dạy / tổng video · Nội dung đã dạy · Ưu điểm và góp ý · Điểm chất lượng /10</div>
                     <field name="ai_review_id" invisible="1"/><field name="ai_review_current" invisible="1"/>
-                    <group invisible="not ai_review_id"><field name="ai_review_state" widget="badge"/>
-                        <field name="ai_review_time" string="Giảng dạy / video"/><field name="ai_review_score" string="Điểm chất lượng"/>
-                        <field name="ai_review_summary" nolabel="1"/></group>
-                    <div class="alert alert-warning" role="alert" invisible="not ai_review_id or ai_review_current">Link Drive đã thay đổi; cần phân tích lại.</div>
-                    <separator string="Lịch sử phân tích"/>
-                    <field name="ai_review_ids" nolabel="1" readonly="1">
-                        <tree create="0" delete="0" default_order="id desc">
-                            <field name="create_date" string="Thời gian yêu cầu"/><field name="requested_by"/><field name="state" widget="badge"/>
-                            <field name="time_display" string="Giảng dạy / video"/><field name="score_display" string="Điểm /10"/>
-                            <button name="get_formview_action" type="object" string="Xem nhận xét" icon="fa-external-link"/>
-                        </tree>
-                    </field>
+                    <div class="edu_session_review_panel">
+                        <div class="edu_session_review_header">
+                            <div class="edu_session_review_intro">
+                                <span class="edu_session_review_icon fa fa-magic" aria-hidden="true"/>
+                                <div>
+                                    <span class="edu_session_review_eyebrow">ĐÁNH GIÁ BUỔI DẠY</span>
+                                    <h3>Nhận xét AI</h3>
+                                    <p>Nội dung bài dạy, chất lượng giảng dạy và góp ý có dẫn chứng.</p>
+                                </div>
+                            </div>
+                            <div class="edu_session_review_actions">
+                                <button name="action_open_ai_review" type="object" string="Mở chi tiết" icon="fa-external-link"
+                                        class="btn-primary" invisible="not ai_review_id"/>
+                                <button name="action_analyze_lesson" type="object" string="Phân tích buổi học" icon="fa-magic"
+                                        class="btn-primary" invisible="ai_review_id or state == 'cancel'"
+                                        help="Gửi video Drive của buổi học đến Gemini để tạo nhận xét."/>
+                                <button name="action_analyze_lesson" type="object" string="Phân tích lại" icon="fa-refresh"
+                                        class="btn-outline-secondary" invisible="not ai_review_id or state == 'cancel' or ai_review_state in ['queued','processing','analyzing']"
+                                        help="Tạo một lần đánh giá mới từ các video Drive hiện tại."/>
+                            </div>
+                        </div>
+                        <div class="edu_session_review_status" invisible="not ai_review_id">
+                            <span>PHÂN TÍCH MỚI NHẤT</span>
+                            <field name="ai_review_state" widget="badge" nolabel="1"
+                                   decoration-success="ai_review_state == 'done'" decoration-danger="ai_review_state == 'failed'"
+                                   decoration-info="ai_review_state in ['queued','processing','analyzing']"
+                                   decoration-muted="ai_review_state == 'cancelled'"/>
+                        </div>
+                        <div class="alert alert-warning" role="alert" invisible="not ai_review_id or ai_review_current">
+                            Link Drive đã thay đổi. Nhận xét bên dưới thuộc video trước; hãy phân tích lại để cập nhật.
+                        </div>
+                        <div class="edu_session_review_empty" invisible="ai_review_id">
+                            <span class="fa fa-file-text-o" aria-hidden="true"/>
+                            <h4>Chưa có nhận xét cho buổi học này</h4>
+                            <p>Thêm link Google Drive trong tab Video buổi học, rồi chọn Phân tích buổi học.</p>
+                            <small>Báo cáo gồm thời gian thực dạy, nội dung đã dạy, ưu điểm, góp ý và điểm /10.</small>
+                        </div>
+                        <div class="alert alert-info" role="status" invisible="not ai_review_id or ai_review_state not in ['queued','processing','analyzing']">
+                            <i class="fa fa-clock-o me-2" aria-hidden="true"/>Video đang được xử lý. Bạn có thể tiếp tục làm việc và quay lại xem kết quả.
+                        </div>
+                        <div class="alert alert-danger" role="alert" invisible="ai_review_state != 'failed'">
+                            Phân tích chưa hoàn tất. Mở chi tiết để xem nguyên nhân hoặc chọn Phân tích lại.
+                        </div>
+                        <div class="alert alert-secondary" invisible="ai_review_state != 'cancelled'">Lần phân tích này đã được hủy. Bạn có thể phân tích lại khi cần.</div>
+                        <div class="edu_session_review_metrics" invisible="ai_review_state != 'done'">
+                            <div class="edu_session_review_metric edu_session_review_time">
+                                <span class="edu_session_review_label"><i class="fa fa-clock-o me-2" aria-hidden="true"/>GIẢNG DẠY / TỔNG VIDEO</span>
+                                <field name="ai_review_time" nolabel="1" class="edu_session_review_value"/>
+                                <small>Phút:giây · Ước lượng hoạt động dạy và học thực tế</small>
+                            </div>
+                            <div class="edu_session_review_metric edu_session_review_score">
+                                <span class="edu_session_review_label"><i class="fa fa-star-o me-2" aria-hidden="true"/>ĐIỂM CHẤT LƯỢNG</span>
+                                <field name="ai_review_score" nolabel="1" class="edu_session_review_value"/>
+                                <small>Nội dung · Hướng dẫn · Tương tác · Tổ chức</small>
+                            </div>
+                        </div>
+                        <div class="edu_session_review_summary" invisible="ai_review_state != 'done' or not ai_review_summary">
+                            <h4>Nhận xét tổng quát</h4>
+                            <field name="ai_review_summary" nolabel="1" class="edu_session_review_prose"/>
+                            <p class="edu_session_review_hint">Mở chi tiết để xem nội dung đã dạy, ưu điểm, góp ý và căn cứ chấm điểm.</p>
+                        </div>
+                        <details class="edu_session_review_history" invisible="not ai_review_id">
+                            <summary><i class="fa fa-history me-2" aria-hidden="true"/>Lịch sử phân tích</summary>
+                            <field name="ai_review_ids" nolabel="1" readonly="1">
+                                <tree create="0" delete="0" default_order="id desc">
+                                    <field name="create_date" string="Thời gian"/><field name="requested_by" string="Người yêu cầu"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done'" decoration-danger="state == 'failed'"/>
+                                    <field name="time_display" string="Giảng dạy / video"/><field name="score_display" string="Điểm /10"/>
+                                    <button name="get_formview_action" type="object" string="Chi tiết" icon="fa-external-link" class="btn-link"/>
+                                </tree>
+                            </field>
+                        </details>
+                    </div>
                 </page>
             </xpath>
         </field>
