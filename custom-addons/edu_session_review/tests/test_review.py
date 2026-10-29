@@ -32,6 +32,17 @@ def report():
     }
 
 
+def report_v2():
+    data = report()
+    data.update(lesson_content=[{'comment': 'Luyện câu hỏi What do you like? qua hỏi đáp.',
+        'evidence': [{'part': 1, 'start': '00:20', 'end': '00:30'}]}],
+        timing_note='Bắt đầu hướng dẫn bài ở 00:10, loại 10 giây chuẩn bị đầu video.',
+        rubric={key: {'score': score, 'reason': 'Có thực hành và phản hồi; cần thêm ví dụ.',
+            'evidence': [{'part': 1, 'start': '00:20', 'end': '00:30'}]}
+            for key, score in [('content', 2), ('instruction', 1.5), ('interaction', 2), ('management', 2)]})
+    return data
+
+
 @tagged('post_install', '-at_install')
 class TestSessionReview(TransactionCase):
     def setUp(self):
@@ -60,6 +71,51 @@ class TestSessionReview(TransactionCase):
         self.assertAlmostEqual(values['teaching_minutes'], 80 / 60)
         self.assertAlmostEqual(values['teaching_percent'], 80 / 120 * 100)
         self.assertIn('Phần 1 00:20–00:30', values['strengths'])
+
+    def test_v2_content_start_and_score_are_calculated(self):
+        values = validate_report(report_v2(), {1: 120}, require_v2=True)
+        self.assertEqual(values['teaching_started_at'], 'Phần 1 · 00:10')
+        self.assertIn('What do you like?', values['lesson_content'])
+        self.assertEqual(values['score_total'], 7.5)
+        self.assertTrue(values['score_available'])
+        self.assertIn('00:20–00:30', values['score_details'])
+        self.review.write(dict(values, state='done'))
+        self.assertEqual(self.review.score_display, '7.5 / 10')
+        self.assertEqual(self.review.time_display, '01:20 / 02:00')
+
+    def test_v2_does_not_accept_legacy_report_as_new_criteria(self):
+        with self.assertRaises(UserError):
+            validate_report(report(), {1: 120}, require_v2=True)
+        # Older stored reports remain readable without fabricated scores.
+        self.assertNotIn('score_total', validate_report(report(), {1: 120}))
+
+    def test_v2_rejects_invalid_scores_and_missing_content_or_evidence(self):
+        for mutate in (
+            lambda d: d['rubric']['content'].update(score=3),
+            lambda d: d['rubric']['content'].update(score=-1),
+            lambda d: d['rubric']['content'].update(score=True),
+            lambda d: d['rubric']['content'].update(score=float('nan')),
+            lambda d: d['rubric']['content'].update(score=None),
+            lambda d: d['rubric']['content']['evidence'].clear(),
+            lambda d: d['lesson_content'].clear(),
+            lambda d: d['parts'][0]['teaching_segments'].clear(),
+        ):
+            data = report_v2()
+            mutate(data)
+            with self.assertRaises(UserError):
+                validate_report(data, {1: 120}, require_v2=True)
+
+    def test_v2_insufficient_video_is_ungraded(self):
+        data = report_v2()
+        data.update(sufficient_data=False, quality_note='Không nghe được âm thanh.', interaction_level='insufficient')
+        for item in data['rubric'].values():
+            item.update(score=None, evidence=[])
+        values = validate_report(data, {1: 120}, require_v2=True)
+        self.assertFalse(values['score_available'])
+        self.assertFalse(values['teaching_started_at'])
+        self.assertEqual(values['teaching_minutes'], 0)
+        self.review.write(dict(values, state='done'))
+        self.assertEqual(self.review.score_display, 'Chưa có điểm')
 
     def test_timecodes_are_converted_to_seconds(self):
         data = report()
@@ -215,7 +271,7 @@ class TestSessionReview(TransactionCase):
         self.review.state = 'analyzing'
         self.part.write({'state': 'ready', 'total_bytes': 10, 'duration': 120, 'gemini_uri': API + '/v1beta/files/test-file', 'mime_type': 'video/mp4'})
         with patch.object(type(self.review), '_gemini', return_value=response({
-                'candidates': [{'finishReason': 'STOP', 'content': {'parts': [{'text': json.dumps(report())}]}}]})) as call:
+                'candidates': [{'finishReason': 'STOP', 'content': {'parts': [{'text': json.dumps(report_v2())}]}}]})) as call:
             self.review._step()
         self.assertIn(':generateContent', call.call_args.args[1])
         self.assertNotIn(self.session.google_drive_url, json.dumps(call.call_args.kwargs['json']))
@@ -232,7 +288,7 @@ class TestSessionReview(TransactionCase):
         call.assert_not_called()
 
     def test_invalid_report_is_kept_without_publishing_or_resubmitting(self):
-        data = report()
+        data = report_v2()
         data['strengths'][0]['evidence'][0]['end'] = 999
         self.part.duration = 120
         try:

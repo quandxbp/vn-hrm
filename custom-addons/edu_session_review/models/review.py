@@ -59,7 +59,7 @@ class SessionReview(models.Model):
     session_id = fields.Many2one('edu.session', 'Buổi học', required=True, ondelete='restrict', index=True)
     source_signature = fields.Char(index=True)
     model_name = fields.Char('Model sử dụng', required=True)
-    prompt_version = fields.Char('Phiên bản tiêu chí', default='1.1', readonly=True)
+    prompt_version = fields.Char('Phiên bản tiêu chí', default='2.0', readonly=True)
     state = fields.Selection(STATES, string='Trạng thái', default='queued', required=True, index=True)
     requested_by = fields.Many2one('res.users', 'Người yêu cầu', default=lambda self: self.env.user, readonly=True)
     part_ids = fields.One2many('edu.session.review.part', 'review_id')
@@ -81,8 +81,37 @@ class SessionReview(models.Model):
     interaction_comment = fields.Text('Nhận xét tương tác', readonly=True)
     strengths = fields.Text('Điểm mạnh và dẫn chứng', readonly=True)
     improvements = fields.Text('Điểm cần cải thiện và dẫn chứng', readonly=True)
+    lesson_content = fields.Text('Nội dung đã dạy', readonly=True)
+    timing_note = fields.Text('Căn cứ xác định thời gian', readonly=True)
+    teaching_started_at = fields.Char('Bắt đầu giảng dạy', readonly=True)
+    timing_details = fields.Text('Các khoảng giảng dạy', readonly=True)
+    score_available = fields.Boolean('Có điểm đánh giá', readonly=True)
+    score_total = fields.Float('Điểm chất lượng / 10', readonly=True, digits=(4, 1))
+    score_content = fields.Float('Nội dung / 2,5', readonly=True, digits=(3, 1))
+    score_instruction = fields.Float('Hướng dẫn / 2,5', readonly=True, digits=(3, 1))
+    score_interaction = fields.Float('Tương tác / 2,5', readonly=True, digits=(3, 1))
+    score_management = fields.Float('Tổ chức / 2,5', readonly=True, digits=(3, 1))
+    score_details = fields.Text('Căn cứ chấm điểm', readonly=True)
+    score_display = fields.Char(compute='_compute_report_display')
+    time_display = fields.Char(compute='_compute_report_display')
+    ratio_display = fields.Char(compute='_compute_report_display')
     result_json = fields.Json(readonly=True)
     source_current = fields.Boolean('Khớp các link Drive hiện tại', compute='_compute_source_current')
+
+    @api.depends('score_available', 'score_total', 'sufficient_data', 'teaching_minutes', 'total_minutes',
+                 'teaching_percent', 'state')
+    def _compute_report_display(self):
+        for review in self:
+            review.score_display = ('%.1f / 10' % review.score_total) if review.score_available else 'Chưa có điểm'
+            review.time_display = ('%s / %s' % (clock(review.teaching_minutes * 60), clock(review.total_minutes * 60))) \
+                if review.sufficient_data else 'Chưa đủ dữ liệu'
+            review.ratio_display = ('%.1f%% thời lượng video' % review.teaching_percent) \
+                if review.sufficient_data else 'Chưa thể ước lượng'
+
+    def action_reanalyze(self):
+        self.ensure_one()
+        self._manager()
+        return self.session_id.action_analyze_lesson()
 
     @api.depends('session_id.google_drive_url', 'session_id.recording_part_ids.google_drive_url', 'source_signature')
     def _compute_source_current(self):
@@ -131,7 +160,7 @@ class SessionReview(models.Model):
         # Keep the response for diagnosis/revalidation without another paid request.
         # This field has the same manager-only ACL as the rest of the review.
         self.result_json = data
-        values = validate_report(data, self._durations())
+        values = validate_report(data, self._durations(), require_v2=self.prompt_version == '2.0')
         self.write(dict(values, state='done', result_json=data, finished_at=fields.Datetime.now(),
                         error=False, cleanup_pending=True))
 

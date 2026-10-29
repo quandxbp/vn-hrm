@@ -16,6 +16,13 @@ class SessionReviewLink(models.Model):
     ai_review_state = fields.Selection(related='ai_review_id.state', groups='edu_gvnn.group_edu_manager')
     ai_review_current = fields.Boolean(related='ai_review_id.source_current', groups='edu_gvnn.group_edu_manager')
     ai_review_summary = fields.Text(related='ai_review_id.summary', groups='edu_gvnn.group_edu_manager')
+    ai_review_score = fields.Char(related='ai_review_id.score_display', groups='edu_gvnn.group_edu_manager')
+    ai_review_time = fields.Char(related='ai_review_id.time_display', groups='edu_gvnn.group_edu_manager')
+
+    def action_open_ai_review(self):
+        self.ensure_one()
+        self.ai_review_id._manager()
+        return self.ai_review_id.get_formview_action()
 
     @api.depends('ai_review_ids', 'ai_review_ids.state')
     def _compute_ai_review(self):

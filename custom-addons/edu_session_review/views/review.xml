@@ -2,43 +2,93 @@
     <record id="review_form" model="ir.ui.view">
         <field name="name">edu.session.review.form</field><field name="model">edu.session.review</field>
         <field name="arch" type="xml">
-            <form create="0" edit="0" delete="0">
+            <form create="0" edit="0" delete="0" class="edu_review_form">
                 <header>
                     <button name="action_cancel" type="object" string="Hủy phân tích" invisible="state in ['done','failed','cancelled']"/>
+                    <button name="action_reanalyze" type="object" string="Phân tích lại" class="btn-primary" invisible="state not in ['done','failed','cancelled']"/>
                     <field name="state" widget="statusbar" statusbar_visible="queued,processing,analyzing,done"/>
                 </header>
                 <sheet>
-                    <h1><field name="name"/></h1>
+                    <div class="edu_review_heading">
+                        <span class="edu_review_eyebrow">CHẤT LƯỢNG BUỔI DẠY</span>
+                        <h1><field name="session_id" nolabel="1"/></h1>
+                        <p>Thời gian thực dạy, nội dung bài học và nhận xét có dẫn chứng.</p>
+                    </div>
                     <field name="source_current" invisible="1"/>
                     <div class="alert alert-warning" role="alert" invisible="source_current">
                         Link Drive đã thay đổi. Báo cáo này thuộc phiên bản video trước; hãy phân tích lại.
                     </div>
-                    <div class="alert alert-info" role="status">
-                        Nhận xét AI hỗ trợ người quản lý, không phải kết luận đánh giá giáo viên.
-                        Thời gian dạy/học và dẫn chứng là ước lượng; bao gồm cả học sinh thực hành và suy nghĩ có chủ đích.
+                    <div class="alert alert-warning" invisible="state != 'done' or prompt_version == '2.0'">
+                        Báo cáo theo tiêu chí cũ, chưa có nội dung chi tiết và điểm /10. Bấm Phân tích lại để cập nhật.
                     </div>
-                    <group>
-                        <group><field name="session_id"/><field name="requested_by"/><field name="create_date" string="Thời gian yêu cầu"/><field name="finished_at"/></group>
-                        <group><field name="model_name"/><field name="prompt_version"/><field name="cleanup_pending"/></group>
-                    </group>
-                    <field name="error" invisible="not error"/>
-                    <group invisible="state != 'done'">
-                        <group string="Thời gian và tương tác">
-                            <field name="total_minutes"/><field name="sufficient_data"/>
-                            <field name="teaching_minutes" invisible="not sufficient_data"/>
-                            <field name="teaching_percent" invisible="not sufficient_data"/>
-                            <field name="interaction_level" widget="badge"/><field name="interaction_comment"/>
-                        </group>
-                        <group string="Nhận xét tổng quát"><field name="summary" nolabel="1"/><field name="quality_note"/></group>
-                    </group>
-                    <group invisible="state != 'done'">
-                        <group string="Điểm mạnh"><field name="strengths" nolabel="1"/></group>
-                        <group string="Điểm cần cải thiện"><field name="improvements" nolabel="1"/></group>
-                    </group>
-                    <separator string="Video đã sử dụng"/>
-                    <field name="part_ids" nolabel="1">
-                        <tree create="0" delete="0"><field name="number"/><field name="source_url" widget="url"/><field name="state"/><field name="duration"/></tree>
-                    </field>
+                    <div class="alert alert-danger" invisible="not error"><field name="error" nolabel="1"/></div>
+                    <div class="alert alert-info" invisible="state in ['done','failed','cancelled']">
+                        Đang xử lý video và tạo báo cáo. Bạn có thể quay lại buổi học trong lúc chờ.
+                    </div>
+                    <field name="sufficient_data" invisible="1"/><field name="score_available" invisible="1"/>
+                    <div invisible="state != 'done'">
+                        <div class="edu_review_metrics">
+                            <div class="edu_review_metric edu_review_metric_time">
+                                <span class="edu_review_label">01 · GIẢNG DẠY / TỔNG VIDEO</span>
+                                <field name="time_display" nolabel="1" class="edu_review_value"/>
+                                <span class="edu_review_caption">phút:giây · Tổng các phần video</span>
+                                <field name="ratio_display" nolabel="1"/>
+                                <div invisible="not sufficient_data">Bắt đầu dạy: <field name="teaching_started_at" nolabel="1"/></div>
+                            </div>
+                            <div class="edu_review_metric edu_review_metric_score">
+                                <span class="edu_review_label">ĐIỂM CHẤT LƯỢNG BUỔI DẠY</span>
+                                <field name="score_display" nolabel="1" class="edu_review_value"/>
+                                <span class="edu_review_caption">4 tiêu chí · Mỗi tiêu chí tối đa 2,5 điểm</span>
+                                <div>Mức tương tác: <field name="interaction_level" widget="badge" nolabel="1"/></div>
+                            </div>
+                        </div>
+                        <div class="edu_review_section">
+                            <h2>Nhận xét tổng quát</h2>
+                            <field name="summary" nolabel="1" class="edu_review_prose"/>
+                        </div>
+                        <div class="edu_review_section">
+                            <h2>02 · Nội dung giáo viên đã dạy</h2>
+                            <field name="lesson_content" nolabel="1" class="edu_review_prose"/>
+                            <p invisible="lesson_content" class="text-muted">Báo cáo này chưa có nội dung bài dạy chi tiết.</p>
+                        </div>
+                        <div class="edu_review_columns">
+                            <div class="edu_review_section edu_review_strengths">
+                                <h2>03 · Ưu điểm</h2><field name="strengths" nolabel="1" class="edu_review_prose"/>
+                            </div>
+                            <div class="edu_review_section edu_review_improvements">
+                                <h2>Điểm cần cải thiện</h2><field name="improvements" nolabel="1" class="edu_review_prose"/>
+                            </div>
+                        </div>
+                        <div class="edu_review_section" invisible="not score_details">
+                            <h2>04 · Chi tiết chấm điểm</h2>
+                            <group invisible="not score_available" col="4">
+                                <field name="score_content"/><field name="score_instruction"/>
+                                <field name="score_interaction"/><field name="score_management"/>
+                            </group>
+                            <field name="score_details" nolabel="1" class="edu_review_prose"/>
+                        </div>
+                    </div>
+                    <notebook>
+                        <page string="Thời gian và dẫn chứng" invisible="state != 'done'">
+                            <group><field name="teaching_started_at"/><field name="teaching_minutes"/><field name="total_minutes"/></group>
+                            <div class="edu_review_section"><h3>Căn cứ tính thời gian</h3><field name="timing_note" nolabel="1" class="edu_review_prose"/>
+                                <field name="timing_details" nolabel="1" class="edu_review_prose"/></div>
+                            <div class="edu_review_section"><h3>Tương tác với học sinh</h3><field name="interaction_comment" nolabel="1" class="edu_review_prose"/></div>
+                            <group><field name="quality_note"/></group>
+                        </page>
+                        <page string="Video nguồn">
+                            <field name="part_ids" nolabel="1">
+                                <tree create="0" delete="0"><field name="number"/><field name="source_url" widget="url"/><field name="state"/><field name="duration"/></tree>
+                            </field>
+                        </page>
+                        <page string="Thông tin phân tích">
+                            <group>
+                                <group><field name="name"/><field name="requested_by"/><field name="create_date" string="Thời gian yêu cầu"/><field name="finished_at"/></group>
+                                <group><field name="model_name"/><field name="prompt_version"/><field name="cleanup_pending"/></group>
+                            </group>
+                        </page>
+                    </notebook>
+                    <p class="edu_review_footnote">AI đánh giá nội dung quan sát được trong video. Thời gian và điểm số là ước lượng để quản lý kiểm tra cùng các mốc dẫn chứng.</p>
                 </sheet>
             </form>
         </field>
@@ -51,14 +101,18 @@
                 <page name="ai_review" string="Nhận xét AI" groups="edu_gvnn.group_edu_manager">
                     <button name="action_analyze_lesson" type="object" string="Phân tích / phân tích lại" class="btn-primary"
                             invisible="state == 'cancel'" help="Gửi các video Drive của buổi học đến Gemini để nhận xét."/>
-                    <div class="text-muted my-2">Báo cáo có thời gian dạy/học ước lượng, mức tương tác, điểm mạnh, góp ý và dẫn chứng. Mở một lần phân tích để xem đầy đủ.</div>
+                    <button name="action_open_ai_review" type="object" string="Mở báo cáo mới nhất" class="btn-secondary ms-2" invisible="not ai_review_id"/>
+                    <div class="text-muted my-3">Thời gian thực dạy / tổng video · Nội dung đã dạy · Ưu điểm và góp ý · Điểm chất lượng /10</div>
                     <field name="ai_review_id" invisible="1"/><field name="ai_review_current" invisible="1"/>
-                    <group invisible="not ai_review_id"><field name="ai_review_state" widget="badge"/><field name="ai_review_summary" nolabel="1"/></group>
+                    <group invisible="not ai_review_id"><field name="ai_review_state" widget="badge"/>
+                        <field name="ai_review_time" string="Giảng dạy / video"/><field name="ai_review_score" string="Điểm chất lượng"/>
+                        <field name="ai_review_summary" nolabel="1"/></group>
                     <div class="alert alert-warning" role="alert" invisible="not ai_review_id or ai_review_current">Link Drive đã thay đổi; cần phân tích lại.</div>
+                    <separator string="Lịch sử phân tích"/>
                     <field name="ai_review_ids" nolabel="1" readonly="1">
                         <tree create="0" delete="0" default_order="id desc">
                             <field name="create_date" string="Thời gian yêu cầu"/><field name="requested_by"/><field name="state" widget="badge"/>
-                            <field name="interaction_level"/><field name="total_minutes"/>
+                            <field name="time_display" string="Giảng dạy / video"/><field name="score_display" string="Điểm /10"/>
                             <button name="get_formview_action" type="object" string="Xem nhận xét" icon="fa-external-link"/>
                         </tree>
                     </field>

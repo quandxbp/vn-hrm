@@ -22,6 +22,19 @@ Mở buổi học → **Nhận xét AI** → **Phân tích / phân tích lại**
 thời lượng video, thời gian dạy/học ước lượng, mức tương tác, nhận xét chung,
 điểm mạnh và điểm cần cải thiện có dẫn chứng `Phần N mm:ss–mm:ss`.
 
+Từ tiêu chí **2.0**, báo cáo gồm bốn phần chính:
+
+1. Thời gian giảng dạy / tổng video theo `phút:giây`, tỷ lệ và mốc giáo viên thực sự bắt đầu dạy.
+   Loại chờ học sinh, kiểm tra thiết bị, chuẩn bị và gián đoạn ngoài bài; học sinh luyện tập
+   và suy nghĩ có chủ đích vẫn thuộc hoạt động giảng dạy. Nhiều video được cộng các khoảng hợp lệ.
+2. Nội dung thực tế đã dạy: chủ đề, từ/cấu trúc nghe rõ, kỹ năng và hoạt động, có mốc dẫn chứng.
+3. Nhận xét chất lượng, ưu điểm và góp ý kèm hành động cải thiện cụ thể.
+4. Điểm /10 do server cộng từ bốn tiêu chí /2,5: nội dung, hướng dẫn/sửa lỗi, tương tác,
+   tổ chức/thời gian. Từng điểm có lý do và dẫn chứng; thiếu dữ liệu thì để chưa chấm, không gán 0.
+
+Báo cáo cũ được giữ nguyên và ghi rõ chưa có tiêu chí mới. Bấm **Phân tích lại** để tạo
+phiên bản mới; không tự chấm thêm điểm cho nhận xét cũ hoặc tự chạy lại toàn bộ video.
+
 Hoạt động dạy/học tính cả học sinh luyện tập, sửa lỗi và thời gian suy nghĩ có mục đích;
 không đồng nhất với thời gian giáo viên nói. Thời lượng video lấy từ metadata Gemini,
 tổng hoạt động được tính từ các khoảng hợp lệ, không chồng lặp. Thiếu dữ liệu thì ẩn tỷ lệ,
