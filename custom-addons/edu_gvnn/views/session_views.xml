@@ -82,6 +82,8 @@
                         <field name="youtube_url"/>
                     </tree>
                 </field>
+                <button name="get_formview_action" type="object" string="Chi tiết"
+                        icon="fa-external-link" class="btn-link"/>
             </tree>
         </field>
     </record>
@@ -225,7 +227,7 @@
     <record id="action_edu_session_video" model="ir.actions.act_window">
         <field name="name">Video buổi học</field>
         <field name="res_model">edu.session</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
         <field name="view_id" ref="view_edu_session_video_tree"/>
         <field name="search_view_id" ref="view_edu_session_search"/>
         <field name="context">{'search_default_group_week': 1}</field>
