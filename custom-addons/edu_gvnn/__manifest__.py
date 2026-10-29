@@ -38,6 +38,7 @@ Kế hoạch chi tiết: docs/GVNN_PLAN.md
     'assets': {
         'web.assets_backend': [
             'edu_gvnn/static/src/scss/gvnn_ui.scss',
+            'edu_gvnn/static/src/scss/backend_notebook.scss',
             'edu_gvnn/static/src/views/session_list.js',
             'edu_gvnn/static/src/views/session_list.xml',
             'edu_gvnn/static/src/views/session_list.scss',

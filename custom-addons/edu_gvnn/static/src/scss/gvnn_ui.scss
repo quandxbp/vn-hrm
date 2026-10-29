@@ -1,4 +1,4 @@
-// Scoped to GVNN views: keep the rest of the backend and its dialogs unchanged.
+// GVNN form and list styles; shared notebook headers live in backend_notebook.scss.
 .edu_form {
     .o_form_sheet {
         border-radius: 12px;
@@ -38,9 +38,6 @@
 
     .o_notebook {
         margin-top: 16px;
-        .nav-tabs { gap: 4px; border-bottom-color: $o-gray-200; }
-        .nav-link { border-radius: 8px 8px 0 0; padding: 10px 16px; color: $o-gray-600; }
-        .nav-link.active { color: $o-brand-primary; font-weight: 600; background: rgba($o-brand-primary, .04); border-bottom-color: $o-brand-primary; }
         .tab-pane { padding-top: 20px; }
     }
 }
@@ -72,5 +69,4 @@
         gap: 12px; padding-bottom: 16px; margin-bottom: 16px;
         h1 { font-size: 22px; }
     }
-    .edu_form .o_notebook .nav-link { padding: 9px 12px; }
 }

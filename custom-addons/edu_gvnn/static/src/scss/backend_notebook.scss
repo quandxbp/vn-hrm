@@ -1,0 +1,25 @@
+// Reuse the session form's notebook tabs throughout the Odoo backend,
+// including notebooks in dialogs and forms without the edu_form class.
+.o_web_client .o_notebook > .o_notebook_headers > .nav-tabs {
+    gap: 4px;
+    border-bottom-color: $o-gray-200;
+
+    > .nav-item > .nav-link {
+        border-radius: 8px 8px 0 0;
+        padding: 10px 16px;
+        color: $o-gray-600;
+
+        &.active {
+            color: $o-brand-primary;
+            font-weight: 600;
+            background: rgba($o-brand-primary, .04);
+            border-bottom-color: $o-brand-primary;
+        }
+    }
+}
+
+@media (max-width: 767.98px) {
+    .o_web_client .o_notebook > .o_notebook_headers > .nav-tabs > .nav-item > .nav-link {
+        padding: 9px 12px;
+    }
+}
