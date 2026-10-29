@@ -35,7 +35,7 @@ class TestPublicSchedule(TransactionCase):
         self.assertEqual(data['status'], 200)
         self.assertEqual(len(data['rows']), 1)
         row = data['rows'][0]
-        self.assertEqual(set(row), {'week', 'date', 'weekday', 'teacher', 'time', 'students', 'cancelled', 'recording', 'recordings'})
+        self.assertEqual(set(row), {'week', 'date', 'weekday', 'teacher', 'time', 'students', 'cancelled', 'recording', 'recordings', 'youtube_recordings'})
         self.assertEqual(row['time'], '17:30–18:00')
         self.assertEqual(row['recording'], self.session.google_drive_url)
         self.assertEqual(row['students'][0]['name'], self.student.name)
@@ -51,6 +51,18 @@ class TestPublicSchedule(TransactionCase):
         self.assertEqual(data['selected_week'], str(self.week.number))
         self.assertEqual(len(data['rows']), 1)
         self.assertEqual(self.env['edu.week'].search_count([]), count)
+
+    def test_youtube_projection_includes_all_parts_and_only_safe_links(self):
+        self.session.youtube_url = 'https://youtu.be/aBcDeFgH123?si=tracking'
+        self.env['edu.session.recording.part'].create({'session_id': self.session.id, 'number': 2,
+            'google_drive_url': 'https://drive.google.com/file/d/second_public_video/view',
+            'youtube_url': 'https://www.youtube.com/watch?v=ZyXwVuTs987'})
+        self.assertEqual(self.values()['rows'][0]['youtube_recordings'], [
+            {'number': 1, 'url': 'https://www.youtube.com/watch?v=aBcDeFgH123'},
+            {'number': 2, 'url': 'https://www.youtube.com/watch?v=ZyXwVuTs987'}])
+        for url in ('javascript:alert(1)', 'https://youtube.com.evil.test/watch?v=aBcDeFgH123',
+                    'https://youtube.com@evil.test/watch?v=aBcDeFgH123', 'http://youtu.be/aBcDeFgH123'):
+            self.assertFalse(self.page._youtube_link(url))
 
     def test_no_current_week_does_not_fall_back_to_old_lessons(self):
         with patch('odoo.fields.Date.context_today', return_value=date(2000, 1, 3)):

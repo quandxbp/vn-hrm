@@ -39,6 +39,18 @@ tại server trước khi công bố báo cáo; không bỏ kiểm tra dữ li�
 Báo cáo cũ được giữ nguyên và ghi rõ chưa có tiêu chí mới. Bấm **Phân tích lại** để tạo
 phiên bản mới; không tự chấm thêm điểm cho nhận xét cũ hoặc tự chạy lại toàn bộ video.
 
+## Xem trên lịch tuần của giáo viên
+
+- Lịch tuần có cột **YouTube**, liệt kê link hợp lệ của tất cả phần video theo số phần.
+- Cột **Actions** có nút icon **Session Review**. Trên link cập nhật riêng của giáo viên,
+  nút mở modal đọc nhận xét mới nhất: tổng kết, nội dung đã dạy, thời gian, ưu điểm/góp ý,
+  điểm từng tiêu chí, căn cứ chấm điểm, tương tác, chất lượng bản ghi và nguồn video.
+- Link công khai chỉ hiện link YouTube; nút đọc nhận xét bị vô hiệu hóa. Nội dung AI
+  không được nhúng vào HTML lịch, chỉ tải khi mở modal bằng token đúng giáo viên/buổi học.
+- Endpoint POST `/weekly-schedule/session-review` kiểm tra CSRF, token giáo viên đang hoạt động
+  và quyền sở hữu buổi học. Phản hồi không cache, không trả lỗi nội bộ hay JSON thô của AI.
+- Mở modal chỉ đọc kết quả đã lưu, không chạy lại AI hoặc sửa điểm danh/link video.
+
 Hoạt động dạy/học tính cả học sinh luyện tập, sửa lỗi và thời gian suy nghĩ có mục đích;
 không đồng nhất với thời gian giáo viên nói. Thời lượng video lấy từ metadata Gemini,
 tổng hoạt động được tính từ các khoảng hợp lệ, không chồng lặp. Thiếu dữ liệu thì ẩn tỷ lệ,

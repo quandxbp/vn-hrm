@@ -26,6 +26,26 @@ class PublicSchedule(models.AbstractModel):
             pass
         return ''
 
+    @staticmethod
+    def _youtube_link(value):
+        try:
+            link = urlsplit((value or '').strip())
+            if (link.scheme != 'https' or link.username or link.password or link.port not in (None, 443)):
+                return ''
+            if link.hostname == 'youtu.be':
+                video = link.path.strip('/')
+            elif link.hostname in ('youtube.com', 'www.youtube.com', 'm.youtube.com'):
+                if link.path == '/watch':
+                    video = parse_qs(link.query).get('v', [''])[0]
+                else:
+                    match = re.fullmatch(r'/(?:shorts|live|embed)/([\w-]{11})', link.path)
+                    video = match.group(1) if match else ''
+            else:
+                return ''
+            return 'https://www.youtube.com/watch?v=' + video if re.fullmatch(r'[A-Za-z0-9_-]{11}', video) else ''
+        except (ValueError, TypeError):
+            return ''
+
     @api.model
     def _editor(self, token):
         if not isinstance(token, str) or len(token) != 43:
@@ -196,7 +216,7 @@ class PublicSchedule(models.AbstractModel):
     def _get_values(self, teacher_name, week_number=None, editor=None):
         values = {'status': 200, 'error': '', 'teacher_name': '', 'teacher_query': '',
                   'week_label': '', 'date_range': '', 'week_options': [], 'selected_week': '', 'rows': [], 'edit_mode': False, 'form_action': '/weekly-schedule',
-                  'edit_token': '', 'notice': '', 'save_error': ''}
+                  'edit_token': '', 'notice': '', 'save_error': '', 'review_enabled': False}
         if (not isinstance(teacher_name, str) or not teacher_name.strip() or len(teacher_name) > 120
                 or any(ord(char) < 32 for char in teacher_name)):
             return dict(values, status=404, error='Open your teaching schedule link, for example ?teacher=zahra.')
@@ -256,6 +276,8 @@ class PublicSchedule(models.AbstractModel):
                 'recording': self._drive_link(session.google_drive_url),
                 'recordings': [{'number': part['number'], 'url': self._drive_link(part['drive'])}
                                for part in session._recording_parts() if self._drive_link(part['drive'])],
+                'youtube_recordings': [{'number': part['number'], 'url': self._youtube_link(part['youtube'])}
+                                       for part in session._recording_parts() if self._youtube_link(part['youtube'])],
             })
             if values['edit_mode']:
                 values['rows'][-1].update(

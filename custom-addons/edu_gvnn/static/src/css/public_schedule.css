@@ -176,3 +176,60 @@ button:disabled,button[aria-disabled="true"] { cursor:wait; opacity:.65; }
  .lesson-card .recording-form { width:100%; flex-basis:100%; margin-top:8px; }.lesson-card .recording-form input[type="url"] { font-size:16px; min-height:38px; }
  .toast-container { top:12px; right:16px; }
 }
+
+/* Recording, published videos and private lesson reviews share one schedule row. */
+.lesson-columns,.lesson-card { grid-template-columns:102px minmax(230px,1.3fr) minmax(200px,1.1fr) minmax(100px,.6fr) 64px; gap:12px; }
+.lesson-youtube .muted { font-size:11px; }
+.lesson-card .attendance-student { flex:1 1 170px; min-width:min(170px,100%); max-width:100%; }
+.youtube-link { color:#a83232; font-size:11px; font-weight:600; text-decoration:none; }
+.youtube-link:hover { text-decoration:underline; }
+.session-review-button { display:inline-flex; align-items:center; justify-content:center; width:36px; min-height:34px; padding:6px; background:#edf4fc; color:var(--navy); border:1px solid #cadaef; border-radius:7px; }
+.session-review-button:hover { background:#dfeafb; }
+.session-review-button:disabled { cursor:not-allowed; opacity:.45; }
+.review-modal-open { overflow:hidden; }
+.session-review-dialog { width:min(1000px,calc(100vw - 32px)); max-height:90vh; padding:0; border:1px solid #dbe4ed; border-radius:16px; color:var(--text); background:#f8fafc; box-shadow:0 24px 90px #10264055; font:14px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+.session-review-dialog[open] { display:flex; flex-direction:column; }
+.session-review-dialog::backdrop { background:#10233f99; backdrop-filter:blur(3px); }
+.session-review-header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:22px 26px; border-bottom:1px solid var(--line); background:white; flex-shrink:0; }
+.session-review-header h2 { margin:0; font-size:24px; color:var(--navy); }
+.session-review-header .eyebrow { margin:0 0 5px; }
+.session-review-header p:last-child { margin:7px 0 0; color:var(--muted); font-size:12px; }
+.session-review-header form { margin:0; }
+.session-review-close { width:36px; min-height:36px; padding:0; border:1px solid var(--line); background:white; color:var(--muted); font-size:25px; line-height:1; }
+.session-review-close:hover { background:#edf2f7; }
+.session-review-body { padding:24px 26px; overflow:auto; overscroll-behavior:contain; }
+.review-message { padding:18px; background:#edf4fc; border:1px solid #d8e5f5; border-radius:10px; color:var(--navy); }
+.review-error { background:#fff1ed; border-color:#efcec4; color:#8d3d2a; }
+.review-warning { background:#fff6df; border-color:#ebdcad; color:#775d1b; }
+.review-metrics,.review-feedback { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; }
+.review-metric { padding:20px; display:flex; flex-direction:column; gap:10px; border:1px solid #d9e7e3; border-radius:12px; background:#edf6f3; }
+.review-metric:nth-child(2) { background:#f2effa; border-color:#e3ddef; }
+.review-metric-label { text-transform:uppercase; letter-spacing:.5px; font-size:10px; font-weight:700; color:#536f7c; }
+.review-metric strong { font-size:28px; color:#244957; line-height:1.25; }
+.review-metric small { font-size:11px; color:var(--muted); }
+.review-section { background:white; border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+.review-section h3 { margin:0 0 13px; font-size:15px; color:var(--navy); }
+.review-prose { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.85; font-size:13px; }
+.review-feedback .review-section { margin-bottom:0; }
+.review-scores { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+.review-score { padding:12px; border:1px solid var(--line); border-radius:9px; background:white; display:flex; flex-direction:column; gap:5px; }
+.review-score span { color:var(--muted); font-size:11px; }
+.review-score strong { color:var(--navy); font-size:18px; }
+.review-completed,.review-footnote { color:var(--muted); font-size:11px; }
+@media(min-width:768px) and (max-width:1100px) {
+ .lesson-columns,.lesson-card { grid-template-columns:90px minmax(200px,1.2fr) minmax(180px,1fr) 100px 54px; gap:10px; }
+}
+@media(max-width:767px) {
+ .lesson-card { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+ .lesson-card .attendance-student { flex-basis:100%; min-width:0; }
+ .lesson-time,.lesson-attendance,.lesson-recording { grid-column:1/-1; }
+ .lesson-youtube,.lesson-actions { border-top:1px solid #edf0f5; padding-top:10px; }
+ .lesson-actions .field-label { margin-bottom:7px; }
+ .session-review-dialog { width:calc(100vw - 16px); max-height:94vh; border-radius:12px; }
+ .session-review-header,.session-review-body { padding:16px; }
+ .session-review-header h2 { font-size:20px; }
+ .review-metrics,.review-feedback { grid-template-columns:1fr; }
+ .review-scores { grid-template-columns:1fr 1fr; }
+ .review-section { padding:16px; }
+ td[data-label="YouTube"] { overflow-wrap:anywhere; }
+}

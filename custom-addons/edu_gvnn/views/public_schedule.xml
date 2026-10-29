@@ -8,8 +8,8 @@
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
                 <meta name="robots" content="noindex, nofollow"/>
                 <title>Teaching schedule <t t-esc="teacher_name"/> | Kim Academy</title>
-                <link rel="stylesheet" href="/edu_gvnn/static/src/css/public_schedule.css?v=17.0.1.15.1"/>
-                <script src="/edu_gvnn/static/src/js/public_schedule.js?v=17.0.1.15.1" defer="defer"/>
+                <link rel="stylesheet" href="/edu_gvnn/static/src/css/public_schedule.css?v=17.0.1.17.1"/>
+                <script src="/edu_gvnn/static/src/js/public_schedule.js?v=17.0.1.17.1" defer="defer"/>
             </head>
             <body>
                 <main t-att-class="'container schedule is-editor' if edit_mode else 'container schedule'">
@@ -43,7 +43,7 @@
                         </div>
                         <t t-if="rows">
                             <div t-if="edit_mode" class="lesson-list">
-                                <div class="lesson-columns" aria-hidden="true"><span>Time (VN)</span><span>Students · check to mark absent</span><span>Recording</span></div>
+                                <div class="lesson-columns" aria-hidden="true"><span>Time (VN)</span><span>Students · check to mark absent</span><span>Recording</span><span>YouTube</span><span>Actions</span></div>
                                 <t t-foreach="rows" t-as="row">
                                     <h2 t-if="row_index == 0 or row['date'] != rows[row_index - 1]['date']" class="day-heading" t-att-data-weekday="row['weekday']">
                                         <span t-attf-class="weekday weekday-#{row['weekday']}" t-esc="row['weekday']"/>
@@ -106,13 +106,24 @@
                                                 </form>
                                             </details>
                                         </div>
+                                        <div class="lesson-youtube">
+                                            <h3 class="field-label">YouTube</h3>
+                                            <div class="recording-links">
+                                                <a t-foreach="row['youtube_recordings']" t-as="part" t-att-href="part['url']" target="_blank" rel="noopener noreferrer" class="youtube-link">Part <t t-esc="part['number']"/> ↗</a>
+                                                <span t-if="not row['youtube_recordings']" class="muted">Not uploaded yet</span>
+                                            </div>
+                                        </div>
+                                        <div class="lesson-actions">
+                                            <h3 class="field-label">Actions</h3>
+                                            <t t-call="edu_gvnn.schedule_review_button"/>
+                                        </div>
                                     </article>
                                 </t>
                             </div>
                             <div t-else="" class="schedule-table-wrap">
                                 <table>
                                     <caption class="sr-only">Teaching schedule for <t t-esc="teacher_name"/> — <t t-esc="week_label"/></caption>
-                                    <thead><tr><th scope="col">Week</th><th scope="col">Date</th><th scope="col">Day</th><th scope="col">Teacher</th><th scope="col">Time (VN)</th><th scope="col">Students</th><th scope="col">Recording</th></tr></thead>
+                                    <thead><tr><th scope="col">Week</th><th scope="col">Date</th><th scope="col">Day</th><th scope="col">Teacher</th><th scope="col">Time (VN)</th><th scope="col">Students</th><th scope="col">Recording</th><th scope="col">YouTube</th><th scope="col">Actions</th></tr></thead>
                                     <tbody>
                                         <tr t-foreach="rows" t-as="row" t-att-class="'is-cancelled' if row['cancelled'] else ''">
                                             <td data-label="Week"><span class="week-badge" t-esc="row['week']"/></td>
@@ -122,6 +133,8 @@
                                             <td data-label="Time (VN)"><span class="time" t-esc="row['time']"/><span t-if="row['cancelled']" class="cancel-badge">Cancelled</span></td>
                                             <td data-label="Students"><div class="students"><span t-foreach="row['students']" t-as="student" t-att-class="'student absent' if student['absent'] else 'student'"><t t-esc="student['name']"/><small t-if="student['absent']"> · Absent</small></span><span t-if="not row['students']" class="muted">No students yet</span></div></td>
                                             <td data-label="Recording"><div class="recording-links"><a t-foreach="row['recordings']" t-as="part" t-att-href="part['url']" target="_blank" rel="noopener noreferrer" class="recording-link">Part <t t-esc="part['number']"/> ↗</a><span t-if="not row['recordings']" class="muted">No recording yet</span></div></td>
+                                            <td data-label="YouTube"><div class="recording-links"><a t-foreach="row['youtube_recordings']" t-as="part" t-att-href="part['url']" target="_blank" rel="noopener noreferrer" class="youtube-link">Part <t t-esc="part['number']"/> ↗</a><span t-if="not row['youtube_recordings']" class="muted">Not uploaded yet</span></div></td>
+                                            <td data-label="Actions"><t t-call="edu_gvnn.schedule_review_button"/></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -131,6 +144,17 @@
                     </t>
                     <footer>Schedule updated by Kim Academy · All lesson times are in Vietnam time (UTC+7).</footer>
                 </main>
+                <dialog t-if="edit_mode and review_enabled" id="session-review-dialog" class="session-review-dialog" aria-labelledby="session-review-title">
+                    <header class="session-review-header">
+                        <div><p class="eyebrow">LESSON QUALITY</p><h2 id="session-review-title">Session Review</h2><p id="session-review-lesson"/></div>
+                        <form method="dialog"><button type="submit" class="session-review-close" aria-label="Close Session Review">×</button></form>
+                    </header>
+                    <form id="session-review-auth" hidden="hidden">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="edit_token" t-att-value="edit_token"/>
+                    </form>
+                    <div id="session-review-body" class="session-review-body" aria-live="polite"/>
+                </dialog>
                 <div id="schedule-notifications" class="toast-container" aria-live="polite" aria-atomic="false">
                     <div t-if="notice or save_error" t-att-class="'schedule-toast toast-error' if save_error else 'schedule-toast toast-success'" t-att-role="'alert' if save_error else 'status'">
                         <span t-esc="save_error or notice"/><button type="button" class="toast-close" aria-label="Dismiss notification">?</button>
@@ -138,5 +162,17 @@
                 </div>
             </body>
         </html>
+    </template>
+    <template id="schedule_review_button" name="Teacher session review action">
+        <button type="button" class="session-review-button" t-att-data-session-id="row.get('session_id')"
+                t-att-disabled="not edit_mode or not review_enabled"
+                t-att-aria-haspopup="'dialog' if edit_mode and review_enabled else None"
+                t-att-title="'Session Review' if edit_mode and review_enabled else 'Open your private teacher link to read Session Review'"
+                t-att-aria-label="'Session Review for %s %s' % (row['date'], row['time'])">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/>
+                <path d="M14 3v6h6M8 13h8M8 17h5"/>
+            </svg>
+        </button>
     </template>
 </odoo>

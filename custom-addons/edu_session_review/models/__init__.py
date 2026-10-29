@@ -1,1 +1,1 @@
-from . import config, review, session
+from . import config, review, session, public_schedule
