@@ -3,6 +3,9 @@ services:
   zalo-bridge:
     profiles: ["zalo"]
     build: ./services/zalo-bridge
+    # Zalo currently times out during the default TLS handshake on production.
+    # TLS 1.2 works; certificate verification remains enabled.
+    command: ["node", "--tls-max-v1.2", "src/main.mjs"]
     restart: unless-stopped
     env_file:
       - path: .env.zalo
