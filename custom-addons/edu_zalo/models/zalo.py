@@ -1,6 +1,7 @@
 import hashlib
+import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 import requests
@@ -9,6 +10,7 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 TZ = pytz.timezone('Asia/Ho_Chi_Minh')
+_logger = logging.getLogger(__name__)
 
 
 def split_message(text, limit=1800):
@@ -38,11 +40,13 @@ class ZaloGroup(models.Model):
 
 class ZaloConfig(models.Model):
     _name = 'edu.zalo.config'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Gửi lịch học Zalo'
 
     name = fields.Char(default='Lịch học Zalo', required=True)
     state = fields.Selection([('disconnected', 'Chưa đăng nhập'), ('connecting', 'Đang tạo QR'),
-        ('qr', 'Chờ quét QR'), ('scanned', 'Chờ xác nhận trên điện thoại'), ('connected', 'Đã kết nối')],
+        ('qr', 'Chờ quét QR'), ('scanned', 'Chờ xác nhận trên điện thoại'), ('connected', 'Đã kết nối'),
+        ('degraded', 'Kết nối lỗi — đang phục hồi')],
         default='disconnected', readonly=True)
     qr = fields.Binary('Mã QR đăng nhập', readonly=True, attachment=False)
     account = fields.Char('Tài khoản Zalo', readonly=True)
@@ -51,9 +55,15 @@ class ZaloConfig(models.Model):
     group_id = fields.Many2one('edu.zalo.group', 'Nhóm nhận lịch', ondelete='restrict')
     confirmed_group_id = fields.Many2one('edu.zalo.group', 'Nhóm đã xác nhận', readonly=True, ondelete='restrict')
     auto_send = fields.Boolean('Tự động gửi hằng ngày', default=False,
-        help='Theo giờ Việt Nam. Gửi trong vòng 30 phút kể từ giờ đã chọn khi máy chủ hoạt động.')
+        help='Theo giờ Việt Nam. Tự gửi bù trong thời hạn cho phép và thử lại lỗi kết nối an toàn.')
     send_hour = fields.Float('Giờ gửi (giờ Việt Nam)', required=True, default=9.0,
-        help='Ví dụ 09:00. Máy chủ cần hoạt động trong vòng 30 phút kể từ giờ gửi.')
+        help='Ví dụ 09:00, theo giờ Việt Nam.')
+    catchup_hours = fields.Float('Thời hạn gửi bù (giờ)', default=6, required=True,
+        help='Chỉ gửi trong cùng ngày, sau giờ gửi và trước khi hết thời hạn này.')
+    alert_user_id = fields.Many2one('res.users', 'Người nhận cảnh báo', required=True,
+        default=lambda self: self.env.ref('base.user_admin'), domain=[('share', '=', False)])
+    last_health_check = fields.Datetime('Lần kiểm tra thực tế', readonly=True)
+    health_error = fields.Text('Cảnh báo vận hành', readonly=True)
     preview_date = fields.Date('Ngày gửi lịch', default=lambda self: datetime.now(TZ).date(), required=True)
     preview = fields.Text('Nội dung lịch', compute='_compute_preview')
     log_ids = fields.One2many('edu.zalo.message', 'config_id', 'Lịch sử gửi')
@@ -96,6 +106,12 @@ class ZaloConfig(models.Model):
     def action_refresh(self):
         self.ensure_one()
         status = self._bridge('GET', '/status')
+        if status['state'] in ('connected', 'degraded'):
+            try:
+                self._bridge('GET', '/check')
+                status['state'] = 'connected'
+            except UserError:
+                status['state'] = 'degraded'
         self.write({'state': status['state'], 'qr': status.get('qr') or False,
             'account': status.get('account') or False})
         if self.state == 'connected':
@@ -153,6 +169,51 @@ class ZaloConfig(models.Model):
         for config in self:
             if not 0 <= config.send_hour < 24:
                 raise ValidationError('Giờ gửi phải từ 00:00 đến trước 24:00.')
+
+    @api.constrains('catchup_hours')
+    def _check_catchup_hours(self):
+        for config in self:
+            if not 0.5 <= config.catchup_hours <= 12:
+                raise ValidationError('Thời hạn gửi bù phải từ 0,5 đến 12 giờ.')
+
+    def _delivery_window(self, now):
+        minute = now.hour * 60 + now.minute
+        start = round(self.send_hour * 60) % 1440
+        return 0 <= minute - start < self.catchup_hours * 60
+
+    def _watch_connection(self, now):
+        """Read-only upstream probe and one persistent internal activity per incident."""
+        self.ensure_one()
+        utcnow = fields.Datetime.now()
+        if self.last_health_check and utcnow - self.last_health_check < timedelta(minutes=5):
+            return
+        error = False
+        try:
+            self._bridge('GET', '/check')
+            self.state = 'connected'
+        except UserError as exc:
+            self.state = 'degraded'
+            error = str(exc)
+        today = self.env['edu.zalo.message'].sudo().search([
+            ('group_zalo_id', '=', self.group_id.zalo_id), ('date', '=', now.date())])
+        if not today.filtered(lambda m: m.state == 'sent'):
+            problem = today.filtered(lambda m: m.state in ('failed', 'uncertain') or
+                (m.state == 'queued' and m.create_date < utcnow - timedelta(minutes=5)))
+            if problem:
+                error = error or 'Lịch hôm nay chưa được xác nhận gửi. Xem lịch sử; không gửi lại tin chưa rõ kết quả.'
+            start = round(self.send_hour * 60) % 1440
+            if now.hour * 60 + now.minute >= start + 5 and not today:
+                if self.env['edu.session'].search_count([('date', '=', now.date()), ('state', '!=', 'cancel')]):
+                    error = error or 'Chưa tạo được lịch gửi hôm nay. Kiểm tra giờ gửi, nhóm nhận và tác vụ định kỳ.'
+        self.write({'last_health_check': utcnow, 'health_error': error})
+        activity_type = self.env.ref('mail.mail_activity_data_todo')
+        summary = 'Zalo: lịch học cần xử lý'
+        activities = self.activity_ids.filtered(lambda a: a.activity_type_id == activity_type and a.summary == summary)
+        if error and not activities:
+            self.activity_schedule('mail.mail_activity_data_todo', user_id=self.alert_user_id.id,
+                summary=summary, note='Kết nối Zalo hoặc lịch gửi cần kiểm tra. Mở cấu hình Zalo để xem cảnh báo và lịch sử gửi.')
+        elif not error and activities:
+            activities.action_feedback(feedback='Kết nối và trạng thái gửi đã được kiểm tra lại bình thường.')
 
     def _reopen(self):
         return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': self.id,
@@ -252,6 +313,7 @@ class ZaloConfig(models.Model):
             message.invalidate_recordset()
             if message.state not in ('queued', 'failed'):
                 continue
+            message.write({'attempts': message.attempts + 1, 'next_attempt': False})
             try:
                 result = self._bridge('POST', '/messages', {'key': message.request_key,
                     'group_id': message.group_zalo_id, 'parts': split_message(message.content), 'format': 'schedule-v1'})
@@ -259,9 +321,14 @@ class ZaloConfig(models.Model):
                 message.write({'state': 'sent' if state == 'sent' else 'uncertain',
                     'sent_at': fields.Datetime.now() if state == 'sent' else False,
                     'message_ids': ', '.join(result.get('message_ids', [])),
-                    'error': False if state == 'sent' else 'Chưa xác nhận đủ tin đã gửi. Hãy kiểm tra nhóm Zalo trước khi gửi lại.'})
+                    'error': False if state == 'sent' else 'Chưa xác nhận đủ tin đã gửi. Hãy kiểm tra nhóm Zalo trước khi gửi lại.'
+                        + (' Mã lỗi: %s.' % result['error_code'] if result.get('error_code') in
+                            ('OPERATION_TIMEOUT', 'UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET',
+                             'ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED', 'ZALO_UPSTREAM_ERROR') else '')})
             except UserError as exc:
-                message.write({'state': 'failed', 'error': str(exc)})
+                message.write({'state': 'failed', 'error': str(exc),
+                    'next_attempt': fields.Datetime.now() + timedelta(minutes=min(15, 2 ** (message.attempts - 1)))
+                        if message.attempts < 12 else False})
 
     @api.model
     def _cron_send(self):
@@ -271,14 +338,31 @@ class ZaloConfig(models.Model):
             return
         now = datetime.now(TZ)
         for config in self.search([('auto_send', '=', True)]):
-            scheduled_minute = round(config.send_hour * 60) % 1440
-            # Stay within the configured day's window; never send before its start.
-            if 0 <= now.hour * 60 + now.minute - scheduled_minute < 30:
+            # Catch up after downtime, but never before the start or on another day.
+            if config._delivery_window(now):
                 with self.env.cr.savepoint():
                     if self.env['edu.session'].search_count([('date', '=', now.date()), ('state', '!=', 'cancel')]):
                         config._queue(now.date())
-        messages = self.env['edu.zalo.message'].search([('state', '=', 'queued')], order='id', limit=5)
+        due = self.env['edu.zalo.message'].search([
+            ('state', '=', 'failed'), ('date', '=', now.date()),
+            ('next_attempt', '!=', False), ('next_attempt', '<=', fields.Datetime.now()),
+            ('attempts', '<', 12)], order='next_attempt,id', limit=5)
+        due = due.filtered(lambda m: m.config_id.auto_send and m.config_id._delivery_window(now)
+            and (m.send_mode == 'manual' or not self.env['edu.zalo.message'].search_count([
+                ('date', '=', m.date), ('group_zalo_id', '=', m.group_zalo_id), ('state', '=', 'sent'),
+                ('id', '>', m.id)])))
+        messages = self.env['edu.zalo.message'].search([
+            ('state', '=', 'queued'), ('date', '=', now.date())], order='id', limit=5) | due
+        messages = messages.filtered(lambda m: m.send_mode == 'manual' or
+            (m.config_id.auto_send and m.config_id._delivery_window(now)))
         self._deliver_messages(messages)
+        for config in self.search([('auto_send', '=', True)]):
+            try:
+                with self.env.cr.savepoint():
+                    config._watch_connection(now)
+            except Exception:
+                # Monitoring must not roll back a successfully delivered receipt.
+                _logger.error('Zalo monitoring failed for config %s; inspect internal configuration', config.id)
 
 
 class EduSession(models.Model):
@@ -308,6 +392,8 @@ class ZaloMessage(models.Model):
     sent_at = fields.Datetime('Gửi lúc', readonly=True)
     message_ids = fields.Char('Mã tin Zalo', readonly=True)
     error = fields.Text('Thông báo', readonly=True)
+    attempts = fields.Integer('Số lần thử', readonly=True, default=0)
+    next_attempt = fields.Datetime('Thử lại lúc', readonly=True)
     _sql_constraints = [('request_key_unique', 'unique(request_key)', 'Yêu cầu gửi này đã có trong lịch sử.')]
 
     def init(self):
@@ -321,5 +407,5 @@ class ZaloMessage(models.Model):
         for message in self:
             if message.state != 'failed':
                 raise UserError('Chỉ thử lại khi lỗi kết nối. Tin chưa rõ kết quả cần đối chiếu trên Zalo.')
-        self.sudo().write({'state': 'queued', 'error': False})
+        self.sudo().write({'state': 'queued', 'error': False, 'attempts': 0, 'next_attempt': False})
         self.env.ref('edu_zalo.cron_zalo_schedule')._trigger()

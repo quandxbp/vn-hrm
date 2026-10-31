@@ -6,4 +6,4 @@ COPY src ./src
 USER node
 ENV NODE_ENV=production DATA_DIR=/data
 EXPOSE 3000
-CMD ["node", "src/main.mjs"]
+CMD ["node", "--tls-max-v1.2", "src/main.mjs"]

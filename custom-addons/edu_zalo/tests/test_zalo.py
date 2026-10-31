@@ -83,26 +83,26 @@ class TestZaloSchedule(TransactionCase):
     def test_delivery_and_ambiguous_response(self):
         message = self.config._queue(self.day)
         with patch.object(type(self.config), '_bridge', return_value={'state': 'uncertain', 'message_ids': ['partial']}):
-            self.config._cron_send()
+            self.config._deliver_messages(message)
         self.assertEqual(message.state, 'uncertain')
         with self.assertRaises(UserError):
             message.action_retry()
         message.state = 'queued'
         with patch.object(type(self.config), '_bridge', return_value={'state': 'sent', 'message_ids': ['123']}) as bridge:
-            self.config._cron_send()
+            self.config._deliver_messages(message)
             self.assertEqual(bridge.call_args.args[1], '/messages')
             self.assertEqual(bridge.call_args.args[2]['format'], 'schedule-v1')
         self.assertEqual(message.state, 'sent')
         self.assertEqual(message.message_ids, '123')
         with patch.object(type(self.config), '_bridge') as bridge:
             self.config._cron_send()
-            bridge.assert_not_called()
+            self.assertFalse(any(call.args[1] == '/messages' for call in bridge.call_args_list))
 
     def test_transport_retry_retains_key_and_content(self):
         message = self.config._queue(self.day)
         original = (message.request_key, message.content)
         with patch.object(type(self.config), '_bridge', side_effect=UserError('offline')):
-            self.config._cron_send()
+            self.config._deliver_messages(message)
         self.assertEqual(message.state, 'failed')
         message.action_retry()
         self.assertEqual(message.state, 'queued')
@@ -119,7 +119,7 @@ class TestZaloSchedule(TransactionCase):
                 return TZ.localize(datetime(2026, 10, 23, 11, 59))
         with patch('odoo.addons.edu_zalo.models.zalo.datetime', BeforeNoon), patch.object(type(self.config), '_bridge') as bridge:
             self.config._cron_send()
-            bridge.assert_not_called()
+            self.assertFalse(any(call.args[1] == '/messages' for call in bridge.call_args_list))
         class AtNoon(datetime):
             @classmethod
             def now(cls, tz=None):
@@ -130,7 +130,7 @@ class TestZaloSchedule(TransactionCase):
 
     def test_nine_am_window_and_validation(self):
         self.config.write({'auto_send': True, 'send_hour': 9})
-        for hour, minute, expected in [(8, 59, 0), (9, 0, 1), (9, 29, 1), (9, 30, 0), (12, 0, 0)]:
+        for hour, minute, expected in [(8, 59, 0), (9, 0, 1), (9, 29, 1), (9, 30, 1), (12, 0, 1), (15, 0, 0)]:
             with self.subTest(hour=hour, minute=minute), self.env.cr.savepoint():
                 self.config.log_ids.unlink()
                 class AtTime(datetime):
@@ -188,6 +188,88 @@ class TestZaloSchedule(TransactionCase):
         self.assertGreater(len(parts), 1)
         self.assertTrue(all(len(part) <= 1800 for part in parts))
         self.assertEqual('\n\n'.join(parts), text)
+
+    def test_retry_backoff_same_key_and_uncertain_never_retried(self):
+        self.config.auto_send = True
+        message = self.config._queue(self.day)
+        original = (message.request_key, message.content)
+        class AtTen(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return TZ.localize(datetime(2026, 10, 23, 10, 0))
+        with patch('odoo.addons.edu_zalo.models.zalo.datetime', AtTen), patch.object(type(self.config), '_watch_connection'):
+            with patch.object(type(self.config), '_bridge', side_effect=UserError('offline')) as bridge:
+                self.config._cron_send()
+                self.assertEqual(message.attempts, 1)
+                self.assertTrue(message.next_attempt)
+                self.config._cron_send()
+                self.assertEqual(bridge.call_count, 1)
+                message.next_attempt = datetime(2020, 1, 1)
+                self.config._cron_send()
+                self.assertEqual(message.attempts, 2)
+            self.assertEqual((message.request_key, message.content), original)
+            message.next_attempt = datetime(2020, 1, 1)
+            with patch.object(type(self.config), '_bridge', return_value={'state': 'uncertain', 'message_ids': ['partial']}):
+                self.config._cron_send()
+            self.assertEqual(message.state, 'uncertain')
+            self.assertFalse(message.next_attempt)
+            self.assertEqual(message.message_ids, 'partial')
+            with patch.object(type(self.config), '_bridge') as bridge:
+                self.config._cron_send()
+                bridge.assert_not_called()
+
+    def test_expired_and_previous_day_messages_are_not_sent(self):
+        self.config.auto_send = True
+        message = self.config._queue(self.day)
+        class TooLate(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return TZ.localize(datetime(2026, 10, 23, 15, 0))
+        with patch('odoo.addons.edu_zalo.models.zalo.datetime', TooLate), patch.object(type(self.config), '_watch_connection'), patch.object(type(self.config), '_bridge') as bridge:
+            self.config._cron_send()
+            bridge.assert_not_called()
+        self.assertEqual(message.attempts, 0)
+        message.date = date(2026, 10, 22)
+        message.send_mode = 'manual'
+        with patch('odoo.addons.edu_zalo.models.zalo.datetime', TooLate), patch.object(type(self.config), '_watch_connection'), patch.object(type(self.config), '_bridge') as bridge:
+            self.config._cron_send()
+            bridge.assert_not_called()
+
+    def test_retry_cap_and_successful_replacement_suppress_old_daily_retry(self):
+        self.config.auto_send = True
+        message = self.config._queue(self.day)
+        message.write({'state': 'failed', 'attempts': 12, 'next_attempt': datetime(2020, 1, 1)})
+        class AtTen(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return TZ.localize(datetime(2026, 10, 23, 10, 0))
+        with patch('odoo.addons.edu_zalo.models.zalo.datetime', AtTen), patch.object(type(self.config), '_watch_connection'), patch.object(type(self.config), '_bridge') as bridge:
+            self.config._cron_send()
+            bridge.assert_not_called()
+            message.attempts = 1
+            replacement = self.config._queue(self.day, manual=True)
+            replacement.state = 'sent'
+            self.config._cron_send()
+            bridge.assert_not_called()
+    def test_monitor_creates_one_activity_and_resolves_after_recovery(self):
+        now = TZ.localize(datetime(2026, 10, 23, 10, 0))
+        message = self.config._queue(self.day)
+        message.state = 'uncertain'
+        with patch.object(type(self.config), '_bridge', side_effect=UserError('offline')):
+            self.config._watch_connection(now)
+            self.config.last_health_check = False
+            self.config._watch_connection(now)
+        activities = self.config.activity_ids.filtered(lambda a: a.summary == 'Zalo: lịch học cần xử lý')
+        self.assertEqual(len(activities), 1)
+        self.assertEqual(self.config.state, 'degraded')
+        self.assertTrue(self.config.health_error)
+        message.write({'state': 'sent', 'message_ids': 'test'})
+        self.config.last_health_check = False
+        with patch.object(type(self.config), '_bridge', return_value={'state': 'connected'}):
+            self.config._watch_connection(now)
+        self.assertFalse(self.config.health_error)
+        self.assertEqual(self.config.state, 'connected')
+        self.assertFalse(self.config.activity_ids.filtered(lambda a: a.summary == 'Zalo: lịch học cần xử lý'))
 
     def test_send_today_is_immediate_uses_vietnam_date_and_ignores_preview(self):
         class VietnamMidnight(datetime):

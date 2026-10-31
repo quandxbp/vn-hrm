@@ -19,6 +19,7 @@
                 </header>
                 <sheet>
                     <h1><field name="name" readonly="1"/></h1>
+                    <div class="alert alert-warning" invisible="not health_error"><field name="health_error" nolabel="1"/></div>
                     <div class="alert alert-info" invisible="state == 'connected'">
                         Bấm Đăng nhập bằng QR, sau đó Cập nhật kết nối / QR để hiện mã. Quét bằng Zalo trên điện thoại và xác nhận đăng nhập, rồi cập nhật lại.
                     </div>
@@ -37,7 +38,10 @@
                         <group string="Gửi lịch">
                             <field name="auto_send"/>
                             <field name="send_hour" widget="float_time"/>
-                            <div colspan="2" class="text-muted">Giờ Việt Nam; máy chủ cần hoạt động trong vòng 30 phút kể từ giờ gửi.</div>
+                            <field name="catchup_hours"/>
+                            <field name="alert_user_id" options="{'no_create': True}"/>
+                            <field name="last_health_check"/>
+                            <div colspan="2" class="text-muted">Giờ Việt Nam; chỉ gửi bù trong cùng ngày và trong thời hạn cho phép. Tin chưa rõ kết quả không tự gửi lại.</div>
                             <field name="preview_date"/>
                         </group>
                     </group>
@@ -46,12 +50,13 @@
                         <page string="Lịch sử gửi">
                             <field name="log_ids" readonly="1">
                                 <tree create="false" delete="false" decoration-success="state == 'sent'" decoration-danger="state in ['failed', 'uncertain']">
-                                    <field name="date"/><field name="group_name"/><field name="send_mode"/><field name="state" widget="badge"/><field name="sent_at"/><field name="error"/>
+                                    <field name="date"/><field name="group_name"/><field name="send_mode"/><field name="state" widget="badge"/><field name="sent_at"/><field name="attempts"/><field name="next_attempt"/><field name="error"/>
                                 </tree>
                             </field>
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter"><field name="message_follower_ids"/><field name="activity_ids"/><field name="message_ids"/></div>
             </form>
         </field>
     </record>
@@ -65,7 +70,7 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <group><field name="date"/><field name="group_name"/><field name="send_mode"/><field name="sent_at"/><field name="message_ids"/><field name="error"/></group>
+                    <group><field name="date"/><field name="group_name"/><field name="send_mode"/><field name="sent_at"/><field name="message_ids"/><field name="attempts"/><field name="next_attempt"/><field name="error"/></group>
                     <field name="content"/>
                 </sheet>
             </form>

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { scheduleStyles } from './schedule-format.mjs';
 
-export function createBridge({ token, dataDir, connect, loginQR }) {
+export function createBridge({ token, dataDir, connect, loginQR, operationTimeout = 10000 }) {
     if (!token || token.length < 32) throw new Error('A private token of at least 32 characters is required');
     fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
     const read = (name, fallback) => {
@@ -21,6 +21,21 @@ export function createBridge({ token, dataDir, connect, loginQR }) {
     let qr = null;
     let account = '';
     let busyLogin = false;
+    let recovering = null;
+    let checkedAt = null;
+    let lastErrorCode = null;
+    const errorCode = error => {
+        const code = error?.cause?.code || error?.code;
+        return ['UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND',
+            'EAI_AGAIN', 'ECONNREFUSED', 'OPERATION_TIMEOUT'].includes(code) ? code : 'ZALO_UPSTREAM_ERROR';
+    };
+    const bounded = operation => {
+        let timer;
+        return Promise.race([Promise.resolve().then(operation), new Promise((_, reject) => {
+            timer = setTimeout(() => reject(Object.assign(new Error('Operation timed out'),
+                { code: 'OPERATION_TIMEOUT' })), operationTimeout);
+        })]).finally(() => clearTimeout(timer));
+    };
     let target = read('target.json', null);
     const ledger = read('deliveries.json', {});
     for (const delivery of Object.values(ledger)) {
@@ -31,10 +46,42 @@ export function createBridge({ token, dataDir, connect, loginQR }) {
     const ready = (async () => {
         const credentials = read('credentials.json', null);
         if (credentials) {
-            try { api = await connect(credentials); state = 'connected'; }
-            catch { state = 'disconnected'; }
+            try { api = await bounded(() => connect(credentials)); state = 'connected'; }
+            catch (error) { state = 'degraded'; lastErrorCode = errorCode(error); }
         }
     })();
+    async function probe() {
+        if (!api) throw new Error('No active session');
+        if (target) {
+            const info = await bounded(() => api.getGroupInfo(target.id));
+            if (!info.gridInfoMap?.[target.id]) throw new Error('Target group unavailable');
+        } else {
+            await bounded(() => api.getAllGroups());
+        }
+    }
+    async function checkConnection() {
+        if (recovering) return recovering;
+        recovering = (async () => {
+            try {
+                await probe();
+            } catch (firstError) {
+                state = 'degraded';
+                lastErrorCode = errorCode(firstError);
+                // Reconnect only before a send starts. Never retry sendMessage itself.
+                const credentials = read('credentials.json', null);
+                if (!credentials) throw firstError;
+                api = await bounded(() => connect(credentials));
+                await probe();
+            }
+            state = 'connected'; lastErrorCode = null;
+        })().catch(error => {
+            api = null;
+            state = read('credentials.json', null) ? 'degraded' : 'disconnected';
+            lastErrorCode = errorCode(error);
+            throw Object.assign(new Error('Không kết nối được Zalo; sẽ thử khôi phục trước lần gửi tiếp theo.'), { status: 503 });
+        }).finally(() => { checkedAt = new Date().toISOString(); recovering = null; });
+        return recovering;
+    }
     async function groups() {
         if (!api) throw Object.assign(new Error('Chưa đăng nhập Zalo. Hãy quét QR.'), { status: 503 });
         const all = await api.getAllGroups();
@@ -61,27 +108,28 @@ export function createBridge({ token, dataDir, connect, loginQR }) {
             if (ledger[key].digest !== digest) throw Object.assign(new Error('Nội dung khác với lần gửi trước; cần đối chiếu lịch sử.'), { status: 409 });
             return ledger[key];
         }
-        if (!api) throw Object.assign(new Error('Chưa đăng nhập Zalo.'), { status: 503 });
+        if (!api && !read('credentials.json', null)) throw Object.assign(new Error('Chưa đăng nhập Zalo.'), { status: 503 });
         if (!target || target.id !== groupId) throw Object.assign(new Error('Nhóm nhận chưa được xác nhận.'), { status: 400 });
-        // Verify membership before starting; a failure here has no external side effect.
-        const info = await api.getGroupInfo(groupId);
-        if (!info.gridInfoMap?.[groupId]) throw Object.assign(new Error('Không tìm thấy nhóm Zalo đã chọn.'), { status: 400 });
+        // A failed preflight has no send side effect and can safely be retried.
+        await checkConnection();
         const entry = ledger[key] = { state: 'sending', digest, message_ids: [], updated_at: new Date().toISOString() };
         write('deliveries.json', ledger); // Persist intent before the first external send.
         try {
             for (const part of parts) {
                 const content = { msg: part };
                 if (body.format === 'schedule-v1') content.styles = scheduleStyles(part);
-                const result = await api.sendMessage(content, groupId, 1);
+                const result = await bounded(() => api.sendMessage(content, groupId, 1));
                 const id = result?.message?.msgId;
                 if (!id) throw new Error('Zalo did not return a message ID');
                 entry.message_ids.push(String(id));
                 write('deliveries.json', ledger);
             }
             entry.state = 'sent';
-        } catch {
+        } catch (error) {
             // Never automatically repeat a request whose delivery cannot be confirmed.
             entry.state = 'uncertain';
+            entry.error_code = errorCode(error);
+            state = 'degraded'; lastErrorCode = entry.error_code;
         }
         entry.updated_at = new Date().toISOString();
         write('deliveries.json', ledger);
@@ -108,15 +156,20 @@ export function createBridge({ token, dataDir, connect, loginQR }) {
                 try { body = JSON.parse(text || '{}'); }
                 catch { throw Object.assign(new Error('Invalid JSON'), { status: 400 }); }
             }
-            if (req.url === '/status' && req.method === 'GET') return reply(200, { state, qr, account, target });
+            if (req.url === '/status' && req.method === 'GET') return reply(200, { state, qr, account, target, checked_at: checkedAt, error_code: lastErrorCode });
+            if (req.url === '/check' && req.method === 'GET') {
+                await checkConnection();
+                return reply(200, { state, checked_at: checkedAt });
+            }
             if (req.url === '/disconnect' && req.method === 'POST') {
-                if (busyLogin || inflight.size) return reply(409, { error: 'Đang đăng nhập hoặc gửi tin. Hãy thử lại sau.' });
+                if (busyLogin || recovering || inflight.size) return reply(409, { error: 'Đang đăng nhập hoặc gửi tin. Hãy thử lại sau.' });
                 api = null; state = 'disconnected'; qr = null; account = ''; target = null;
                 fs.rmSync(path.join(dataDir, 'credentials.json'), { force: true });
                 write('target.json', null);
                 return reply(200, { state });
             }
             if (req.url === '/login' && req.method === 'POST') {
+                if (recovering || inflight.size) return reply(409, { error: 'Đang kiểm tra kết nối hoặc gửi tin. Hãy thử lại sau.' });
                 if (!busyLogin && !api) {
                     busyLogin = true; state = 'connecting'; qr = null;
                     Promise.resolve().then(() => loginQR(event => {
