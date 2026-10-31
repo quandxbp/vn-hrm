@@ -13,6 +13,16 @@ volumes, delivery ledger or Odoo services need to change. Revisit the setting
 when the default TLS handshake works reliably on this network.
 
 Deploy with `docker compose --profile zalo up -d --no-deps zalo-bridge`.
+When bridge source changes, build the image first. The production server's
+older Buildx is incompatible with Compose's build command; use its existing
+legacy builder instead (PowerShell):
+
+```powershell
+$env:DOCKER_BUILDKIT = '0'
+docker build -t vn-hrm-zalo-bridge ./services/zalo-bridge
+docker compose --profile zalo up -d --no-deps --no-build zalo-bridge
+```
+
 Verify both `/status` and an authenticated read of `/groups`: the status flag
 alone only reports the last successful login and cannot prove live connectivity.
 Never use `/messages` as a connectivity test.
