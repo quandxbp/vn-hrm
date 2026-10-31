@@ -2,6 +2,13 @@
 
 ## Ngôn ngữ, ảnh bìa và playlist — 28/10/2026
 
+Cập nhật `17.0.1.9.0`: ảnh bìa có thêm tên học sinh dưới tên giáo viên, dùng chung
+quy tắc tên với tiêu đề YouTube (ưu tiên tên tiếng Anh, sau đó tên tiếng Việt;
+không có danh sách thì dùng người tham gia bổ sung). Giữ nguyên danh sách kể cả
+học sinh đánh vắng, giống tiêu đề video hiện tại. Tên tự xuống dòng/thu nhỏ trong
+vùng riêng; chuỗi quá dài có dấu ba chấm. Bìa đã lưu giữ nguyên để tránh thay đổi
+video cũ ngoài ý muốn; cần xác nhận phạm vi trước khi tái tạo và cập nhật lên YouTube.
+
 Cập nhật `17.0.1.8.0`: ảnh bìa được dựng trực tiếp ở **3840×2160**, tên giáo viên và tuần
 được làm lớn, crop lề trong suốt của logo trước khi thu nhỏ, JPEG không giảm mẫu màu và
 giữ dưới 2 MB. Không phóng to lại ảnh 1280×720 đã lưu; đổi bìa video cũ cần tạo lại ảnh

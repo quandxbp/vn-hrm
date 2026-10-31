@@ -244,8 +244,27 @@ class TestVideoOptimization(TransactionCase):
         request.assert_not_called()
 
     def test_thumbnail_is_sharp_4k_bounded_for_long_vietnamese_names(self):
-        data = render_thumbnail('MS NGUYỄN THỊ MINH ANH ' * 12, 103, '29/10/2026', part=2)
+        data = render_thumbnail('MS NGUYỄN THỊ MINH ANH ' * 12, 103, '29/10/2026', part=2,
+                                students=['Nguyễn Minh Anh', 'Trần Hoàng Bảo Ngọc', 'VeryLongName' * 40])
         with Image.open(io.BytesIO(data)) as image:
             self.assertEqual(image.size, (3840, 2160))
             self.assertEqual(image.format, 'JPEG')
         self.assertLess(len(data), 2 * 1024 ** 2)
+
+    def test_generated_cover_uses_same_student_names_as_video_title_and_keeps_cached_image(self):
+        self.student.name_en = '  kelly  '
+        other = self.env['edu.student'].create({'name_vi': 'Nguyễn Minh Anh'})
+        self.session.write({'attendee_ids': [(0, 0, {'student_id': other.id, 'present': False})]})
+        with patch('odoo.addons.edu_video.models.optimization.render_thumbnail', return_value=b'cover') as render:
+            self.assertEqual(self.job._generated_thumbnail(), b'cover')
+            self.assertEqual(render.call_args.kwargs['students'], ['Kelly', 'Nguyễn Minh Anh'])
+            self.assertIn('Kelly & Nguyễn Minh Anh', self.job._youtube_title(self.session))
+            self.assertEqual(self.job._generated_thumbnail(), b'cover')
+            self.assertEqual(render.call_count, 1)
+
+    def test_generated_cover_falls_back_to_extra_participants(self):
+        self.session.attendee_ids.unlink()
+        self.session.extra_participants = '  alex & lily  '
+        with patch('odoo.addons.edu_video.models.optimization.render_thumbnail', return_value=b'cover') as render:
+            self.job._generated_thumbnail()
+            self.assertEqual(render.call_args.kwargs['students'], ['Alex & Lily'])

@@ -27,7 +27,34 @@ def _font(size, bold=False):
     raise UserError('Thiếu font DejaVu Sans hoặc Arial trên máy xử lý video.')
 
 
-def render_thumbnail(teacher, week, lesson_date, part=None):
+def _draw_fitted_text(draw, text, position, width, max_size, min_size, fill, max_lines=2):
+    """Fit names in a bounded region at native resolution, with a safe overflow marker."""
+    text = ' '.join(text.split())
+    if len(text) > 500:
+        text = text[:500].rstrip() + '…'
+    for size in range(max_size, min_size - 1, -4):
+        lines, line = [], ''
+        for word in text.split():
+            candidate = (line + ' ' + word).strip()
+            if draw.textbbox((0, 0), candidate, font=_font(size, True))[2] > width and line:
+                lines.append(line)
+                line = word
+            else:
+                line = candidate
+        lines.append(line)
+        if len(lines) <= max_lines and all(draw.textbbox((0, 0), value, font=_font(size, True))[2] <= width for value in lines):
+            break
+    if len(lines) > max_lines:
+        lines = lines[:max_lines]
+        lines[-1] += '…'
+    for index, line in enumerate(lines):
+        while line and draw.textbbox((0, 0), line, font=_font(size, True))[2] > width:
+            line = line[:-2].rstrip() + '…' if len(line) > 2 else '…'
+        draw.text((position[0], position[1] + index * (size + 24)), line,
+                  font=_font(size, True), fill=fill)
+
+
+def render_thumbnail(teacher, week, lesson_date, part=None, students=None):
     """Render text at native 4K resolution; never upscale an old thumbnail."""
     image = Image.new('RGB', (3840, 2160), '#f7fafc')
     draw = ImageDraw.Draw(image)
@@ -49,33 +76,13 @@ def render_thumbnail(teacher, week, lesson_date, part=None):
     draw.text((505, 290), 'ENGLISH LEARNING', font=_font(48), fill='#607d91')
     draw.rounded_rectangle((200, 530, 1390, 675), radius=34, fill='#e0f1ee')
     draw.text((245, 555), 'BUỔI HỌC TIẾNG ANH', font=_font(76, True), fill='#1a746f')
-    # Wrap at word boundaries, shrink to two lines, and bound pathological names.
-    name = ' '.join(teacher.split()) or 'GIÁO VIÊN'
-    if len(name) > 240:
-        name = name[:240].rstrip() + '…'
-    for size in range(260, 71, -8):
-        lines, line = [], ''
-        for word in name.split():
-            candidate = (line + ' ' + word).strip()
-            if draw.textbbox((0, 0), candidate, font=_font(size, True))[2] > 2100 and line:
-                lines.append(line)
-                line = word
-            else:
-                line = candidate
-        lines.append(line)
-        if len(lines) <= 2 and all(draw.textbbox((0, 0), value, font=_font(size, True))[2] <= 2100 for value in lines):
-            break
-    if len(lines) > 2:
-        lines = lines[:2]
-        lines[-1] += '…'
-    for index, line in enumerate(lines):
-        while line and draw.textbbox((0, 0), line, font=_font(size, True))[2] > 2100:
-            line = line[:-2].rstrip() + '…' if len(line) > 2 else '…'
-        draw.text((200, 800 + index * (size + 30)), line, font=_font(size, True), fill='#123e63')
-    draw.rectangle((210, 1455, 440, 1470), fill='#19adab')
-    draw.text((200, 1590), 'NGÀY HỌC', font=_font(58, True), fill='#607d91')
-    draw.text((195, 1685), lesson_date, font=_font(126, True), fill='#123e63')
-    draw.text((200, 1970), 'kimacademy.uk', font=_font(60), fill='#58768c')
+    _draw_fitted_text(draw, teacher or 'GIÁO VIÊN', (200, 770), 2100, 220, 72, '#123e63')
+    if students:
+        draw.rectangle((210, 1300, 440, 1315), fill='#19adab')
+        draw.text((200, 1380), 'HỌC VIÊN', font=_font(58, True), fill='#607d91')
+        _draw_fitted_text(draw, ' & '.join(students), (200, 1480), 2100, 120, 64, '#1a746f')
+    draw.text((200, 1850), lesson_date, font=_font(110, True), fill='#123e63')
+    draw.text((200, 2030), 'kimacademy.uk', font=_font(48), fill='#58768c')
     draw.text((2760, 505), 'TUẦN HỌC', font=_font(84, True), fill='#a9dbe1')
     week_text = str(week)
     week_size = 570
@@ -127,7 +134,8 @@ class EduVideoOptimization(models.Model):
             parts = self.session_id._recording_parts()
             image = render_thumbnail(label, self.session_id.week_id.number or '?',
                                      self.session_id.date.strftime('%d/%m/%Y'),
-                                     self.part_number if sum(bool(p['drive'] or p['youtube']) for p in parts) > 1 else None)
+                                     self.part_number if sum(bool(p['drive'] or p['youtube']) for p in parts) > 1 else None,
+                                     students=self._youtube_student_names(self.session_id))
             self.thumbnail_image = base64.b64encode(image)
             self._checkpoint()
         return base64.b64decode(self.thumbnail_image)

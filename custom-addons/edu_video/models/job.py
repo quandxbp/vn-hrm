@@ -112,14 +112,19 @@ class EduVideoJob(models.Model):
         return super().create(vals_list)
 
     @api.model
-    def _youtube_title(self, session, part=None, strict=False):
-        teacher = session.teacher_id
-        salutation = {'mr': 'MR', 'ms': 'MS'}.get(teacher.teaching_title, '')
+    def _youtube_student_names(self, session):
         names = [' '.join((a.student_id.name_en or a.student_id.name_vi or '').split()).title()
                  for a in session.attendee_ids]
         names = [name for name in names if name]
         if not names and session.extra_participants:
             names = [' '.join(session.extra_participants.split()).title()]
+        return names
+
+    @api.model
+    def _youtube_title(self, session, part=None, strict=False):
+        teacher = session.teacher_id
+        salutation = {'mr': 'MR', 'ms': 'MS'}.get(teacher.teaching_title, '')
+        names = self._youtube_student_names(session)
         if strict:
             if not salutation:
                 raise UserError('Hãy chọn danh xưng Thầy/Cô trong hồ sơ giáo viên để tạo tiêu đề MR/MS.')
