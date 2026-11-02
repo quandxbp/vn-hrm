@@ -33,6 +33,13 @@ nhận đủ dữ liệu. Sai căn offset hoặc header không hợp lệ phải
 là HTTP 400 do dùng 4 MiB trái với giới hạn phiên. Có kiểm thử hồi quy riêng cho
 trường hợp hạ mục tiêu chunk xuống 4 MiB nhưng header vẫn yêu cầu 8 MiB.
 
+Từ `17.0.2.2.4`, hiển thị tiến độ tải theo byte Gemini xác nhận. Nếu một phản hồi
+bị mất nhưng query tiếp theo xác nhận đã nhận thêm byte, ngân sách thử lại được
+đặt lại vì upload vẫn tiến triển; nếu offset đứng yên thì vẫn giữ giới hạn thử lại.
+Không áp dụng quy tắc này cho inference chưa xác nhận. Không chấp nhận offset
+lùi và không đổi offset do client đoán. Lỗi tạm chờ retry hiển thị cảnh báo, phân
+biệt với tác vụ đã dừng lỗi.
+
 1. Cài addon, vào **Cấu hình → Kết nối dịch vụ → Google Drive / YouTube**.
 2. Nhập API key Gemini bằng ô mật khẩu và lưu. Ô này không đọc lại giá trị key đã lưu.
    Không đưa key vào Git, file cấu hình trong repo hay log. API key riêng với OAuth Google.

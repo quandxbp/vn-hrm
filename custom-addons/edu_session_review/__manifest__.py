@@ -1,6 +1,6 @@
 {
     'name': 'GVNN - Nhận xét AI buổi học',
-    'version': '17.0.2.2.3',
+    'version': '17.0.2.2.4',
     'license': 'LGPL-3',
     'depends': ['edu_video'],
     'external_dependencies': {'python': ['requests']},

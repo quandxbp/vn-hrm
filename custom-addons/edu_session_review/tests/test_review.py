@@ -405,6 +405,49 @@ class TestSessionReview(TransactionCase):
             self.part._upload()
         self.assertEqual(self.part.upload_granularity, 8388608)
 
+    def test_acknowledged_progress_resets_failure_budget_even_when_next_response_is_lost(self):
+        self.path.write_bytes(b'abcdefghijkl')
+        self.review.attempts=3
+        self.part.write({'state':'upload','total_bytes':12,'uploaded_bytes':4,
+                        'upload_url':API+'/upload/v1beta/files?upload_id=fake'})
+        with patch.object(type(self.review),'_gemini',side_effect=[
+            response(headers={'X-Goog-Upload-Status':'active','X-Goog-Upload-Size-Received':'8',
+                              'X-Goog-Upload-Chunk-Granularity':'4'}),requests.ConnectionError()]):
+            try:
+                self.part._upload()
+            except requests.ConnectionError:
+                pass
+            else:
+                self.fail('Expected a lost chunk response')
+        self.assertEqual(self.review.attempts,0)
+        self.assertEqual(self.part.uploaded_bytes,8)
+        self.assertAlmostEqual(self.part.upload_percent,100*8/12)
+
+    def test_stalled_upload_does_not_reset_failure_budget(self):
+        self.path.write_bytes(b'abcdefghijkl')
+        self.review.attempts=3
+        self.part.write({'state':'upload','total_bytes':12,'uploaded_bytes':4,
+                        'upload_url':API+'/upload/v1beta/files?upload_id=fake'})
+        with patch.object(type(self.review),'_gemini',side_effect=[
+            response(headers={'X-Goog-Upload-Status':'active','X-Goog-Upload-Size-Received':'4',
+                              'X-Goog-Upload-Chunk-Granularity':'4'}),requests.ConnectionError()]):
+            try:
+                self.part._upload()
+            except requests.ConnectionError:
+                pass
+        self.assertEqual(self.review.attempts,3)
+        self.assertEqual(self.part.uploaded_bytes,4)
+
+    def test_server_cannot_move_behind_acknowledged_offset(self):
+        self.part.write({'state':'upload','total_bytes':12,'uploaded_bytes':8,
+                        'upload_url':API+'/upload/v1beta/files?upload_id=fake'})
+        with patch.object(type(self.review),'_gemini',return_value=response(headers={
+            'X-Goog-Upload-Status':'active','X-Goog-Upload-Size-Received':'4',
+            'X-Goog-Upload-Chunk-Granularity':'4'})) as call:
+            with self.assertRaises(UserError):
+                self.part._upload()
+        self.assertEqual(call.call_count,1)
+
     def test_malformed_model_json_is_retained_and_not_published(self):
         data = {'candidates': [{'finishReason': 'STOP', 'content': {'parts': [{'text': 'incomplete JSON {'}]}}]}
         try:

@@ -191,7 +191,9 @@ class SessionReview(models.Model):
             status = response.status_code
             self.last_error_type = 'HTTP_%s' % status
             response.close()
-            message = ('Gemini từ chối dữ liệu tải video (HTTP %s). Kiểm tra phiên tải, kích thước phần và offset.' % status
+            message = ('Gemini tạm quá tải hoặc giới hạn truy cập (HTTP %s). Hệ thống sẽ chờ rồi thử lại trong giới hạn cho phép.' % status
+                       if status in (429, 500, 502, 503, 504) else
+                       'Gemini từ chối dữ liệu tải video (HTTP %s). Kiểm tra phiên tải, kích thước phần và offset.' % status
                        if stage in ('upload_chunk', 'upload_query', 'upload_start') and status == 400 else
                        'Gemini HTTP %s. Kiểm tra API key, model, hạn mức và quyền dự án.' % status)
             raise ReviewError(message,
@@ -417,9 +419,17 @@ class ReviewPart(models.Model):
     checksum = fields.Char(groups='base.group_no_one')
     upload_url = fields.Char(groups='base.group_no_one', copy=False)
     upload_granularity = fields.Integer(default=UPLOAD_GRANULARITY, readonly=True, copy=False)
+    uploaded_bytes = fields.Float('Gemini đã nhận (byte)', digits=(20, 0), readonly=True, copy=False)
+    upload_percent = fields.Float('Tải lên Gemini (%)', compute='_compute_upload_percent')
     gemini_name = fields.Char(groups='base.group_no_one', copy=False)
     gemini_uri = fields.Char(groups='base.group_no_one', copy=False)
     duration = fields.Float('Thời lượng (giây)', digits=(16, 3))
+
+    @api.depends('state', 'uploaded_bytes', 'total_bytes')
+    def _compute_upload_percent(self):
+        for part in self:
+            part.upload_percent = (100 if part.state in ('waiting', 'ready') else
+                min(100, 100 * part.uploaded_bytes / part.total_bytes) if part.total_bytes else 0)
 
     def _path(self):
         self.ensure_one()
@@ -510,7 +520,8 @@ class ReviewPart(models.Model):
         uri = info.get('uri', '')
         if uri != API + '/v1beta/' + name:
             raise UserError('Gemini trả về URI file không hợp lệ.')
-        self.write({'gemini_name': name, 'gemini_uri': uri, 'state': 'waiting', 'upload_url': False})
+        self.write({'gemini_name': name, 'gemini_uri': uri, 'state': 'waiting', 'upload_url': False,
+                    'uploaded_bytes': self.total_bytes})
         self._remove_local()
 
     def _display_name(self):
@@ -538,6 +549,7 @@ class ReviewPart(models.Model):
                         'X-Goog-Upload-Header-Content-Type': self.mime_type}) as response:
                 self.upload_url = safe_upload_url(response.headers.get('X-Goog-Upload-URL'))
                 self._upload_chunk_size(response.headers)
+                self.uploaded_bytes = 0
             return True
         url = safe_upload_url(self.upload_url)
         suffix = url[len(API):]
@@ -563,6 +575,13 @@ class ReviewPart(models.Model):
             raise UserError('Phiên upload Gemini không còn hợp lệ. Hãy phân tích lại.')
         if offset != total and offset % self.upload_granularity:
             raise UserError('Gemini trả tiến độ không căn theo giới hạn phần tải; chưa gửi tiếp để tránh sai dữ liệu.')
+        if offset < self.uploaded_bytes:
+            raise UserError('Tiến độ Gemini lùi so với mốc đã xác nhận; chưa gửi tiếp để tránh sai dữ liệu.')
+        if offset > self.uploaded_bytes:
+            # A lost chunk response is not a stalled upload if the server confirms
+            # more bytes. Budget consecutive failures without progress, not progress.
+            self.uploaded_bytes = offset
+            review.write({'attempts': 0, 'next_attempt': False})
         chunk = b''
         if offset < total:
             with self._path().open('rb') as source:
