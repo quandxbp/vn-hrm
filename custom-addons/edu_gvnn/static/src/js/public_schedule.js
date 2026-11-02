@@ -178,7 +178,7 @@
             const report = payload.report;
             body.replaceChildren();
             if (payload.stale) body.append(element('p', 'review-message review-warning',
-                'The recording links have changed. This review refers to the previous video version.'));
+                'The videos, student list or scheduled duration have changed. Analyse again to review the current lesson data.'));
             const metrics = element('div', 'review-metrics');
             for (const [label, value, detail] of [
                 ['Teaching / total video', report.time_display, [report.ratio_display, report.teaching_started_at ? `Teaching starts: ${report.teaching_started_at}` : ''].filter(Boolean).join(' · ')],

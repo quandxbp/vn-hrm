@@ -136,7 +136,7 @@
                                    decoration-muted="ai_review_state == 'cancelled'"/>
                         </div>
                         <div class="alert alert-warning" role="alert" invisible="not ai_review_id or ai_review_current">
-                            Link Drive đã thay đổi. Nhận xét bên dưới thuộc video trước; hãy phân tích lại để cập nhật.
+                            Video, danh sách học sinh hoặc thời lượng theo lịch đã thay đổi. Hãy phân tích lại để đối chiếu dữ liệu mới.
                         </div>
                         <div class="edu_session_review_empty" invisible="ai_review_id">
                             <span class="fa fa-file-text-o" aria-hidden="true"/>
