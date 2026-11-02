@@ -12,7 +12,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
 
 from ..models.report import SCHEMA, generation_schema, validate_report
-from ..models.review import API, CHUNK, ReviewError, safe_upload_url
+from ..models.review import API, CHUNK, UPLOAD_CHUNK, INFERENCE_TIMEOUT, ReviewError, safe_upload_url
 
 
 def response(data=None, status=200, headers=None, raw=b''):
@@ -303,6 +303,62 @@ class TestSessionReview(TransactionCase):
         self.assertNotIn(self.session.google_drive_url, json.dumps(call.call_args.kwargs['json']))
         self.assertEqual(self.review.state, 'done')
         self.assertTrue(self.review.cleanup_pending)
+        self.assertEqual(call.call_args.kwargs['request_timeout'], (10, INFERENCE_TIMEOUT))
+
+    def test_transport_errors_identify_stage_without_leaking_secrets_or_repeating_inference(self):
+        self.review.state = 'analyzing'
+        self.part.write({'state': 'ready', 'total_bytes': 10, 'duration': 120})
+        with patch('odoo.addons.edu_session_review.models.review.requests.request',
+                   side_effect=requests.ReadTimeout('secret-upload-url-and-key')) as request:
+            try:
+                self.review._step()
+            except ReviewError as exc:
+                self.assertTrue(exc.uncertain)
+                self.assertIn('chưa xác nhận kết quả', str(exc))
+                self.assertNotIn('secret-upload-url', str(exc))
+            else:
+                self.fail('Expected transport failure')
+            self.assertTrue(self.review.analysis_started)
+            self.assertEqual(self.review.last_error_type, 'ReadTimeout')
+            self.assertEqual(self.review.last_stage, 'inference')
+            with self.assertRaises(UserError):
+                self.review._step()
+            self.assertEqual(request.call_count, 1)
+
+    def test_upload_query_timeout_is_safe_to_retry_and_has_specific_message(self):
+        with patch('odoo.addons.edu_session_review.models.review.requests.request', side_effect=requests.ConnectTimeout()):
+            try:
+                self.review._gemini('POST', '/upload/v1beta/files?upload_id=fake',
+                    extra_headers={'X-Goog-Upload-Command': 'query'})
+            except ReviewError as exc:
+                self.assertTrue(exc.retry)
+                self.assertFalse(exc.uncertain)
+                self.assertIn('kiểm tra tiến độ tải Gemini', str(exc))
+            else:
+                self.fail('Expected upload timeout')
+
+    def test_smaller_upload_chunks_keep_resumable_offset_and_longer_upload_timeout(self):
+        self.path.write_bytes(b'a' * (UPLOAD_CHUNK + 5))
+        self.part.write({'state': 'upload', 'total_bytes': UPLOAD_CHUNK + 5,
+                        'upload_url': API + '/upload/v1beta/files?upload_id=fake'})
+        with patch.object(type(self.review), '_gemini', side_effect=[
+            response(headers={'X-Goog-Upload-Status': 'active', 'X-Goog-Upload-Size-Received': '0'}), response()]) as call:
+            self.part._upload()
+        self.assertEqual(len(call.call_args.kwargs['data']), UPLOAD_CHUNK)
+        self.assertEqual(call.call_args.kwargs['request_timeout'], (10, 90))
+        self.assertEqual(call.call_args.kwargs['extra_headers']['X-Goog-Upload-Offset'], '0')
+        self.assertEqual(self.part.state, 'upload')
+
+    def test_malformed_model_json_is_retained_and_not_published(self):
+        data = {'candidates': [{'finishReason': 'STOP', 'content': {'parts': [{'text': 'incomplete JSON {'}]}}]}
+        try:
+            self.review._apply_result(data)
+        except UserError as exc:
+            self.assertIn('JSON chưa hợp lệ', str(exc))
+        else:
+            self.fail('Expected invalid JSON')
+        self.assertEqual(self.review.provider_response, data)
+        self.assertNotEqual(self.review.state, 'done')
 
     def test_unconfirmed_analysis_is_not_submitted_again(self):
         self.review.state = 'analyzing'

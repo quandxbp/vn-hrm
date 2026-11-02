@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import math
 import re
 import shutil
@@ -18,16 +19,34 @@ from .report import PROMPT, STUDENT_PROMPT, clock, generation_schema, validate_r
 
 API = 'https://generativelanguage.googleapis.com'
 CHUNK = 8 * 1024 * 1024
+UPLOAD_CHUNK = 4 * 1024 * 1024
+INFERENCE_TIMEOUT = 180
 LOCK = 87425
+_logger = logging.getLogger(__name__)
+STAGE_LABELS = {'drive_metadata': 'đọc thông tin Drive', 'drive_download': 'tải video Drive',
+    'upload_start': 'tạo phiên tải Gemini', 'upload_query': 'kiểm tra tiến độ tải Gemini',
+    'upload_chunk': 'tải video lên Gemini', 'file_processing': 'Gemini xử lý video',
+    'inference': 'chờ kết quả phân tích Gemini', 'validation': 'đọc và kiểm tra kết quả Gemini',
+    'cleanup': 'dọn file tạm Gemini'}
 STATES = [('queued', 'Chờ phân tích'), ('processing', 'Đang xử lý video'),
           ('analyzing', 'Gemini đang phân tích'), ('done', 'Đã có nhận xét'),
           ('failed', 'Lỗi'), ('cancelled', 'Đã hủy')]
 
 
 class ReviewError(Exception):
-    def __init__(self, message, retry=False):
+    def __init__(self, message, retry=False, uncertain=False):
         super().__init__(message)
         self.retry = retry
+        self.uncertain = uncertain
+
+
+def transport_message(error, stage, uncertain=False):
+    category = ('Hết thời gian chờ' if isinstance(error, requests.Timeout) else
+                'Lỗi SSL' if isinstance(error, requests.exceptions.SSLError) else 'Mất kết nối')
+    detail = STAGE_LABELS.get(stage, 'kết nối dịch vụ phân tích')
+    return '%s ở bước %s. %s' % (category, detail,
+        'Yêu cầu đã gửi nhưng chưa xác nhận kết quả; không tự gửi lại để tránh tính phí lặp.' if uncertain else
+        'Tiến độ đã lưu; hệ thống sẽ thử lại trong giới hạn cho phép.')
 
 
 def safe_upload_url(url):
@@ -70,6 +89,10 @@ class SessionReview(models.Model):
     part_ids = fields.One2many('edu.session.review.part', 'review_id')
     finished_at = fields.Datetime('Hoàn tất lúc', readonly=True)
     error = fields.Text('Lỗi phân tích', readonly=True)
+    last_stage = fields.Selection(list(STAGE_LABELS.items()), 'Bước xử lý gần nhất', readonly=True)
+    last_error_type = fields.Char('Loại lỗi kỹ thuật', readonly=True)
+    last_error_stage = fields.Selection(list(STAGE_LABELS.items()), 'Bước phát sinh lỗi', readonly=True)
+    provider_response = fields.Json('Phản hồi Gemini gốc', readonly=True, copy=False, groups='base.group_no_one')
     attempts = fields.Integer(readonly=True)
     next_attempt = fields.Datetime(readonly=True)
     analysis_started = fields.Boolean(copy=False)
@@ -146,13 +169,26 @@ class SessionReview(models.Model):
         headers = dict(kwargs.pop('extra_headers', {}))
         headers['x-goog-api-key'] = self._config().review_api_key
         timeout = kwargs.pop('request_timeout', (10, 45))
-        response = requests.request(method, API + path,
-            headers=headers,
-            timeout=timeout, allow_redirects=False, **kwargs)
+        command = headers.get('X-Goog-Upload-Command', '')
+        stage = ('inference' if path.endswith(':generateContent') else
+                 'upload_query' if command == 'query' else
+                 'upload_chunk' if command.startswith('upload') else
+                 'upload_start' if command == 'start' else
+                 'cleanup' if method == 'DELETE' else 'file_processing')
+        self.last_stage = stage
+        try:
+            response = requests.request(method, API + path, headers=headers,
+                timeout=timeout, allow_redirects=False, **kwargs)
+        except requests.RequestException as exc:
+            self.last_error_type = type(exc).__name__
+            _logger.warning('AI review %s transport failure stage=%s type=%s', self.id, stage, type(exc).__name__)
+            raise ReviewError(transport_message(exc, stage, uncertain=stage == 'inference'),
+                              retry=True, uncertain=stage == 'inference') from exc
         if response.status_code == 404 and method == 'DELETE':
             return response
         if not 200 <= response.status_code < 300:
             status = response.status_code
+            self.last_error_type = 'HTTP_%s' % status
             response.close()
             raise ReviewError('Gemini HTTP %s. Kiểm tra API key, model, hạn mức và quyền dự án.' % status,
                               retry=status in (429, 500, 502, 503, 504))
@@ -162,12 +198,17 @@ class SessionReview(models.Model):
         return {part.number: part.duration for part in self.part_ids}
 
     def _apply_result(self, response):
+        self.last_stage = 'validation'
+        self.provider_response = response
         candidates = response.get('candidates') or []
         if len(candidates) != 1 or candidates[0].get('finishReason') != 'STOP':
             raise UserError('Gemini chưa trả đủ nhận xét hoặc đã dừng vì giới hạn nội dung. Hãy kiểm tra rồi phân tích lại.')
         content = candidates[0].get('content', {}).get('parts', [])
         text = ''.join(item.get('text', '') for item in content if not item.get('thought'))
-        data = json.loads(text)
+        try:
+            data = json.loads(text)
+        except (ValueError, TypeError) as exc:
+            raise UserError('Gemini trả về JSON chưa hợp lệ. Phản hồi đã được giữ lại; không tự gửi lại yêu cầu phân tích.') from exc
         # Keep the response for diagnosis/revalidation without another paid request.
         # This field has the same manager-only ACL as the rest of the review.
         self.result_json = data
@@ -175,7 +216,7 @@ class SessionReview(models.Model):
             require_students=self.prompt_version == '2.1', roster=self.roster_snapshot,
             planned_minutes=self.planned_minutes)
         self.write(dict(values, state='done', result_json=data, finished_at=fields.Datetime.now(),
-                        error=False, cleanup_pending=True))
+                        error=False, last_error_type=False, last_error_stage=False, cleanup_pending=True))
 
     def _step(self):
         self.ensure_one()
@@ -206,11 +247,12 @@ class SessionReview(models.Model):
         self._checkpoint()
         try:
             with self._gemini('POST', '/v1beta/models/' + self.model_name + ':generateContent',
-                              json=self._analysis_payload(), request_timeout=(10, 90)) as response:
+                              json=self._analysis_payload(), request_timeout=(10, INFERENCE_TIMEOUT)) as response:
                 result = response.json()
-        except ReviewError:
+        except ReviewError as exc:
             # An explicit rejected HTTP request is safe to retry; a lost response is not.
-            self.analysis_started = False
+            if not exc.uncertain:
+                self.analysis_started = False
             raise
         self._apply_result(result)
         return True
@@ -307,8 +349,15 @@ class SessionReview(models.Model):
                 retry = retry and not review.analysis_started
                 attempts = review.attempts + 1
                 retry = retry and attempts <= 3
-                message = str(exc) if isinstance(exc, (ReviewError, UserError)) else 'Lỗi kết nối/dữ liệu phân tích. Kiểm tra cấu hình rồi thử lại.'
+                kind = type(exc).__name__
+                stage = review.last_stage or ('inference' if review.analysis_started else 'file_processing')
+                _logger.warning('AI review %s failed stage=%s type=%s retry=%s', review.id, stage, kind, retry)
+                message = (str(exc) if isinstance(exc, (ReviewError, UserError)) else
+                    transport_message(exc, stage, uncertain=review.analysis_started) if isinstance(exc, requests.RequestException) else
+                    'Lỗi dữ liệu ở bước %s (%s). Tiến độ và phản hồi đã được giữ để kiểm tra.' % (STAGE_LABELS.get(stage, stage), kind))
                 review.write({'state': review.state if retry else 'failed', 'attempts': attempts,
+                    'last_error_stage': stage,
+                    'last_error_type': review.last_error_type if isinstance(exc, ReviewError) and review.last_error_type else kind,
                     'error': message, 'cleanup_pending': not retry,
                     'next_attempt': fields.Datetime.now() + timedelta(minutes=2 ** attempts) if retry else False})
                 review._checkpoint()
@@ -403,6 +452,7 @@ class ReviewPart(models.Model):
         return response
 
     def _metadata(self):
+        self.review_id.last_stage = 'drive_metadata'
         with self._drive(params={'fields': 'size,mimeType,md5Checksum,capabilities(canDownload)',
                                  'supportsAllDrives': 'true'}) as response:
             info = response.json()
@@ -425,6 +475,7 @@ class ReviewPart(models.Model):
         if start > total:
             raise UserError('File tạm vượt dung lượng nguồn. Hãy phân tích lại.')
         if start < total:
+            self.review_id.last_stage = 'drive_download'
             end = min(start + CHUNK, total) - 1
             if shutil.disk_usage(path.parent).free < (end - start + 1) + 256 * 1024 ** 2:
                 raise UserError('Máy chủ không đủ dung lượng tạm để phân tích.')
@@ -493,11 +544,11 @@ class ReviewPart(models.Model):
             raise UserError('Phiên upload Gemini không còn hợp lệ. Hãy phân tích lại.')
         with self._path().open('rb') as source:
             source.seek(offset)
-            chunk = source.read(CHUNK)
+            chunk = source.read(UPLOAD_CHUNK)
         final = offset + len(chunk) == total
         with review._gemini('POST', suffix, data=chunk, extra_headers={
                 'X-Goog-Upload-Offset': str(offset), 'X-Goog-Upload-Command': 'upload, finalize' if final else 'upload',
-                'Content-Type': self.mime_type}) as response:
+                'Content-Type': self.mime_type}, request_timeout=(10, 90)) as response:
             if final:
                 self._accept_file(response.json())
         return True

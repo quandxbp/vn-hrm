@@ -22,6 +22,7 @@
                         Báo cáo theo tiêu chí cũ, chưa có cảnh báo tham gia theo từng học sinh. Bấm Phân tích lại để cập nhật.
                     </div>
                     <div class="alert alert-danger" invisible="not error"><field name="error" nolabel="1"/></div>
+                    <group invisible="not error"><field name="last_error_stage"/><field name="last_error_type"/><field name="next_attempt"/></group>
                     <div class="alert alert-info" invisible="state in ['done','failed','cancelled']">
                         Đang xử lý video và tạo báo cáo. Bạn có thể quay lại buổi học trong lúc chờ.
                     </div>

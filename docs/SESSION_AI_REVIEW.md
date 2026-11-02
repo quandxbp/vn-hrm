@@ -5,6 +5,19 @@ Không chấm điểm hay tự quyết định đánh giá nhân sự.
 
 ## Cấu hình
 
+### Xử lý lỗi kết nối (02/11/2026)
+
+Từ `17.0.2.2.1`, lỗi ghi rõ bước Drive/upload/chờ phân tích/kiểm tra kết quả và
+loại lỗi kỹ thuật, không ghi khóa, URL phiên upload hay nội dung exception mạng.
+Upload Gemini chia 4 MiB, tiếp tục từ offset máy chủ xác nhận, chờ tối đa 90 giây
+mỗi request tải chunk. Inference chờ tối đa 180 giây; Odoo dành 300 giây cho cron,
+giữ nguyên giới hạn HTTP. Không dùng timeout cron ngắn hơn request inference.
+
+Lỗi trước inference tiếp tục theo cơ chế thử lại giới hạn. Mất phản hồi sau khi
+đã gọi inference giữ cờ chưa xác nhận, không tự lặp yêu cầu có thể tính phí.
+Phản hồi inference đã nhận được giữ riêng để kiểm tra nếu JSON kết quả không hợp lệ.
+Không tự chạy lại các bản ghi cũ đang lỗi chỉ vì nâng cấp module.
+
 1. Cài addon, vào **Cấu hình → Kết nối dịch vụ → Google Drive / YouTube**.
 2. Nhập API key Gemini bằng ô mật khẩu và lưu. Ô này không đọc lại giá trị key đã lưu.
    Không đưa key vào Git, file cấu hình trong repo hay log. API key riêng với OAuth Google.
