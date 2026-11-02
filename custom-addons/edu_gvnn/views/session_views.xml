@@ -65,7 +65,7 @@
                 <field name="weekday" widget="edu_weekday_badge" readonly="1"/>
                 <field name="teacher_id" widget="edu_teacher_badge" readonly="1" options="{'no_open': True}"/>
                 <field name="student_names" widget="edu_session_student_names" string="Danh sách học viên" readonly="1"/>
-                <field name="state" widget="edu_session_state_toggle" readonly="1"/>
+                <field name="state" widget="edu_session_state_toggle" readonly="paid"/>
                 <field name="recording_part_ids" widget="edu_session_video_links" string="Link GG Drive"
                        readonly="paid" options="{'link_field': 'google_drive_url'}">
                     <tree editable="bottom">
