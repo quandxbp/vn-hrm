@@ -14,9 +14,12 @@ Không cần Telegram, không tự đọc hoặc sao chép tin nhắn trong các
 5. Vào **Trung tâm GVNN → Vận hành → Lịch học Zalo**.
 6. Bấm **Đăng nhập bằng QR**, chờ vài giây rồi bấm **Cập nhật kết nối / QR**.
    Quét QR trong Zalo điện thoại và xác nhận, sau đó cập nhật lần nữa.
-7. Chọn nhóm và bấm **Xác nhận nhóm nhận**. Xem trước ngày gửi, thử **Gửi lịch**.
+7. Nhập **Tên nhóm cần tìm**, bấm **Chọn nhóm theo tên**, rồi **Xác nhận nhóm nhận**.
+   Hoặc chọn trực tiếp **Nhóm nhận lịch** rồi xác nhận. Ô tên nhóm chỉ dùng tìm kiếm,
+   không tự đổi nhóm đã xác nhận. Đổi sang nhóm khác sẽ tắt gửi tự động cho đến khi xác nhận lại.
+   Xem trước ngày gửi, thử **Gửi lịch**.
    Tin được xếp hàng và xử lý trong khoảng một phút; xem kết quả trong Lịch sử gửi.
-8. Sau khi thử đúng nhóm, bật **Tự động gửi lúc 12:00 mỗi ngày** và lưu.
+8. Đặt **Giờ gửi (giờ Việt Nam)**, mặc định **09:00**, bật **Tự động gửi hằng ngày** và lưu.
 
 Trên danh sách Buổi học, nút **Gửi lịch hôm nay** gửi trực tiếp toàn bộ lịch của ngày
 hiện tại theo giờ Việt Nam vào nhóm đã xác nhận, không phụ thuộc bộ lọc hoặc dòng được
@@ -26,8 +29,9 @@ Lịch học Zalo vẫn dùng để xem trước/chọn ngày khác.
 
 ## Hành vi
 
-- Mốc giờ `Asia/Ho_Chi_Minh`, khoảng chạy 12:00–12:30. Nếu máy chủ tắt suốt khoảng đó,
-  lịch hôm đó không tự gửi muộn; dùng gửi thủ công nếu cần.
+- Mốc giờ `Asia/Ho_Chi_Minh`, từ giờ được cấu hình (mặc định 09:00) trong khoảng
+  `catchup_hours` (mặc định **6 giờ**, cho cấu hình 0,5–12 giờ). Cửa sổ kết thúc
+  chậm nhất lúc nửa đêm; không tự gửi lịch của ngày trước. Ngoài cửa sổ cần thao tác thủ công.
 - Lấy các buổi của đúng ngày, bỏ buổi đã hủy, sắp theo giờ; hiển thị giáo viên,
   học viên có mặt. Danh xưng Thầy/Cô và Link học cấu hình tại hồ sơ Giáo viên.
   Gom các tiết theo từng giáo viên, mỗi đoạn có tên Thầy/Cô, đủ từng khung giờ
@@ -49,7 +53,12 @@ Lịch học Zalo vẫn dùng để xem trước/chọn ngày khác.
 - Bridge lưu mã yêu cầu và kết quả trên volume `zalo-bridge-data` trước/sau gửi.
   Gọi lại cùng mã trả kết quả cũ. Nếu mất kết nối đúng lúc gửi hoặc tiến trình bị dừng,
   trạng thái là **Cần kiểm tra trên Zalo**, không tự gửi lại vì có thể đã tới nhóm.
-- Lỗi kết nối cho phép thử lại với cùng mã; bridge vẫn chống trùng.
+- Lỗi trước khi bắt đầu gửi cho phép thử lại với cùng mã/nội dung: sau 1/2/4/8/15 phút,
+  tối đa 12 lần trong cửa sổ cùng ngày. Không tự đánh thức các lỗi cũ chưa được lên lịch retry.
+  Một lần gửi thay thế thành công sẽ chặn retry của yêu cầu tự động cũ tương ứng.
+- Monitor mỗi 5 phút kiểm tra kết nối thực tế và kết quả gửi hôm nay; lỗi tạo activity
+  cho người phụ trách và cảnh báo trên màn hình. Theo dõi này cần Odoo/server đang chạy.
+  Xem [ZALO_TLS_COMPATIBILITY.md](ZALO_TLS_COMPATIBILITY.md) về TLS, probe và giới hạn chống trùng.
 - Token API và phiên Zalo nằm trong cấu hình riêng/volume. API không mở cổng ra máy chủ.
   Chỉ Quản lý GVNN được thao tác trong Odoo.
 

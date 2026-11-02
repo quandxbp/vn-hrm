@@ -1,5 +1,13 @@
 # Bàn giao GVNN — 26/10/2026
 
+> **Bản ghi lịch sử.** Hiện trạng ngày 03/11 và việc còn tồn đọng ở
+> [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md). Database, phiên bản, giờ gửi và các ghi chú
+> “chưa deploy” bên dưới phản ánh thời điểm 26/10, không phải trạng thái hiện tại.
+
+**Kết nối production cho phiên sau:** đọc [SERVER_CONNECTION_HANDOFF.md](SERVER_CONNECTION_HANDOFF.md)
+để lấy thông tin SSH, fingerprint đã xác minh, đường dẫn repo/database, trạng thái Docker/Zalo
+và các thay đổi local/server chưa commit. Phần trạng thái local bên dưới là bản ghi trước deploy production.
+
 Nhánh: `feature/edu-gvnn`. Bản source này gom các thay đổi GVNN, Google Video,
 giao diện dashboard, thanh chức năng Zalo và hình ảnh Kim Academy từ các phiên gần đây.
 Nhật ký chi tiết và đường dẫn backup: [SESSION_HANDOFF_2026-10-24.md](SESSION_HANDOFF_2026-10-24.md).

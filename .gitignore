@@ -1,5 +1,6 @@
 .env.zalo
 /artifacts/
+/import_data/
 /*.xlsx
 services/zalo-bridge/node_modules/
 services/zalo-bridge/data/
