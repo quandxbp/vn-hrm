@@ -264,7 +264,8 @@ class TestSessionReview(TransactionCase):
         self.part.write({'state': 'upload', 'total_bytes': 10, 'mime_type': 'video/mp4',
                          'upload_url': API + '/upload/v1beta/files?upload_id=fake'})
         with patch.object(type(self.review), '_gemini', side_effect=[
-            response(headers={'X-Goog-Upload-Status': 'active', 'X-Goog-Upload-Size-Received': '4'}),
+            response(headers={'X-Goog-Upload-Status': 'active', 'X-Goog-Upload-Size-Received': '4',
+                              'X-Goog-Upload-Chunk-Granularity': '4'}),
             response({'file': {'name': 'files/test-file', 'uri': API + '/v1beta/files/test-file'}}),
         ]) as call:
             self.part._upload()
@@ -337,7 +338,7 @@ class TestSessionReview(TransactionCase):
             else:
                 self.fail('Expected upload timeout')
 
-    def test_smaller_upload_chunks_keep_resumable_offset_and_longer_upload_timeout(self):
+    def test_upload_chunks_keep_resumable_offset_and_longer_upload_timeout(self):
         self.path.write_bytes(b'a' * (UPLOAD_CHUNK + 5))
         self.part.write({'state': 'upload', 'total_bytes': UPLOAD_CHUNK + 5,
                         'upload_url': API + '/upload/v1beta/files?upload_id=fake'})
@@ -348,6 +349,61 @@ class TestSessionReview(TransactionCase):
         self.assertEqual(call.call_args.kwargs['request_timeout'], (10, 90))
         self.assertEqual(call.call_args.kwargs['extra_headers']['X-Goog-Upload-Offset'], '0')
         self.assertEqual(self.part.state, 'upload')
+
+    def test_upload_honors_server_granularity_instead_of_tuned_chunk_size(self):
+        granularity = 16 * 1024 ** 2
+        self.path.write_bytes(b'a' * (granularity + 3))
+        self.part.write({'state': 'upload', 'total_bytes': granularity + 3,
+                        'upload_url': API + '/upload/v1beta/files?upload_id=fake'})
+        with patch.object(type(self.review), '_gemini', side_effect=[
+            response(headers={'X-Goog-Upload-Status': 'active', 'X-Goog-Upload-Size-Received': '0',
+                              'X-Goog-Upload-Chunk-Granularity': str(granularity)}), response()]) as call:
+            self.part._upload()
+        self.assertEqual(len(call.call_args.kwargs['data']), granularity)
+        self.assertEqual(self.part.upload_granularity, granularity)
+        self.assertEqual(call.call_args.kwargs['extra_headers']['X-Goog-Upload-Command'], 'upload')
+
+    def test_invalid_granularity_or_unaligned_offset_never_sends_video(self):
+        self.part.write({'state': 'upload', 'total_bytes': 100,
+                        'upload_url': API + '/upload/v1beta/files?upload_id=fake'})
+        for granularity, offset in [('0', '0'), ('bad', '0'), (str(128*1024**2), '0'), ('8', '4')]:
+            with self.subTest(granularity=granularity, offset=offset), patch.object(type(self.review), '_gemini',
+                return_value=response(headers={'X-Goog-Upload-Status':'active', 'X-Goog-Upload-Size-Received':offset,
+                                               'X-Goog-Upload-Chunk-Granularity':granularity})) as call:
+                with self.assertRaises(UserError):
+                    self.part._upload()
+                self.assertEqual(call.call_count, 1)
+
+    def test_tuning_target_to_four_mib_cannot_violate_server_eight_mib_alignment(self):
+        granularity = 8 * 1024 ** 2
+        self.path.write_bytes(b'a' * (granularity + 3))
+        self.part.write({'state':'upload','total_bytes':granularity+3,
+                        'upload_url':API+'/upload/v1beta/files?upload_id=fake'})
+        with patch('odoo.addons.edu_session_review.models.review.UPLOAD_CHUNK',4*1024**2), \
+             patch.object(type(self.review),'_gemini',side_effect=[
+                response(headers={'X-Goog-Upload-Status':'active','X-Goog-Upload-Size-Received':'0',
+                                  'X-Goog-Upload-Chunk-Granularity':str(granularity)}),response()]) as call:
+            self.part._upload()
+        self.assertEqual(len(call.call_args.kwargs['data']),granularity)
+
+    def test_finalization_after_all_bytes_received_does_not_need_local_file(self):
+        self.part.write({'state': 'upload', 'total_bytes': 10,
+                        'upload_url': API + '/upload/v1beta/files?upload_id=fake'})
+        with patch.object(type(self.review), '_gemini', side_effect=[
+            response(headers={'X-Goog-Upload-Status':'active', 'X-Goog-Upload-Size-Received':'10'}),
+            response({'file':{'name':'files/test-file','uri':API+'/v1beta/files/test-file'}})]) as call:
+            self.part._upload()
+        self.assertEqual(call.call_args.kwargs['data'], b'')
+        self.assertEqual(call.call_args.kwargs['extra_headers']['X-Goog-Upload-Command'], 'upload, finalize')
+        self.assertEqual(self.part.state, 'waiting')
+
+    def test_upload_start_persists_protocol_granularity_before_upload(self):
+        self.part.write({'state':'upload','total_bytes':20})
+        with patch.object(type(self.review),'_gemini',return_value=response(headers={
+            'X-Goog-Upload-URL':API+'/upload/v1beta/files?upload_id=fake',
+            'X-Goog-Upload-Chunk-Granularity':'8388608'})):
+            self.part._upload()
+        self.assertEqual(self.part.upload_granularity, 8388608)
 
     def test_malformed_model_json_is_retained_and_not_published(self):
         data = {'candidates': [{'finishReason': 'STOP', 'content': {'parts': [{'text': 'incomplete JSON {'}]}}]}

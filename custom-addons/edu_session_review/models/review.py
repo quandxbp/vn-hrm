@@ -19,7 +19,8 @@ from .report import PROMPT, STUDENT_PROMPT, clock, generation_schema, validate_r
 
 API = 'https://generativelanguage.googleapis.com'
 CHUNK = 8 * 1024 * 1024
-UPLOAD_CHUNK = 4 * 1024 * 1024
+UPLOAD_CHUNK = 8 * 1024 * 1024
+UPLOAD_GRANULARITY = 8 * 1024 * 1024
 INFERENCE_TIMEOUT = 180
 LOCK = 87425
 _logger = logging.getLogger(__name__)
@@ -190,7 +191,10 @@ class SessionReview(models.Model):
             status = response.status_code
             self.last_error_type = 'HTTP_%s' % status
             response.close()
-            raise ReviewError('Gemini HTTP %s. Kiểm tra API key, model, hạn mức và quyền dự án.' % status,
+            message = ('Gemini từ chối dữ liệu tải video (HTTP %s). Kiểm tra phiên tải, kích thước phần và offset.' % status
+                       if stage in ('upload_chunk', 'upload_query', 'upload_start') and status == 400 else
+                       'Gemini HTTP %s. Kiểm tra API key, model, hạn mức và quyền dự án.' % status)
+            raise ReviewError(message,
                               retry=status in (429, 500, 502, 503, 504))
         return response
 
@@ -412,6 +416,7 @@ class ReviewPart(models.Model):
     mime_type = fields.Char()
     checksum = fields.Char(groups='base.group_no_one')
     upload_url = fields.Char(groups='base.group_no_one', copy=False)
+    upload_granularity = fields.Integer(default=UPLOAD_GRANULARITY, readonly=True, copy=False)
     gemini_name = fields.Char(groups='base.group_no_one', copy=False)
     gemini_uri = fields.Char(groups='base.group_no_one', copy=False)
     duration = fields.Float('Thời lượng (giây)', digits=(16, 3))
@@ -512,6 +517,18 @@ class ReviewPart(models.Model):
         uuid = self.env['ir.config_parameter'].sudo().get_param('database.uuid', '')
         return 'kim-review-%s-%s' % (hashlib.sha256(uuid.encode()).hexdigest()[:12], self.id)
 
+    def _upload_chunk_size(self, headers):
+        """The resumable server, rather than a network tuning constant, owns alignment."""
+        raw = headers.get('X-Goog-Upload-Chunk-Granularity')
+        try:
+            granularity = int(raw) if raw is not None else (self.upload_granularity or UPLOAD_GRANULARITY)
+        except (TypeError, ValueError):
+            raise UserError('Gemini trả về giới hạn phần tải không hợp lệ; chưa gửi dữ liệu video.')
+        if not 0 < granularity <= 64 * 1024 ** 2:
+            raise UserError('Giới hạn phần tải Gemini vượt mức hỗ trợ; chưa gửi dữ liệu video.')
+        self.upload_granularity = granularity
+        return ((UPLOAD_CHUNK + granularity - 1) // granularity) * granularity
+
     def _upload(self):
         review = self.review_id
         if not self.upload_url:
@@ -520,12 +537,14 @@ class ReviewPart(models.Model):
                         'X-Goog-Upload-Header-Content-Length': str(int(self.total_bytes)),
                         'X-Goog-Upload-Header-Content-Type': self.mime_type}) as response:
                 self.upload_url = safe_upload_url(response.headers.get('X-Goog-Upload-URL'))
+                self._upload_chunk_size(response.headers)
             return True
         url = safe_upload_url(self.upload_url)
         suffix = url[len(API):]
         with review._gemini('POST', suffix, data=b'', extra_headers={'X-Goog-Upload-Command': 'query'}) as response:
             status = response.headers.get('X-Goog-Upload-Status')
             offset = int(response.headers.get('X-Goog-Upload-Size-Received', '-1'))
+            chunk_size = self._upload_chunk_size(response.headers)
         if status == 'final':
             token = None
             for _ in range(10):
@@ -542,9 +561,15 @@ class ReviewPart(models.Model):
         total = int(self.total_bytes)
         if status != 'active' or not 0 <= offset <= total:
             raise UserError('Phiên upload Gemini không còn hợp lệ. Hãy phân tích lại.')
-        with self._path().open('rb') as source:
-            source.seek(offset)
-            chunk = source.read(UPLOAD_CHUNK)
+        if offset != total and offset % self.upload_granularity:
+            raise UserError('Gemini trả tiến độ không căn theo giới hạn phần tải; chưa gửi tiếp để tránh sai dữ liệu.')
+        chunk = b''
+        if offset < total:
+            with self._path().open('rb') as source:
+                source.seek(offset)
+                chunk = source.read(min(chunk_size, total - offset))
+        if len(chunk) != min(chunk_size, total - offset):
+            raise UserError('File video tạm bị thiếu dữ liệu. Cần tải lại Drive trước khi gửi tiếp.')
         final = offset + len(chunk) == total
         with review._gemini('POST', suffix, data=chunk, extra_headers={
                 'X-Goog-Upload-Offset': str(offset), 'X-Goog-Upload-Command': 'upload, finalize' if final else 'upload',

@@ -9,7 +9,7 @@ Không chấm điểm hay tự quyết định đánh giá nhân sự.
 
 Từ `17.0.2.2.1`, lỗi ghi rõ bước Drive/upload/chờ phân tích/kiểm tra kết quả và
 loại lỗi kỹ thuật, không ghi khóa, URL phiên upload hay nội dung exception mạng.
-Upload Gemini chia 4 MiB, tiếp tục từ offset máy chủ xác nhận, chờ tối đa 90 giây
+Upload Gemini đọc `X-Goog-Upload-Chunk-Granularity` của phiên, tiếp tục từ offset máy chủ xác nhận, chờ tối đa 90 giây
 mỗi request tải chunk. Inference chờ tối đa 180 giây; Odoo dành 300 giây cho cron,
 giữ nguyên giới hạn HTTP. Không dùng timeout cron ngắn hơn request inference.
 
@@ -24,6 +24,14 @@ mâu thuẫn với mốc xuất hiện sẽ không được dùng để suy ra g
 hợp này không làm mất phần đánh giá giáo viên đã có dẫn chứng hợp lệ. Vẫn từ chối
 sai danh tính, mốc vượt video và cảnh báo trễ/tập trung không có căn cứ. JSON gốc
 được giữ nguyên; có thể kiểm tra lại kết quả đã lưu mà không gọi Gemini thêm lần nữa.
+
+Từ `17.0.2.2.3`, kích thước phần tải căn theo header do Gemini trả về (production:
+8 MiB), không được tùy ý giảm thành 4 MiB. Header được lưu từ lúc tạo phiên và đọc
+lại khi query tiến độ. Phần cuối có thể nhỏ hơn; chỉ finalize rỗng nếu server đã
+nhận đủ dữ liệu. Sai căn offset hoặc header không hợp lệ phải dừng trước khi gửi.
+Đã xác nhận trên phiên thật: 8 MiB được nhận, trong khi lỗi hàng loạt ở bản trước
+là HTTP 400 do dùng 4 MiB trái với giới hạn phiên. Có kiểm thử hồi quy riêng cho
+trường hợp hạ mục tiêu chunk xuống 4 MiB nhưng header vẫn yêu cầu 8 MiB.
 
 1. Cài addon, vào **Cấu hình → Kết nối dịch vụ → Google Drive / YouTube**.
 2. Nhập API key Gemini bằng ô mật khẩu và lưu. Ô này không đọc lại giá trị key đã lưu.
