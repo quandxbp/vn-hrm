@@ -1,0 +1,109 @@
+.ka-login-page {
+    background: #f5f7fb;
+    > main { display: flex; }
+}
+
+.ka-login {
+    --ka-ink: #183657;
+    --ka-blue: #244e80;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    color: var(--ka-ink);
+    font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+    a { text-decoration: none; }
+    a:focus-visible, button:focus-visible { outline: 3px solid #df9344; outline-offset: 5px; }
+
+    .ka-login-story {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: #173d68;
+        background-image: radial-gradient(ellipse at 10% 100%, #285788 0, transparent 65%);
+        color: #fff;
+        padding: 44px clamp(32px, 5vw, 88px) 30px;
+    }
+    .ka-login-brand { display: inline-flex; gap: 14px; align-items: center; color: #fff; align-self: flex-start; }
+    .ka-login-brand img { object-fit: contain; background: #fff; border-radius: 50%; padding: 5px; }
+    .ka-login-brand > span { font-size: 21px; font-weight: 700; letter-spacing: 1.5px; }
+    .ka-login-brand small { display: block; font-size: 10px; font-weight: 400; letter-spacing: 3px; margin-top: 5px; color: #cbd9e9; }
+    .ka-login-story-copy { margin-top: clamp(64px, 12vh, 140px); position: relative; z-index: 1; }
+    .ka-login-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 2px; color: #eab477; display: block; margin-bottom: 23px; }
+    h1 { font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: clamp(30px, 3.1vw, 48px); line-height: 1.38; font-weight: 600; letter-spacing: -1.8px; color: #fff; }
+    h1 em { font-style: normal; color: #efb97e; }
+    .ka-login-story-copy p { margin: 24px 0 0; font-size: 14px; line-height: 1.9; color: #d0deed; }
+    .ka-login-visual { position: relative; height: 200px; margin: 30px -10px 0; display: flex; align-items: center; }
+    .ka-login-orbit { position: absolute; border: 1px solid #ffffff12; border-radius: 50%; width: 420px; height: 420px; left: 40%; top: -55px; }
+    .ka-login-orbit-two { width: 560px; height: 560px; top: -125px; left: 26%; }
+    .ka-login-visual-card { display: flex; align-items: center; gap: 16px; width: 100%; max-width: 390px; padding: 24px; border: 1px solid #ffffff26; border-radius: 18px; background: #ffffff09; transform: rotate(-3deg); }
+    .ka-login-book { display: grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; border-radius: 13px; color: #efb97e; background: #ffffff10; font-size: 23px; }
+    .ka-login-visual-card strong { display: block; font-size: 14px; font-weight: 500; }
+    .ka-login-visual-card div > span { display: block; font-size: 10px; color: #cbdaeb; margin-top: 8px; }
+    .ka-login-spark { margin-left: auto; font-size: 30px; color: #efb97e; }
+    .ka-login-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #e8ae70; right: 2%; top: 20px; }
+    .ka-login-dot-two { width: 5px; height: 5px; left: 14%; top: auto; bottom: 18px; background: #7fadd8; }
+    .ka-login-story-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: auto; padding-top: 35px; color: #bacde1; font-size: 10px; letter-spacing: .3px; }
+    .ka-login-story-footer > span:last-child { font-size: 23px; color: #efb97e; }
+    .ka-login-main { display: flex; flex-direction: column; padding: 44px clamp(28px, 6vw, 108px) 30px; background: #fbfcfe; }
+    .ka-login-home { align-self: flex-end; color: #62728a; font-size: 12px; display: inline-flex; gap: 10px; align-items: center; }
+    .ka-login-home:hover { color: var(--ka-blue); }
+    .ka-login-form-wrap { width: 100%; max-width: 400px; margin: auto; padding: 65px 0; }
+    .ka-login-welcome { font-size: 10px; font-weight: 600; letter-spacing: 1.8px; color: #6c809a; }
+    h2 { font-family: inherit; color: var(--ka-ink); font-size: clamp(26px, 2.4vw, 34px); font-weight: 650; letter-spacing: -1.2px; margin: 16px 0 12px; }
+    .ka-login-intro { font-size: 13px; color: #66768c; margin-bottom: 36px; line-height: 1.7; }
+    .oe_login_form { max-width: none; margin: 0; padding: 0; text-align: left; }
+    .oe_login_form > .mb-3 { margin-bottom: 23px !important; }
+    label { display: block; font-size: 12px; font-weight: 600; color: #263e5c; margin-bottom: 10px; }
+    .form-control { min-height: 52px; padding: 13px 16px; border: 1px solid #d9e1eb; border-radius: 10px; background-color: #fff; color: var(--ka-ink); font-size: 13px; box-shadow: 0 2px 3px #18365702; }
+    .form-control::placeholder { color: #7a8799; opacity: 1; }
+    .form-control:focus { border-color: #527db0; box-shadow: 0 0 0 3px #527db01f; }
+    .ka-login-password { position: relative; }
+    .ka-login-password input { padding-right: 50px; }
+    .ka-login-password-toggle { position: absolute; right: 5px; top: 5px; width: 42px; height: 42px; border: 0; border-radius: 7px; background: transparent; color: #66768c; font-size: 16px; }
+    .ka-login-password-toggle:hover { background: #edf2f8; }
+    .ka-login-buttons { display: flex; flex-direction: column; gap: 20px; }
+    .ka-login-forgot { align-self: flex-end; margin-top: -8px; color: var(--ka-blue); font-size: 12px; font-weight: 500; }
+    .ka-login-submit { display: flex; align-items: center; justify-content: center; gap: 20px; min-height: 52px; border-radius: 10px; background: var(--ka-blue); border: 1px solid var(--ka-blue); font-size: 14px; font-weight: 600; box-shadow: 0 6px 14px #244e8018; }
+    .ka-login-submit:hover, .ka-login-submit:focus { background: #173d68; border-color: #173d68; }
+    .ka-login-submit i { font-size: 12px; }
+    .o_login_auth:empty { display: none; }
+    .ka-login-signup { font-size: 12px; text-align: center; color: #66768c; }
+    .ka-login-signup a { color: var(--ka-blue); font-weight: 600; }
+    .alert { font-size: 12px; border-radius: 10px; line-height: 1.7; }
+    .ka-login-support { margin-top: 32px; padding-top: 26px; border-top: 1px solid #e4eaf1; color: #6c7b8f; font-size: 11px; line-height: 2; }
+    .ka-login-support a { color: var(--ka-blue); font-weight: 500; white-space: nowrap; }
+    .ka-login-support i { font-size: 10px; transform: rotate(45deg); margin-left: 2px; }
+    .ka-login-footer { margin: 0; text-align: center; color: #738195; font-size: 10px; line-height: 1.8; }
+    .ka-login-footer span { margin: 0 7px; color: #a8b4c4; }
+    @media (min-width: 1600px) { .ka-login-story-copy { margin-top: auto; } .ka-login-visual { margin-bottom: auto; } }
+    @media (max-width: 991px) {
+        grid-template-columns: .9fr 1fr;
+        .ka-login-story { padding: 32px; }
+        .ka-login-main { padding: 36px 32px 24px; }
+        h1 { font-size: 32px; }
+        .ka-login-visual-card { padding: 18px; gap: 12px; }
+        .ka-login-spark { display: none; }
+    }
+    @media (max-width: 767px) {
+        grid-template-columns: 1fr;
+        .ka-login-story { padding: 24px; }
+        .ka-login-brand img { width: 46px; height: 46px; }
+        .ka-login-brand > span { font-size: 17px; }
+        .ka-login-brand small { font-size: 8px; }
+        .ka-login-story-copy { margin-top: 26px; }
+        .ka-login-eyebrow, .ka-login-story-copy p, .ka-login-visual, .ka-login-story-footer { display: none; }
+        h1 { font-size: 25px; letter-spacing: -.8px; line-height: 1.4; margin-bottom: 0; }
+        h1 br { display: none; }
+        h1 em { display: block; }
+        .ka-login-main { padding: 24px; }
+        .ka-login-form-wrap { padding: 35px 0; }
+        .ka-login-home { font-size: 11px; }
+        h2 { font-size: 28px; }
+        .form-control { font-size: 16px; }
+        .ka-login-intro { margin-bottom: 28px; }
+        .ka-login-footer { font-size: 9px; }
+    }
+}

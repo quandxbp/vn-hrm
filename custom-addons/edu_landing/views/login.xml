@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- A dedicated layout keeps signup/reset flows and their templates intact. -->
+    <template id="login_layout" name="Kim Academy login layout">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="pageName" t-value="'ka-login-page'"/>
+            <t t-set="title">Đăng nhập | KIM Academy</t>
+            <div class="ka-login">
+                <aside class="ka-login-story" aria-label="KIM Academy">
+                    <a class="ka-login-brand" href="/" aria-label="KIM Academy — Trang chủ">
+                        <img src="/vnpt_base/static/src/img/kim-academy-logo.png" alt="KIM Academy" width="64" height="64"/>
+                        <span>KIM ACADEMY<small>LANGUAGE CENTER</small></span>
+                    </a>
+                    <div class="ka-login-story-copy">
+                        <span class="ka-login-eyebrow">CÙNG KIM, VƯƠN XA HƠN</span>
+                        <h1>Ươm mầm tài năng.<br/><em>Chắp cánh tương lai.</em></h1>
+                        <p>Mỗi buổi học là một bước tiến.<br/>Cùng đồng hành, kết nối và tạo nên những thay đổi.</p>
+                    </div>
+                    <div class="ka-login-visual" aria-hidden="true">
+                        <div class="ka-login-orbit ka-login-orbit-one"/>
+                        <div class="ka-login-orbit ka-login-orbit-two"/>
+                        <div class="ka-login-visual-card">
+                            <span class="ka-login-book"><i class="fa fa-book"/></span>
+                            <div><strong>Học hỏi mỗi ngày</strong><span>Tự tin hơn trên mỗi hành trình</span></div>
+                            <span class="ka-login-spark">✦</span>
+                        </div>
+                        <span class="ka-login-dot ka-login-dot-one"/>
+                        <span class="ka-login-dot ka-login-dot-two"/>
+                    </div>
+                    <div class="ka-login-story-footer"><span>Kết nối tri thức. Nuôi dưỡng đam mê.</span><span>✦</span></div>
+                </aside>
+                <section class="ka-login-main" aria-labelledby="ka-login-title">
+                    <a class="ka-login-home" href="/"><i class="fa fa-arrow-left" aria-hidden="true"/> Về trang chủ</a>
+                    <div class="ka-login-form-wrap">
+                        <span class="ka-login-welcome">KHÔNG GIAN KIM ACADEMY</span>
+                        <h2 id="ka-login-title">Chào mừng trở lại!</h2>
+                        <p class="ka-login-intro">Đăng nhập để tiếp tục công việc của bạn.</p>
+                        <t t-out="0"/>
+                        <p class="ka-login-support">Cần hỗ trợ tài khoản? <a href="/lien-he">Liên hệ KIM Academy <i class="fa fa-arrow-up" aria-hidden="true"/></a></p>
+                    </div>
+                    <p class="ka-login-footer">KIM Academy <span>•</span> Cùng bạn trên hành trình tri thức</p>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <template id="login" inherit_id="web.login" name="Kim Academy sign in" priority="200">
+        <xpath expr="//t[@t-call='web.login_layout']" position="attributes">
+            <attribute name="t-call">edu_landing.login_layout</attribute>
+        </xpath>
+        <xpath expr="//label[@for='login']" position="replace"><label for="login">Tên đăng nhập</label></xpath>
+        <xpath expr="//input[@name='login']" position="attributes">
+            <attribute name="placeholder">Nhập email hoặc tên tài khoản</attribute>
+            <attribute name="spellcheck">false</attribute>
+        </xpath>
+        <xpath expr="//label[@for='password']" position="replace"><label for="password">Mật khẩu</label></xpath>
+        <xpath expr="//input[@name='password']" position="replace">
+            <div class="ka-login-password">
+                <input type="password" name="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required="required" autocomplete="current-password" maxlength="4096" t-att-autofocus="'autofocus' if login else None"/>
+                <button type="button" class="ka-login-password-toggle" aria-label="Hiện mật khẩu" aria-controls="password" aria-pressed="false" hidden="hidden"><i class="fa fa-eye" aria-hidden="true"/></button>
+            </div>
+        </xpath>
+        <xpath expr="//button[@type='submit' and not(@name)]/.." position="replace">
+            <div class="ka-login-buttons oe_login_buttons">
+                <a t-if="reset_password_enabled" class="ka-login-forgot" t-attf-href="/web/reset_password?{{ keep_query() }}">Quên mật khẩu?</a>
+                <button type="submit" class="btn btn-primary ka-login-submit">Đăng nhập <i class="fa fa-arrow-right" aria-hidden="true"/></button>
+                <button t-if="debug" type="submit" name="redirect" value="/web/become" class="btn btn-link btn-sm">Đăng nhập dưới quyền quản trị</button>
+                <div class="o_login_auth"><t t-if="providers" t-call="auth_oauth.providers"/></div>
+                <p t-if="signup_enabled" class="ka-login-signup">Chưa có tài khoản? <a t-attf-href="/web/signup?{{ keep_query() }}">Đăng ký</a></p>
+            </div>
+        </xpath>
+    </template>
+</odoo>

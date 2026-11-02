@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Kim Academy: Website',
-    'version': '17.0.1.9.0',
+    'version': '17.0.1.10.0',
     'summary': 'Trang giới thiệu trung tâm tiếng Anh, form đăng ký tư vấn đổ vào CRM',
     'description': """
 Trang chủ cho trung tâm tiếng Anh dựng trên Odoo Website (bản Community).
@@ -28,6 +28,7 @@ Form đăng ký tạo lead trong CRM.
         'views/teacher_showcase_views.xml',
         'views/website_registration_views.xml',
         'views/assets.xml',
+        'views/login.xml',
         'views/map.xml',
         'views/header.xml',
         'views/registration.xml',
@@ -44,6 +45,7 @@ Form đăng ký tạo lead trong CRM.
     'assets': {
         'web.assets_frontend': [
             'edu_landing/static/src/scss/landing.scss',
+            'edu_landing/static/src/scss/login.scss',
             'edu_landing/static/src/scss/about.scss',
             'edu_landing/static/src/scss/home.scss',
             'edu_landing/static/src/scss/activities.scss',
@@ -54,6 +56,7 @@ Form đăng ký tạo lead trong CRM.
             'edu_landing/static/src/scss/opening.scss',
             'edu_landing/static/src/scss/photos.scss',
             'edu_landing/static/src/js/landing.js',
+            'edu_landing/static/src/js/login.js',
             'edu_landing/static/src/js/activity_slideshow.js',
             'edu_landing/static/src/js/consultation_form.js',
         ],
