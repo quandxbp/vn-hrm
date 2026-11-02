@@ -59,12 +59,19 @@
                 <field name="paid" column_invisible="1"/>
                 <field name="google_drive_url" column_invisible="1"/>
                 <field name="youtube_url" column_invisible="1"/>
+                <field name="session_type" column_invisible="1"/>
                 <field name="student_badge_data" column_invisible="1"/>
                 <field name="week_id" widget="edu_session_week" readonly="1"/>
                 <field name="date" widget="edu_weekday_date_badge" readonly="1"/>
                 <field name="weekday" widget="edu_weekday_badge" readonly="1"/>
                 <field name="teacher_id" widget="edu_teacher_badge" readonly="1" options="{'no_open': True}"/>
-                <field name="student_names" widget="edu_session_student_names" string="Danh sách học viên" readonly="1"/>
+                <field name="attendee_ids" widget="edu_session_students" string="Danh sách học viên"
+                       readonly="paid or session_type == 'testing'">
+                    <tree editable="bottom">
+                        <field name="student_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="present"/>
+                    </tree>
+                </field>
                 <field name="state" widget="edu_session_state_toggle" readonly="paid"/>
                 <field name="recording_part_ids" widget="edu_session_video_links" string="Link GG Drive"
                        readonly="paid" options="{'link_field': 'google_drive_url'}">
