@@ -42,7 +42,7 @@ class TeacherScheduleReview(models.AbstractModel):
             return 200, payload
         text_fields = ('summary', 'lesson_content', 'strengths', 'improvements', 'score_details',
                        'interaction_comment', 'timing_note', 'timing_details', 'quality_note',
-                       'teaching_started_at', 'time_display', 'score_display', 'ratio_display')
+                       'teaching_started_at', 'time_display', 'score_display', 'ratio_display', 'student_report')
         report = {name: review[name] or '' for name in text_fields}
         report.update(
             sufficient_data=review.sufficient_data, score_available=review.score_available,

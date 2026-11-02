@@ -37,6 +37,7 @@ def report_v2():
     data.update(lesson_content=[{'comment': 'Luyện câu hỏi What do you like? qua hỏi đáp.',
         'evidence': [{'part': 1, 'start': '00:20', 'end': '00:30'}]}],
         timing_note='Bắt đầu hướng dẫn bài ở 00:10, loại 10 giây chuẩn bị đầu video.',
+        student_observations=[],
         rubric={key: {'score': score, 'reason': 'Có thực hành và phản hồi; cần thêm ví dụ.',
             'evidence': [{'part': 1, 'start': '00:20', 'end': '00:30'}]}
             for key, score in [('content', 2), ('instruction', 1.5), ('interaction', 2), ('management', 2)]})
@@ -82,6 +83,18 @@ class TestSessionReview(TransactionCase):
         self.review.write(dict(values, state='done'))
         self.assertEqual(self.review.score_display, '7.5 / 10')
         self.assertEqual(self.review.time_display, '01:20 / 02:00')
+
+    def test_already_queued_v2_request_keeps_its_old_output_contract(self):
+        self.review.prompt_version = '2.0'
+        schema = self.review._analysis_payload()['generationConfig']['responseJsonSchema']
+        self.assertNotIn('student_observations', schema['properties'])
+        data = report_v2()
+        data.pop('student_observations')
+        self.part.duration = 120
+        self.review._apply_result({'candidates': [{'finishReason': 'STOP',
+            'content': {'parts': [{'text': json.dumps(data)}]}}]})
+        self.assertEqual(self.review.state, 'done')
+        self.assertFalse(self.review.student_report_available)
 
     def test_provider_schema_avoids_nested_array_cardinality_limits(self):
         schema = generation_schema()

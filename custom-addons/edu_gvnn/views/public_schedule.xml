@@ -8,8 +8,8 @@
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
                 <meta name="robots" content="noindex, nofollow"/>
                 <title>Teaching schedule <t t-esc="teacher_name"/> | Kim Academy</title>
-                <link rel="stylesheet" href="/edu_gvnn/static/src/css/public_schedule.css?v=17.0.1.17.1"/>
-                <script src="/edu_gvnn/static/src/js/public_schedule.js?v=17.0.1.17.1" defer="defer"/>
+                <link rel="stylesheet" href="/edu_gvnn/static/src/css/public_schedule.css?v=17.0.1.17.2"/>
+                <script src="/edu_gvnn/static/src/js/public_schedule.js?v=17.0.1.17.2" defer="defer"/>
             </head>
             <body>
                 <main t-att-class="'container schedule is-editor' if edit_mode else 'container schedule'">

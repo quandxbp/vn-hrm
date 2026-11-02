@@ -209,6 +209,7 @@
                 body.append(scores);
             }
             for (const [title, key] of [
+                ['Student participation and alerts · requires verification', 'student_report'],
                 ['Scoring evidence', 'score_details'], ['Teaching time and exclusions', 'timing_note'],
                 ['Teaching segments', 'timing_details'], [`Student interaction${({low: ' · Low', medium: ' · Medium', good: ' · Good', insufficient: ' · Insufficient data'})[report.interaction_level] || ''}`, 'interaction_comment'],
                 ['Recording quality and limitations', 'quality_note'],

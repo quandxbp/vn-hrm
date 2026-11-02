@@ -16,16 +16,17 @@
                     </div>
                     <field name="source_current" invisible="1"/>
                     <div class="alert alert-warning" role="alert" invisible="source_current">
-                        Link Drive đã thay đổi. Báo cáo này thuộc phiên bản video trước; hãy phân tích lại.
+                        Video, danh sách học sinh hoặc thời lượng theo lịch đã thay đổi. Hãy phân tích lại để đối chiếu dữ liệu mới.
                     </div>
-                    <div class="alert alert-warning" invisible="state != 'done' or prompt_version == '2.0'">
-                        Báo cáo theo tiêu chí cũ, chưa có nội dung chi tiết và điểm /10. Bấm Phân tích lại để cập nhật.
+                    <div class="alert alert-warning" invisible="state != 'done' or prompt_version == '2.1'">
+                        Báo cáo theo tiêu chí cũ, chưa có cảnh báo tham gia theo từng học sinh. Bấm Phân tích lại để cập nhật.
                     </div>
                     <div class="alert alert-danger" invisible="not error"><field name="error" nolabel="1"/></div>
                     <div class="alert alert-info" invisible="state in ['done','failed','cancelled']">
                         Đang xử lý video và tạo báo cáo. Bạn có thể quay lại buổi học trong lúc chờ.
                     </div>
                     <field name="sufficient_data" invisible="1"/><field name="score_available" invisible="1"/>
+                    <field name="student_report_available" invisible="1"/>
                     <div invisible="state != 'done'">
                         <div class="edu_review_metrics">
                             <div class="edu_review_metric edu_review_metric_time">
@@ -50,6 +51,12 @@
                             <h2>02 · Nội dung giáo viên đã dạy</h2>
                             <field name="lesson_content" nolabel="1" class="edu_review_prose"/>
                             <p invisible="lesson_content" class="text-muted">Báo cáo này chưa có nội dung bài dạy chi tiết.</p>
+                        </div>
+                        <div class="edu_review_section" invisible="not student_report_available">
+                            <h2>Tham gia và cảnh báo học sinh</h2>
+                            <div class="alert alert-warning" invisible="not student_alert_count">Số học sinh có cảnh báo cần kiểm tra: <field name="student_alert_count" nolabel="1"/></div>
+                            <group><field name="planned_minutes"/></group>
+                            <field name="student_report" nolabel="1" class="edu_review_prose"/>
                         </div>
                         <div class="edu_review_columns">
                             <div class="edu_review_section edu_review_strengths">
@@ -160,6 +167,11 @@
                             <h4>Nhận xét tổng quát</h4>
                             <field name="ai_review_summary" nolabel="1" class="edu_session_review_prose"/>
                             <p class="edu_session_review_hint">Mở chi tiết để xem nội dung đã dạy, ưu điểm, góp ý và căn cứ chấm điểm.</p>
+                        </div>
+                        <div class="edu_session_review_summary" invisible="ai_review_state != 'done' or not ai_student_report">
+                            <h4>Tham gia và cảnh báo học sinh</h4>
+                            <div class="alert alert-warning" invisible="not ai_student_alert_count">Số học sinh cần kiểm tra: <field name="ai_student_alert_count" nolabel="1"/></div>
+                            <field name="ai_student_report" nolabel="1" class="edu_session_review_prose"/>
                         </div>
                         <details class="edu_session_review_history" invisible="not ai_review_id">
                             <summary><i class="fa fa-history me-2" aria-hidden="true"/>Lịch sử phân tích</summary>

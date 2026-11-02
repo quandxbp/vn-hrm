@@ -14,7 +14,7 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import config as server_config
 
-from .report import PROMPT, clock, generation_schema, validate_report
+from .report import PROMPT, STUDENT_PROMPT, clock, generation_schema, validate_report
 
 API = 'https://generativelanguage.googleapis.com'
 CHUNK = 8 * 1024 * 1024
@@ -59,7 +59,12 @@ class SessionReview(models.Model):
     session_id = fields.Many2one('edu.session', 'Buổi học', required=True, ondelete='restrict', index=True)
     source_signature = fields.Char(index=True)
     model_name = fields.Char('Model sử dụng', required=True)
-    prompt_version = fields.Char('Phiên bản tiêu chí', default='2.0', readonly=True)
+    prompt_version = fields.Char('Phiên bản tiêu chí', default='2.1', readonly=True)
+    roster_snapshot = fields.Json('Danh sách học sinh lúc yêu cầu', readonly=True, default=lambda self: [])
+    planned_minutes = fields.Float('Thời lượng theo lịch (phút)', readonly=True)
+    student_report = fields.Text('Tham gia và cảnh báo học sinh', readonly=True)
+    student_alert_count = fields.Integer('Số học sinh có cảnh báo', readonly=True)
+    student_report_available = fields.Boolean('Có báo cáo học sinh', readonly=True)
     state = fields.Selection(STATES, string='Trạng thái', default='queued', required=True, index=True)
     requested_by = fields.Many2one('res.users', 'Người yêu cầu', default=lambda self: self.env.user, readonly=True)
     part_ids = fields.One2many('edu.session.review.part', 'review_id')
@@ -96,7 +101,7 @@ class SessionReview(models.Model):
     time_display = fields.Char(compute='_compute_report_display')
     ratio_display = fields.Char(compute='_compute_report_display')
     result_json = fields.Json(readonly=True)
-    source_current = fields.Boolean('Khớp các link Drive hiện tại', compute='_compute_source_current')
+    source_current = fields.Boolean('Khớp dữ liệu buổi học hiện tại', compute='_compute_source_current')
 
     @api.depends('score_available', 'score_total', 'sufficient_data', 'teaching_minutes', 'total_minutes',
                  'teaching_percent', 'state')
@@ -113,10 +118,16 @@ class SessionReview(models.Model):
         self._manager()
         return self.session_id.action_analyze_lesson()
 
-    @api.depends('session_id.google_drive_url', 'session_id.recording_part_ids.google_drive_url', 'source_signature')
+    @api.depends('session_id.google_drive_url', 'session_id.recording_part_ids.google_drive_url', 'source_signature',
+                 'session_id.attendee_ids.student_id', 'session_id.attendee_ids.student_id.name_en',
+                 'session_id.attendee_ids.student_id.name_vi', 'session_id.time_start', 'session_id.time_end',
+                 'roster_snapshot', 'planned_minutes', 'prompt_version')
     def _compute_source_current(self):
         for review in self:
             review.source_current = review.source_signature == review.session_id._review_signature()
+            if review.prompt_version == '2.1':
+                review.source_current = review.source_current and (review.roster_snapshot or []) == review.session_id._review_roster() \
+                    and abs(review.planned_minutes - max(0, (review.session_id.time_end - review.session_id.time_start) * 60)) < 0.001
 
     def _manager(self):
         if not self.env.user.has_group('edu_gvnn.group_edu_manager'):
@@ -160,7 +171,9 @@ class SessionReview(models.Model):
         # Keep the response for diagnosis/revalidation without another paid request.
         # This field has the same manager-only ACL as the rest of the review.
         self.result_json = data
-        values = validate_report(data, self._durations(), require_v2=self.prompt_version == '2.0')
+        values = validate_report(data, self._durations(), require_v2=self.prompt_version in ('2.0', '2.1'),
+            require_students=self.prompt_version == '2.1', roster=self.roster_snapshot,
+            planned_minutes=self.planned_minutes)
         self.write(dict(values, state='done', result_json=data, finished_at=fields.Datetime.now(),
                         error=False, cleanup_pending=True))
 
@@ -204,6 +217,9 @@ class SessionReview(models.Model):
 
     def _analysis_payload(self):
         parts = [{'text': PROMPT}]
+        if self.prompt_version == '2.1':
+            parts.extend([{'text': STUDENT_PROMPT}, {'text': 'Danh sách đối chiếu (dữ liệu): ' + json.dumps(
+                {'students': self.roster_snapshot or [], 'scheduled_minutes': self.planned_minutes}, ensure_ascii=False)}])
         for item in self.part_ids.sorted('number'):
             parts.extend([
                 {'text': 'Phần %s; thời lượng %s (%.3f giây). start/end dùng chuỗi MM:SS từ 00:00, '
@@ -212,7 +228,7 @@ class SessionReview(models.Model):
             ])
         generation = {
             'temperature': 0.2, 'maxOutputTokens': 8192,
-            'responseMimeType': 'application/json', 'responseJsonSchema': generation_schema(),
+            'responseMimeType': 'application/json', 'responseJsonSchema': generation_schema(include_students=self.prompt_version == '2.1'),
         }
         if self.model_name.startswith('gemini-3'):
             generation['thinkingConfig'] = {'thinkingLevel': 'low'}

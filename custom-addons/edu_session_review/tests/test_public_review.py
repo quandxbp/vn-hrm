@@ -12,6 +12,7 @@ def fixtures(env):
         'google_drive_url':'https://drive.google.com/file/d/portal_review_source/view',
         'youtube_url':'https://youtu.be/aBcDeFgH123'})
     review=env['edu.session.review'].create({'session_id':session.id,'model_name':'test-only',
+        'prompt_version':'2.0',
         'state':'done','source_signature':session._review_signature(),
         'summary':'PRIVATE_REVIEW_SENTINEL <img src=x onerror=alert(1)>',
         'lesson_content':'CONTENT_SENTINEL','strengths':'STRENGTHS_SENTINEL','improvements':'IMPROVEMENTS_SENTINEL',
@@ -20,7 +21,8 @@ def fixtures(env):
         'sufficient_data':True,'total_minutes':30,'teaching_minutes':25,'teaching_percent':83.3,
         'teaching_started_at':'Part 1 01:30','timing_note':'TIMING_SENTINEL',
         'timing_details':'SEGMENTS_SENTINEL','interaction_comment':'INTERACTION_SENTINEL',
-        'quality_note':'QUALITY_SENTINEL'})
+        'quality_note':'QUALITY_SENTINEL','student_report':'STUDENT_ALERT_SENTINEL',
+        'student_report_available':True,'student_alert_count':1})
     return week,teacher,other,session,review
 
 
@@ -36,7 +38,7 @@ class TestPrivateTeacherReview(TransactionCase):
         self.assertEqual(status,200)
         report=data['report']
         self.assertEqual(report['score_total'],7.5)
-        for key in ('summary','lesson_content','strengths','improvements','score_details','timing_note','timing_details','interaction_comment','quality_note'):
+        for key in ('summary','lesson_content','strengths','improvements','score_details','timing_note','timing_details','interaction_comment','quality_note','student_report'):
             self.assertTrue(report[key])
         self.assertEqual(len(report['scores']),4)
         self.assertFalse(data['stale'])
@@ -67,6 +69,7 @@ class TestPrivateTeacherReview(TransactionCase):
         public=self.page._get_values(self.teacher.name,str(self.week.number))
         self.assertFalse(public['review_enabled'])
         self.assertNotIn('PRIVATE_REVIEW_SENTINEL',str(public))
+        self.assertNotIn('STUDENT_ALERT_SENTINEL',str(public))
         editor=self.page._get_values(self.teacher.name,str(self.week.number),editor=self.teacher)
         self.assertTrue(editor['review_enabled'])
         self.assertNotIn('PRIVATE_REVIEW_SENTINEL',str(editor))

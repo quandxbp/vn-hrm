@@ -41,6 +41,29 @@ phiên bản mới; không tự chấm thêm điểm cho nhận xét cũ hoặc 
 
 ## Xem trên lịch tuần của giáo viên
 
+### Cảnh báo học sinh — tiêu chí 2.1 (02/11/2026)
+
+- Mỗi lần yêu cầu chụp danh sách học sinh và thời lượng theo lịch. AI nhận các tên
+  hiển thị để đối chiếu lời gọi/tên trong phòng học; không nhận dạng khuôn mặt.
+  Học sinh không ghép được danh tính phải được ghi là chưa xác định, không bịa kết quả.
+- Báo cáo có từng học sinh, mốc xuất hiện/join `Phần N · MM:SS`, dẫn chứng tham gia,
+  dấu hiệu gián đoạn tập trung/tham gia và số học sinh có cảnh báo. Không coi tắt
+  camera, nhìn sang chỗ khác hoặc im lặng suy nghĩ là mất tập trung.
+- Chỉ tính trễ khi có sự kiện vào lớp rõ ràng và trong cùng phần với mốc bắt đầu
+  dạy đã xác định. Server tính độ trễ, trình bày cả phút:giây/phút, thời lượng theo
+  lịch, thời lượng thực dạy và tổng video. Không lấy lần đầu phát biểu làm giờ vào.
+  Không cộng các đoạn rời để suy ra trễ; không giả định video bắt đầu đúng giờ học.
+  Mốc bắt đầu video là 00:00 của từng phần; chưa biết giờ quay thực tế trên đồng hồ.
+- Không thấy học sinh trong toàn bộ bản ghi là cảnh báo cần xác nhận vắng,
+  không phải kết luận điểm danh. Phải có dẫn chứng cho từng phần; thiếu đoạn hoặc
+  không rõ danh tính thì dùng chưa xác định. Không tự cập nhật điểm danh, học phí,
+  lương hay chấm điểm học sinh từ báo cáo này.
+- Đổi danh sách/tên học sinh hoặc thời lượng sau khi yêu cầu sẽ làm báo cáo cũ
+  được đánh dấu cần đối chiếu lại. Không tự chạy lại video khi sửa điểm danh.
+- Nội dung hiện trong form nhận xét, tab Nhận xét AI của buổi học và modal riêng
+  của giáo viên. Không xuất cảnh báo học sinh lên mô tả/bình luận YouTube hay lịch
+  công khai. Báo cáo cũ giữ nguyên; muốn có tiêu chí mới phải Phân tích lại.
+
 - Lịch tuần có cột **YouTube**, liệt kê link hợp lệ của tất cả phần video theo số phần.
 - Cột **Actions** có nút icon **Session Review**. Trên link cập nhật riêng của giáo viên,
   nút mở modal đọc nhận xét mới nhất: tổng kết, nội dung đã dạy, thời gian, ưu điểm/góp ý,

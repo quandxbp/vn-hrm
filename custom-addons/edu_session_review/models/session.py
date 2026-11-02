@@ -18,6 +18,19 @@ class SessionReviewLink(models.Model):
     ai_review_summary = fields.Text(related='ai_review_id.summary', groups='edu_gvnn.group_edu_manager')
     ai_review_score = fields.Char(related='ai_review_id.score_display', groups='edu_gvnn.group_edu_manager')
     ai_review_time = fields.Char(related='ai_review_id.time_display', groups='edu_gvnn.group_edu_manager')
+    ai_student_report = fields.Text(related='ai_review_id.student_report', groups='edu_gvnn.group_edu_manager')
+    ai_student_alert_count = fields.Integer(related='ai_review_id.student_alert_count', groups='edu_gvnn.group_edu_manager')
+
+    def _review_roster(self):
+        self.ensure_one()
+        rows = []
+        for attendee in self.attendee_ids.sorted('id'):
+            student = attendee.student_id
+            aliases = list(dict.fromkeys(' '.join(name.split()) for name in
+                (student.name_en or '', student.name_vi or '') if name.strip()))
+            rows.append({'key': 'student_%s' % student.id,
+                         'label': ' / '.join(aliases) or 'Học sinh #%s' % student.id, 'aliases': aliases})
+        return rows
 
     def action_open_ai_review(self):
         self.ensure_one()
@@ -51,7 +64,11 @@ class SessionReviewLink(models.Model):
         signature = self._review_signature()
         Review = self.env['edu.session.review'].sudo()
         previous = Review.search([('session_id', '=', self.id), ('source_signature', '=', signature)], limit=1)
-        if previous and (previous.state in ('queued', 'processing', 'analyzing') or not force and previous.state == 'done'):
+        roster = self._review_roster()
+        planned = max(0, (self.time_end - self.time_start) * 60)
+        if previous and (previous.state in ('queued', 'processing', 'analyzing') or
+                not force and previous.state == 'done' and previous.prompt_version == '2.1'
+                and (previous.roster_snapshot or []) == roster and previous.planned_minutes == planned):
             return previous
         Review.search([('session_id', '=', self.id), ('state', '=', 'queued'),
                        ('source_signature', '!=', signature)]).write({'state': 'cancelled', 'cleanup_pending': True})
@@ -62,7 +79,8 @@ class SessionReviewLink(models.Model):
                                                     'file_id': file_id, 'resource_key': resource_key}))
         return Review.create({'name': 'Nhận xét AI — %s' % self.display_name,
             'session_id': self.id, 'source_signature': signature, 'model_name': config.review_model,
-            'requested_by': self.env.uid, 'part_ids': commands})
+            'requested_by': self.env.uid, 'part_ids': commands,
+            'roster_snapshot': roster, 'planned_minutes': planned})
 
     def action_analyze_lesson(self):
         if not self.env.user.has_group('edu_gvnn.group_edu_manager'):
