@@ -184,9 +184,14 @@ def student_findings(items, roster, durations, intervals, teaching_seconds, plan
         if status not in ('present', 'not_observed', 'uncertain') or not isinstance(comment, str) or not comment.strip() or len(comment) > 4000:
             raise ValueError('students')
         evidence = item['evidence']
-        ref = references(evidence, durations, required=status != 'uncertain', limit=10)
+        checks = []
+        # Absence without coverage is not evidence of absence. Keep the useful
+        # teacher report, but downgrade this student's unsupported claim.
+        ref = references(evidence, durations, required=status == 'present', limit=10)
         if status == 'not_observed' and {e['part'] for e in evidence} != set(durations):
-            raise ValueError('students')
+            status = 'uncertain'
+            comment = 'Chưa đủ dẫn chứng để xác nhận tình trạng tham gia của học sinh trong các phần video.'
+            checks.append('AI chưa cung cấp dẫn chứng đầy đủ cho từng phần video; chưa thể kết luận học sinh vắng. Cần đối chiếu điểm danh.')
         part, offset = item['first_observed_part'], item['first_observed_at']
         join, at_start = item['join_confirmed'], item['already_present_at_start']
         if type(join) is not bool or type(at_start) is not bool or join and at_start:
@@ -201,7 +206,8 @@ def student_findings(items, roster, durations, intervals, teaching_seconds, plan
         if (join or at_start) and seconds is None:
             raise ValueError('students')
         if at_start and (part != min(durations) or seconds != 0):
-            raise ValueError('students')
+            at_start = False
+            checks.append('Mốc xuất hiện không phải đầu video; chưa đủ căn cứ xác nhận đã tham gia từ 00:00.')
         if seconds is not None and not any(e['part'] == part and timestamp(e['start']) <= seconds < timestamp(e['end']) for e in evidence):
             raise ValueError('students')
         warning = status == 'not_observed'
@@ -222,6 +228,7 @@ def student_findings(items, roster, durations, intervals, teaching_seconds, plan
                 denominator, clock(teaching_seconds), clock(sum(durations.values()))))
         if ref:
             lines.append('Dẫn chứng tham gia: ' + ref)
+        lines.extend('CẦN XÁC NHẬN: ' + check for check in checks)
         events = item['attention_events']
         if not isinstance(events, list) or len(events) > 3 or events and status != 'present':
             raise ValueError('students')
@@ -235,7 +242,7 @@ def student_findings(items, roster, durations, intervals, teaching_seconds, plan
                 raise ValueError('students')
         if not events:
             lines.append('Tập trung: chưa ghi nhận cảnh báo có dẫn chứng; không đồng nghĩa xác nhận tập trung toàn buổi.')
-        alert_count += bool(warning or events)
+        alert_count += bool(warning or events or checks)
         sections.append('\n'.join(lines))
     intro = ('Mốc video: 00:00 của từng phần; chưa xác định giờ quay thực tế. '
         'Độ trễ chỉ so với lúc bắt đầu dạy trong cùng phần, không phải xác nhận trễ theo giờ lên lịch. '

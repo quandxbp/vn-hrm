@@ -18,6 +18,13 @@ Lỗi trước inference tiếp tục theo cơ chế thử lại giới hạn. M
 Phản hồi inference đã nhận được giữ riêng để kiểm tra nếu JSON kết quả không hợp lệ.
 Không tự chạy lại các bản ghi cũ đang lỗi chỉ vì nâng cấp module.
 
+Từ `17.0.2.2.2`, nhận định không thấy học sinh thiếu dẫn chứng từng phần sẽ được
+hạ thành chưa xác định/cần đối chiếu; không công bố là vắng. Cờ có mặt từ đầu video
+mâu thuẫn với mốc xuất hiện sẽ không được dùng để suy ra giờ vào lớp. Những trường
+hợp này không làm mất phần đánh giá giáo viên đã có dẫn chứng hợp lệ. Vẫn từ chối
+sai danh tính, mốc vượt video và cảnh báo trễ/tập trung không có căn cứ. JSON gốc
+được giữ nguyên; có thể kiểm tra lại kết quả đã lưu mà không gọi Gemini thêm lần nữa.
+
 1. Cài addon, vào **Cấu hình → Kết nối dịch vụ → Google Drive / YouTube**.
 2. Nhập API key Gemini bằng ô mật khẩu và lưu. Ô này không đọc lại giá trị key đã lưu.
    Không đưa key vào Git, file cấu hình trong repo hay log. API key riêng với OAuth Google.

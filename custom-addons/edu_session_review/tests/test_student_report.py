@@ -49,8 +49,9 @@ class TestStudentReview(TransactionCase):
         self.assertIn('cần xác nhận vắng', self.validate(item)['student_report'])
         data = report_v2()
         data['parts'].append({'part': 2, 'teaching_segments': []})
-        with self.assertRaises(UserError):
-            self.validate(item, {1: 120, 2: 60}, data)
+        values = self.validate(item, {1: 120, 2: 60}, data)
+        self.assertIn('chưa thể kết luận học sinh vắng', values['student_report'])
+        self.assertNotIn('CẢNH BÁO: Chưa thấy', values['student_report'])
 
     def test_cannot_invent_late_duration_between_discontinuous_clips(self):
         item = observation()
@@ -79,6 +80,22 @@ class TestStudentReview(TransactionCase):
                 item = observation()
                 item.update(change)
                 self.validate(item)
+
+    def test_unsupported_absence_and_inconsistent_start_do_not_discard_valid_teacher_report(self):
+        item = observation()
+        item.update(attendance='not_observed', first_observed_part=None, first_observed_at=None,
+                    join_confirmed=False, attention_events=[], evidence=[])
+        values = self.validate(item)
+        self.assertEqual(values['score_total'], 7.5)
+        self.assertIn('Chưa xác định được tình trạng', values['student_report'])
+        self.assertIn('chưa thể kết luận học sinh vắng', values['student_report'])
+        self.assertEqual(values['student_alert_count'], 1)
+        item = observation()
+        item.update(join_confirmed=False, already_present_at_start=True, attention_events=[])
+        values = self.validate(item)
+        self.assertIn('chưa đủ căn cứ xác nhận đã tham gia từ 00:00', values['student_report'])
+        self.assertIn('Độ trễ: chưa xác định', values['student_report'])
+        self.assertNotIn('Đã tham gia từ đầu bản ghi', values['student_report'])
 
     def test_missing_or_duplicate_students_and_old_reports(self):
         data = report_v2()
