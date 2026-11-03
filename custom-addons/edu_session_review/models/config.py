@@ -11,6 +11,9 @@ class ReviewConfig(models.Model):
     review_enabled = fields.Boolean('Cho phép phân tích Gemini', default=False)
     review_auto = fields.Boolean('Tự phân tích khi gắn link Drive', default=False)
     review_model = fields.Char('Model Gemini', default='gemini-3.5-flash-lite', required=True)
+    review_execution = fields.Selection([('batch', 'Xử lý nền ổn định (Batch)'),
+        ('sync', 'Xử lý trực tiếp')], string='Cách phân tích', default='batch', required=True,
+        help='Batch lưu mã tác vụ để lấy lại kết quả sau mất kết nối; có thể chờ khoảng 24 giờ.')
     review_max_mb = fields.Integer('Giới hạn tổng video mỗi báo cáo (MB)', default=1024, required=True)
     review_max_minutes = fields.Integer('Giới hạn tổng thời lượng (phút)', default=120, required=True)
     review_api_key = fields.Char(copy=False, groups='base.group_no_one')

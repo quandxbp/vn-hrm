@@ -15,6 +15,7 @@ from odoo import fields
 def inspect(env):
     params = env['ir.config_parameter'].sudo()
     receipt = json.loads(params.get_param('edu_session_review.protocol_recovery_20261102', '{}'))
+    batch_receipt = json.loads(params.get_param('edu_session_review.batch_recovery_20261103', '{}'))
     ids = receipt.get('upload_review_ids', [])
     if receipt.get('replacement_review_id'):
         ids = ids + [receipt['replacement_review_id']]
@@ -33,6 +34,13 @@ def inspect(env):
         'neutralized': params.get_param('database.is_neutralized'),
         'review_enabled': config.review_enabled,
         'review_auto': config.review_auto,
+        'review_execution': config.review_execution,
+        'batch_recovery_receipt': batch_receipt,
+        'batch_tasks': [{
+            'id': r.id, 'state': r.state, 'batch_name': r.batch_name,
+            'batch_status': r.batch_status, 'next_attempt_utc': str(r.next_attempt),
+            'error_type': r.last_error_type,
+        } for r in Review.search([('execution_mode', '=', 'batch')], order='id')],
         'video_processing_enabled': config.processing_enabled,
         'cron_active': cron.active,
         'cron_nextcall_utc': str(cron.nextcall),

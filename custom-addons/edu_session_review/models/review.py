@@ -5,6 +5,7 @@ import math
 import re
 import shutil
 import time
+import uuid
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
@@ -28,6 +29,7 @@ STAGE_LABELS = {'drive_metadata': 'đọc thông tin Drive', 'drive_download': '
     'upload_start': 'tạo phiên tải Gemini', 'upload_query': 'kiểm tra tiến độ tải Gemini',
     'upload_chunk': 'tải video lên Gemini', 'file_processing': 'Gemini xử lý video',
     'inference': 'chờ kết quả phân tích Gemini', 'validation': 'đọc và kiểm tra kết quả Gemini',
+    'batch_submit': 'tạo tác vụ Gemini nền', 'batch_poll': 'kiểm tra kết quả Gemini nền',
     'cleanup': 'dọn file tạm Gemini'}
 STATES = [('queued', 'Chờ phân tích'), ('processing', 'Đang xử lý video'),
           ('analyzing', 'Gemini đang phân tích'), ('done', 'Đã có nhận xét'),
@@ -79,6 +81,14 @@ class SessionReview(models.Model):
     session_id = fields.Many2one('edu.session', 'Buổi học', required=True, ondelete='restrict', index=True)
     source_signature = fields.Char(index=True)
     model_name = fields.Char('Model sử dụng', required=True)
+    execution_mode = fields.Selection([('sync', 'Trực tiếp'), ('batch', 'Xử lý nền (Batch)')],
+        default='sync', required=True, readonly=True, copy=False)
+    batch_name = fields.Char('Mã tác vụ Gemini', readonly=True, copy=False)
+    batch_token = fields.Char(readonly=True, copy=False, groups='base.group_no_one')
+    batch_submitted_at = fields.Datetime('Gửi tác vụ nền lúc', readonly=True, copy=False)
+    batch_status = fields.Char('Trạng thái tác vụ nền', readonly=True, copy=False)
+    batch_response = fields.Json(readonly=True, copy=False, groups='base.group_no_one')
+    batch_cleaned = fields.Boolean(copy=False)
     prompt_version = fields.Char('Phiên bản tiêu chí', default='2.1', readonly=True)
     roster_snapshot = fields.Json('Danh sách học sinh lúc yêu cầu', readonly=True, default=lambda self: [])
     planned_minutes = fields.Float('Thời lượng theo lịch (phút)', readonly=True)
@@ -171,7 +181,9 @@ class SessionReview(models.Model):
         headers['x-goog-api-key'] = self._config().review_api_key
         timeout = kwargs.pop('request_timeout', (10, 45))
         command = headers.get('X-Goog-Upload-Command', '')
-        stage = ('inference' if path.endswith(':generateContent') else
+        stage = ('batch_submit' if path.endswith(':batchGenerateContent') else
+                 'batch_poll' if method == 'GET' and path.startswith('/v1beta/batches') else
+                 'inference' if path.endswith(':generateContent') else
                  'upload_query' if command == 'query' else
                  'upload_chunk' if command.startswith('upload') else
                  'upload_start' if command == 'start' else
@@ -183,9 +195,11 @@ class SessionReview(models.Model):
         except requests.RequestException as exc:
             self.last_error_type = type(exc).__name__
             _logger.warning('AI review %s transport failure stage=%s type=%s', self.id, stage, type(exc).__name__)
-            raise ReviewError(transport_message(exc, stage, uncertain=stage == 'inference'),
-                              retry=True, uncertain=stage == 'inference') from exc
-        if response.status_code == 404 and method == 'DELETE':
+            uncertain = stage in ('inference', 'batch_submit')
+            raise ReviewError(transport_message(exc, stage, uncertain=uncertain),
+                              retry=True, uncertain=uncertain) from exc
+        if response.status_code == 404 and (method == 'DELETE' or
+                method == 'POST' and path.startswith('/v1beta/batches/') and path.endswith(':cancel')):
             return response
         if not 200 <= response.status_code < 300:
             status = response.status_code
@@ -247,6 +261,8 @@ class SessionReview(models.Model):
             # Start the inference in a fresh cron invocation, leaving time for its response.
             self.state = 'analyzing'
             return False
+        if self.execution_mode == 'batch':
+            return self._batch_step()
         if self.analysis_started:
             raise UserError('Yêu cầu Gemini trước chưa được xác nhận. Hãy tạo lần phân tích mới để tránh gửi lặp tự động.')
         self.analysis_started = True
@@ -282,9 +298,146 @@ class SessionReview(models.Model):
             generation['thinkingConfig'] = {'thinkingLevel': 'low'}
         return {'contents': [{'role': 'user', 'parts': parts}], 'generationConfig': generation}
 
+    def _expired(self):
+        if self.execution_mode == 'batch' and self.batch_submitted_at:
+            return self.batch_submitted_at < fields.Datetime.now() - timedelta(hours=36)
+        return self.create_date < fields.Datetime.now() - timedelta(hours=24)
+
+    @staticmethod
+    def _safe_batch_name(value):
+        if not isinstance(value, str) or not re.fullmatch(r'batches/[A-Za-z0-9_-]{1,200}', value):
+            raise UserError('Gemini trả mã tác vụ nền không hợp lệ.')
+        return value
+
+    def _find_batch(self):
+        """Recover an acknowledged-or-uncertain create using its checkpointed UUID.
+
+        Never repost when a list request fails or when the job is not yet visible.
+        """
+        token = None
+        for _ in range(20):
+            with self._gemini('GET', '/v1beta/batches', params={
+                    'pageSize': 100, **({'pageToken': token} if token else {})}) as response:
+                page = response.json()
+            matches = [item for item in page.get('operations', [])
+                       if item.get('metadata', {}).get('displayName') == self.batch_token]
+            if len(matches) > 1:
+                raise UserError('Có nhiều tác vụ Gemini cùng mã đối chiếu; cần quản lý kiểm tra.')
+            if matches:
+                job = matches[0]
+                model = job.get('metadata', {}).get('model')
+                if model and model != 'models/' + self.model_name:
+                    raise UserError('Tác vụ nền không khớp model đã yêu cầu.')
+                self.batch_name = self._safe_batch_name(job.get('name'))
+                self._checkpoint()
+                return
+            token = page.get('nextPageToken')
+            if not token:
+                return
+        raise ReviewError('Chưa dò hết danh sách tác vụ Gemini; chưa gửi thêm yêu cầu.', retry=True)
+
+    def _batch_step(self):
+        if not self.batch_name and self.analysis_started:
+            if not self.batch_token:
+                raise UserError('Yêu cầu cũ thiếu mã đối chiếu; không tự gửi lại để tránh tính phí trùng.')
+            self._find_batch()
+            if not self.batch_name:
+                self.batch_status = 'Đang đối chiếu yêu cầu đã gửi'
+                self.next_attempt = fields.Datetime.now() + timedelta(minutes=2)
+                return False
+        if not self.batch_name:
+            self.write({'batch_token': 'kim-review-' + uuid.uuid4().hex,
+                        'analysis_started': True, 'batch_submitted_at': fields.Datetime.now()})
+            self._checkpoint()  # durable intent BEFORE the potentially billable POST
+            payload = {'batch': {'displayName': self.batch_token, 'inputConfig': {'requests': {
+                'requests': [{'request': dict(self._analysis_payload(), model='models/' + self.model_name),
+                              'metadata': {'key': self.batch_token}}]}}}}
+            try:
+                with self._gemini('POST', '/v1beta/models/' + self.model_name + ':batchGenerateContent',
+                                  json=payload) as response:
+                    job = response.json()
+            except ReviewError:
+                # Explicit client rejection: no job was accepted. Ambiguous 5xx/network
+                # failures keep the intent; the next attempt only lists/polls jobs.
+                if self.last_error_type in ('HTTP_400', 'HTTP_401', 'HTTP_403', 'HTTP_404', 'HTTP_429'):
+                    self.write({'analysis_started': False, 'batch_token': False, 'batch_submitted_at': False})
+                raise
+            self.batch_name = self._safe_batch_name(job.get('name'))
+            self._checkpoint()
+        else:
+            with self._gemini('GET', '/v1beta/' + self._safe_batch_name(self.batch_name)) as response:
+                job = response.json()
+        if job.get('name') != self.batch_name:
+            raise UserError('Kết quả không khớp mã tác vụ Gemini đã lưu.')
+        self.batch_status = job.get('metadata', {}).get('state', '')
+        if not job.get('done'):
+            self.next_attempt = fields.Datetime.now() + timedelta(minutes=1)
+            return False
+        self.batch_response = job  # retained privately even if validation rejects it
+        self._checkpoint()
+        if job.get('error'):
+            raise UserError('Tác vụ Gemini nền đã dừng lỗi (mã %s). Kết quả được giữ để kiểm tra.' %
+                            job['error'].get('code', 'unknown'))
+        rows = job.get('response', {}).get('inlinedResponses', {}).get('inlinedResponses', [])
+        if len(rows) != 1:
+            raise UserError('Gemini chưa trả đúng một kết quả inline; không tự tạo tác vụ mới.')
+        row = rows[0]
+        if row.get('metadata', {}).get('key', self.batch_token) != self.batch_token:
+            raise UserError('Kết quả Gemini không khớp mã báo cáo yêu cầu.')
+        if row.get('error') or not row.get('response'):
+            raise UserError('Yêu cầu trong tác vụ Gemini nền bị từ chối; xem phản hồi đã lưu.')
+        self._apply_result(row['response'])
+        return True
+
+    def action_resume_batch(self):
+        """Retry only retrieval, never create a new paid analysis."""
+        self._manager()
+        for review in self:
+            self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s, %s)', [LOCK, review.id])
+            if not self.env.cr.fetchone()[0]:
+                raise UserError('Tác vụ đang xử lý, hãy thử lại sau.')
+            if review.state != 'failed' or review.execution_mode != 'batch' or not review.analysis_started \
+                    or not review.batch_token or review.batch_cleaned:
+                raise UserError('Báo cáo này không có tác vụ nền còn giữ để lấy kết quả.')
+            review.sudo().write({'state': 'analyzing', 'attempts': 0, 'next_attempt': False,
+                                'error': False, 'cleanup_pending': False})
+
     def _cleanup(self):
         """Delete only this review's temporary files. Never touch the upload cache."""
         complete = True
+        # A retrieval/network failure does not mean the paid server job failed.
+        # Keep its sources until a manager resumes retrieval or the job expires.
+        if self.execution_mode == 'batch' and self.state == 'failed' and self.analysis_started \
+                and not self.batch_response and not self._expired():
+            self.cleanup_pending = True
+            return
+        if self.execution_mode == 'batch' and self.analysis_started and self.batch_token and not self.batch_cleaned:
+            try:
+                if not self.batch_name:
+                    self._find_batch()
+                    if not self.batch_name and not self._expired():
+                        self.cleanup_pending = True
+                        return
+                if self.batch_name:
+                    path = '/v1beta/' + self._safe_batch_name(self.batch_name)
+                    # Cancellation is asynchronous; keep sources until confirmed.
+                    if self.state != 'done' and self.batch_status not in (
+                            'JOB_STATE_SUCCEEDED', 'JOB_STATE_FAILED', 'JOB_STATE_CANCELLED', 'JOB_STATE_EXPIRED'):
+                        with self._gemini('POST', path + ':cancel', json={}) as cancellation:
+                            absent = cancellation.status_code == 404
+                        if not absent:
+                            with self._gemini('GET', path) as response:
+                                job = response.json()
+                            if not job.get('done'):
+                                self.cleanup_pending = True
+                                return
+                            self.batch_status = job.get('metadata', {}).get('state', '')
+                    with self._gemini('DELETE', path):
+                        pass
+                self.batch_cleaned = True
+            except (ReviewError, requests.RequestException, UserError):
+                self.cleanup_pending = True
+                return
         for part in self.part_ids:
             part._remove_local()
         for part in self.part_ids:
@@ -342,17 +495,18 @@ class SessionReview(models.Model):
                     config.invalidate_recordset()
                     if review.state not in ('queued', 'processing', 'analyzing') or not config.review_enabled:
                         break
-                    if review.create_date < fields.Datetime.now() - timedelta(hours=24):
-                        raise UserError('Tác vụ phân tích quá 24 giờ. Hãy kiểm tra và phân tích lại.')
+                    if review._expired():
+                        raise UserError('Tác vụ phân tích quá hạn. Hãy kiểm tra kết quả trên Gemini trước khi phân tích lại.')
                     progressed = review._step()
-                    review.write({'attempts': 0, 'next_attempt': False, 'error': False})
+                    review.write(dict({'attempts': 0, 'error': False}, **({'next_attempt': False} if progressed else {})))
                     review._checkpoint()
                     if review.state == 'done' or not progressed:
                         break
             except (ReviewError, requests.RequestException, UserError, ValueError, KeyError, TypeError, OSError) as exc:
                 retry = (isinstance(exc, requests.RequestException) or isinstance(exc, ReviewError) and exc.retry)
                 # An unconfirmed analysis POST can incur cost: do not repeat it automatically.
-                retry = retry and not review.analysis_started
+                retry = retry and (not review.analysis_started or
+                    review.execution_mode == 'batch' and bool(review.batch_token))
                 attempts = review.attempts + 1
                 retry = retry and attempts <= 3
                 kind = type(exc).__name__
@@ -377,8 +531,9 @@ class SessionReview(models.Model):
         deadline = time.monotonic() + 35
         expired = fields.Datetime.now() - timedelta(hours=24)
         reviews = self.sudo().search(['|', ('next_attempt', '=', False), ('next_attempt', '<=', fields.Datetime.now()),
-            '|', ('cleanup_pending', '=', True),
-            '&', ('create_date', '<', expired), ('state', 'in', ['queued', 'processing', 'analyzing'])], limit=20)
+            '|', ('cleanup_pending', '=', True), '&', ('state', 'in', ['queued', 'processing', 'analyzing']),
+            '|', '&', ('batch_submitted_at', '=', False), ('create_date', '<', expired),
+            ('batch_submitted_at', '<', fields.Datetime.now() - timedelta(hours=36))], limit=20)
         for review in reviews:
             if time.monotonic() > deadline:
                 break

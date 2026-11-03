@@ -50,7 +50,7 @@ class TestSessionReview(TransactionCase):
         super().setUp()
         self.config = self.env.ref('edu_video.config_default').sudo()
         self.config.write({'auto_upload': False, 'processing_enabled': False, 'review_enabled': True,
-            'review_auto': False, 'review_api_key': 'fake-key', 'drive_state': 'connected', 'refresh_token': 'fake-drive'})
+            'review_auto': False, 'review_execution': 'sync', 'review_api_key': 'fake-key', 'drive_state': 'connected', 'refresh_token': 'fake-drive'})
         teacher = self.env['edu.teacher'].create({'name': 'Review Test Teacher'})
         self.session = self.env['edu.session'].create({'date': '2051-02-01', 'teacher_id': teacher.id,
             'google_drive_url': 'https://drive.google.com/file/d/review_source_1234/view',
@@ -551,3 +551,196 @@ class TestSessionReview(TransactionCase):
         self.review._cron_cleanup()
         self.assertEqual(self.review.state, 'failed')
         self.assertFalse(self.path.exists())
+
+    def _batch_fixture(self):
+        self.review.write({'execution_mode': 'batch', 'state': 'analyzing'})
+        self.part.write({'state': 'ready', 'total_bytes': 10, 'duration': 120})
+
+    def _batch_result(self, key='test-key'):
+        return {'name': 'batches/test-job', 'done': True,
+                'metadata': {'state': 'JOB_STATE_SUCCEEDED'},
+                'response': {'inlinedResponses': {'inlinedResponses': [{
+                    'metadata': {'key': key}, 'response': {'candidates': [{'finishReason': 'STOP',
+                        'content': {'parts': [{'text': json.dumps(report_v2())}]}}]}}]}}}
+
+    def test_new_requests_snapshot_configured_execution_mode(self):
+        self.config.review_execution = 'batch'
+        self.review.state = 'cancelled'
+        new = self.session._queue_ai_review(force=True)
+        self.assertEqual(new.execution_mode, 'batch')
+        self.config.review_execution = 'sync'
+        self.assertEqual(new.execution_mode, 'batch')
+
+    def test_batch_submit_saves_intent_before_post_and_poll_never_reposts(self):
+        self._batch_fixture()
+        def submit(record, method, path, **kwargs):
+            self.assertTrue(record.analysis_started)
+            self.assertTrue(record.batch_submitted_at)
+            self.assertTrue(record.batch_token)
+            request = kwargs['json']['batch']['inputConfig']['requests']['requests'][0]
+            self.assertEqual(request['metadata']['key'], record.batch_token)
+            self.assertEqual(request['request']['model'], 'models/' + record.model_name)
+            return response({'name': 'batches/test-job', 'metadata': {'state': 'JOB_STATE_PENDING'}})
+        with patch.object(type(self.review), '_gemini', autospec=True, side_effect=submit) as call:
+            self.assertFalse(self.review._step())
+        self.assertEqual(call.call_count, 1)
+        self.assertEqual(self.review.batch_name, 'batches/test-job')
+        self.assertTrue(self.review.next_attempt)
+        with patch.object(type(self.review), '_gemini', return_value=response(
+                self._batch_result(self.review.batch_token))) as call:
+            self.assertTrue(self.review._step())
+        self.assertEqual(call.call_args.args[0], 'GET')
+        self.assertEqual(self.review.state, 'done')
+        self.assertTrue(self.review.result_json)
+
+    def test_lost_batch_create_response_recovers_by_uuid_without_new_post(self):
+        self._batch_fixture()
+        with patch.object(type(self.review), '_gemini', side_effect=ReviewError('lost', retry=True, uncertain=True)):
+            try:
+                self.review._step()
+            except ReviewError:
+                pass
+        key = self.review.batch_token
+        self.assertTrue(self.review.analysis_started)
+        operations = {'operations': [{'name': 'batches/test-job',
+            'metadata': {'displayName': key, 'model': 'models/' + self.review.model_name}}]}
+        with patch.object(type(self.review), '_gemini', side_effect=[response(operations), response(self._batch_result(key))]) as call:
+            self.review._step()
+        self.assertTrue(all(args.args[0] == 'GET' for args in call.call_args_list))
+        self.assertEqual(self.review.state, 'done')
+
+    def test_uncertain_create_not_yet_visible_only_schedules_lookup(self):
+        self._batch_fixture()
+        self.review.write({'analysis_started': True, 'batch_token': 'test-key',
+                           'batch_submitted_at': fields.Datetime.now()})
+        with patch.object(type(self.review), '_gemini', return_value=response({'operations': []})) as call:
+            self.assertFalse(self.review._step())
+        self.assertEqual(call.call_count, 1)
+        self.assertEqual(call.call_args.args[0], 'GET')
+        self.assertTrue(self.review.next_attempt)
+        self.assertFalse(self.review.batch_name)
+
+    def test_batch_poll_error_retries_retrieval_despite_analysis_started(self):
+        self._batch_fixture()
+        self.env['ir.config_parameter'].sudo().set_param('database.is_neutralized', 'False')
+        self.review.write({'batch_name': 'batches/test-job', 'batch_token': 'test-key',
+                           'analysis_started': True, 'batch_submitted_at': fields.Datetime.now()})
+        with patch.object(type(self.review), '_gemini', side_effect=ReviewError('poll network', retry=True)):
+            self.review._cron_process()
+        self.assertEqual(self.review.state, 'analyzing')
+        self.assertTrue(self.review.next_attempt)
+        self.assertTrue(self.review.analysis_started)
+
+    def test_batch_scheduler_preserves_poll_delay_for_other_reviews(self):
+        self._batch_fixture()
+        self.env['ir.config_parameter'].sudo().set_param('database.is_neutralized', 'False')
+        with patch.object(type(self.review), '_gemini', return_value=response({'name': 'batches/test-job'})):
+            self.review._cron_process()
+        self.assertTrue(self.review.next_attempt)
+        self.assertEqual(self.review.state, 'analyzing')
+
+    def test_rejected_create_clears_intent_but_unknown_server_error_keeps_it(self):
+        self._batch_fixture()
+        def reject(record, *args, **kwargs):
+            record.last_error_type = 'HTTP_429'
+            raise ReviewError('rate limit', retry=True)
+        with patch.object(type(self.review), '_gemini', autospec=True, side_effect=reject):
+            try:
+                self.review._step()
+            except ReviewError:
+                pass
+        self.assertFalse(self.review.analysis_started)
+        self.assertFalse(self.review.batch_token)
+        self.assertFalse(self.review.batch_submitted_at)
+
+    def test_batch_wrong_result_key_is_retained_and_rejected(self):
+        self._batch_fixture()
+        self.review.write({'batch_name': 'batches/test-job', 'batch_token': 'test-key', 'analysis_started': True})
+        with patch.object(type(self.review), '_gemini', return_value=response(self._batch_result('another-key'))):
+            try:
+                self.review._step()
+            except UserError:
+                pass
+            else:
+                self.fail('Wrong batch result key accepted')
+        self.assertTrue(self.review.batch_response)
+        self.assertFalse(self.review.result_json)
+
+    def test_batch_terminal_error_is_not_recreated(self):
+        self._batch_fixture()
+        self.review.write({'batch_name': 'batches/test-job', 'batch_token': 'test-key', 'analysis_started': True})
+        with patch.object(type(self.review), '_gemini', return_value=response({
+                'name': 'batches/test-job', 'done': True, 'error': {'code': 13}})) as call:
+            try:
+                self.review._step()
+            except UserError:
+                pass
+            else:
+                self.fail('Batch error accepted')
+        self.assertEqual(call.call_args.args[0], 'GET')
+        self.assertTrue(self.review.batch_response)
+
+    def test_cancel_batch_before_deleting_sources(self):
+        self._batch_fixture()
+        self.review.write({'state': 'cancelled', 'batch_name': 'batches/test-job',
+            'batch_token': 'test-key', 'analysis_started': True, 'batch_submitted_at': fields.Datetime.now()})
+        self.part.gemini_name = 'files/source'
+        with patch.object(type(self.review), '_gemini', return_value=response({'done': True})) as call:
+            self.review._cleanup()
+        self.assertEqual([(c.args[0], c.args[1]) for c in call.call_args_list], [
+            ('POST', '/v1beta/batches/test-job:cancel'), ('GET', '/v1beta/batches/test-job'),
+            ('DELETE', '/v1beta/batches/test-job'),
+            ('DELETE', '/v1beta/files/source')])
+        self.assertTrue(self.review.batch_cleaned)
+
+    def test_async_cancellation_keeps_sources_until_server_job_stops(self):
+        self._batch_fixture()
+        self.review.write({'state': 'cancelled', 'batch_name': 'batches/test-job',
+            'batch_token': 'test-key', 'analysis_started': True, 'batch_submitted_at': fields.Datetime.now()})
+        self.part.gemini_name = 'files/source'
+        self.path.write_bytes(b'keep')
+        with patch.object(type(self.review), '_gemini', return_value=response({'done': False})) as call:
+            self.review._cleanup()
+        self.assertTrue(self.review.cleanup_pending)
+        self.assertFalse(self.review.batch_cleaned)
+        self.assertTrue(self.path.exists())
+        self.assertTrue(all(c.args[0] != 'DELETE' for c in call.call_args_list))
+
+    def test_cleanup_failure_is_deferred_without_losing_batch_or_sources(self):
+        self._batch_fixture()
+        self.review.write({'state': 'done', 'batch_name': 'batches/test-job',
+            'batch_token': 'test-key', 'analysis_started': True})
+        self.path.write_bytes(b'keep')
+        with patch.object(type(self.review), '_gemini', side_effect=ReviewError('cleanup temporary', retry=True)):
+            self.review._cleanup()
+        self.assertTrue(self.review.cleanup_pending)
+        self.assertTrue(self.path.exists())
+        self.assertEqual(self.review.batch_name, 'batches/test-job')
+
+    def test_failed_retrieval_preserves_sources_and_can_resume_without_new_cost(self):
+        self._batch_fixture()
+        self.review.write({'state': 'failed', 'batch_name': 'batches/test-job', 'batch_token': 'test-key',
+                           'analysis_started': True, 'batch_submitted_at': fields.Datetime.now()})
+        self.path.write_bytes(b'keep')
+        with patch.object(type(self.review), '_gemini') as call:
+            self.review._cleanup()
+        call.assert_not_called()
+        self.assertTrue(self.path.exists())
+        self.review.action_resume_batch()
+        self.assertEqual(self.review.state, 'analyzing')
+        self.assertEqual(self.review.batch_name, 'batches/test-job')
+
+    def test_batch_gets_36_hours_from_submission_not_original_queue_date(self):
+        self._batch_fixture()
+        self.env.cr.execute("UPDATE edu_session_review SET create_date=NOW()-INTERVAL '25 hours' WHERE id=%s", [self.review.id])
+        self.review.invalidate_recordset(['create_date'])
+        self.assertTrue(self.review._expired())
+        self.review.batch_submitted_at = fields.Datetime.now()
+        self.assertFalse(self.review._expired())
+        self.review._cron_cleanup()
+        self.assertNotEqual(self.review.state, 'failed')
+
+    def test_batch_name_cannot_escape_api_resource(self):
+        for value in ('https://other.invalid/x', 'batches/../../files/secret', '', None):
+            with self.assertRaises(UserError):
+                self.review._safe_batch_name(value)

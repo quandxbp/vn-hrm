@@ -35,7 +35,8 @@ các `SESSION_HANDOFF_2026-10-*.md` là lịch sử, không phải trạng thái
 - Không dùng gửi tin Zalo/upload YouTube thật để kiểm thử khi chưa được yêu cầu.
 - Inference đã gửi nhưng mất phản hồi: không tự reset `analysis_started` hoặc tạo lượt mới.
   Quyền phân tích lại báo cáo 10 chỉ cho **một lần**, bản thay thế là 46. Báo cáo 32
-  và 38 còn chờ quyết định; kiểm tra bàn giao và câu trả lời mới nhất trước khi làm tiếp.
+  đã được phép một lượt thay thế qua Batch, còn 38 chưa có quyền chạy lại. Đọc receipt
+  trong bàn giao trước khi tạo yêu cầu; không hỏi lặp quyền đã cấp.
 - Trước restart/deploy, pause worker và đợi advisory lock/network checkpoint; không kill
   yêu cầu AI/video đang chạy. Giữ nguyên retry ledger, volume, backup và lịch sử lỗi.
 - Không uninstall module thiếu source để che log, không restore local đè production.

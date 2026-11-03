@@ -5,6 +5,28 @@ Không chấm điểm hay tự quyết định đánh giá nhân sự.
 
 ## Cấu hình
 
+### Xử lý nền Batch (03/11/2026)
+
+Từ `17.0.2.3.0`, cấu hình **Cách phân tích** mặc định là Batch theo lựa chọn của
+người dùng. Giữ nguyên model và tiêu chí; mỗi báo cáo chụp lại chế độ lúc xếp hàng.
+Batch có thể cần khoảng 24 giờ. Cron chỉ gửi một yêu cầu tạo, lưu UUID trước POST và
+lưu mã `batches/...` ngay khi nhận; sau đó chỉ GET lấy kết quả. Mất phản hồi tạo tác vụ
+thì dò lại UUID trong danh sách, không tự POST thêm. Không tìm thấy ngay không có nghĩa
+yêu cầu chưa tới Google. Thời hạn bảo vệ là 36 giờ kể từ lúc gửi, không tính từ lúc xếp hàng.
+
+Lỗi lấy kết quả có retry giới hạn; nút **Lấy lại kết quả tác vụ cũ** tiếp tục GET/dò mã,
+không tạo phân tích mới. Không tự đổi một yêu cầu đồng bộ đã mất kết quả thành Batch:
+việc đó cần quyền tạo lượt mới. Dọn nguồn chỉ sau khi hoàn tất hoặc xác nhận hủy tác vụ;
+lỗi retrieval giữ nguồn để có thể lấy lại kết quả. Phản hồi Batch được giữ riêng nội bộ.
+
+Hai cờ `join_confirmed` và `already_present_at_start` cùng True được hạ thành chưa
+xác định thời điểm vào lớp, có ghi chú cần đối chiếu. Không suy ra đi trễ hoặc có mặt từ
+đầu, vẫn giữ dẫn chứng tham gia và báo cáo giáo viên. JSON gốc không bị sửa.
+
+Người dùng đã cho phép phân tích lại **đúng một lần báo cáo 32** bằng Batch; receipt
+`edu_session_review.batch_recovery_20261103` chống tạo lặp. Không dùng quyền này để
+phân tích lại báo cáo 38. Bản thay thế của báo cáo 10 là 46 và đã hoàn tất.
+
 ### Xử lý lỗi kết nối (02/11/2026)
 
 Từ `17.0.2.2.1`, lỗi ghi rõ bước Drive/upload/chờ phân tích/kiểm tra kết quả và

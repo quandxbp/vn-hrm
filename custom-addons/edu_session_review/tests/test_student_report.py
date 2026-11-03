@@ -73,7 +73,7 @@ class TestStudentReview(TransactionCase):
         for change in (
             {'student_key': 'invented'}, {'first_observed_at': '03:00'}, {'first_observed_part': True},
             {'first_observed_at': None}, {'evidence': []}, {'join_confirmed': 'true'},
-            {'already_present_at_start': True}, {'attendance': 'uncertain'},
+            {'attendance': 'uncertain'},
             {'attention_events': [{'comment': 'No evidence', 'evidence': []}]},
         ):
             with self.subTest(change=change), self.assertRaises(UserError):
@@ -108,6 +108,18 @@ class TestStudentReview(TransactionCase):
         with self.assertRaises(UserError):
             validate_report(data, {1: 120}, require_students=True, roster=roster)
         self.assertNotIn('student_observations', generation_schema(include_students=False)['properties'])
+
+    def test_conflicting_join_flags_keep_teacher_report_without_claiming_lateness(self):
+        item = observation()
+        item['already_present_at_start'] = True
+        original = copy.deepcopy(item)
+        values = self.validate(item)
+        self.assertEqual(values['score_total'], 7.5)
+        self.assertIn('cờ vào lớp mâu thuẫn', values['student_report'])
+        self.assertIn('Độ trễ: chưa xác định', values['student_report'])
+        self.assertNotIn('CẢNH BÁO: Vào trễ', values['student_report'])
+        self.assertNotIn('Đã tham gia từ đầu bản ghi', values['student_report'])
+        self.assertEqual(item, original)
 
     def test_roster_is_snapshotted_and_prompt_uses_only_this_roster(self):
         config = self.env.ref('edu_video.config_default').sudo()

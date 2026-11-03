@@ -194,8 +194,12 @@ def student_findings(items, roster, durations, intervals, teaching_seconds, plan
             checks.append('AI chưa cung cấp dẫn chứng đầy đủ cho từng phần video; chưa thể kết luận học sinh vắng. Cần đối chiếu điểm danh.')
         part, offset = item['first_observed_part'], item['first_observed_at']
         join, at_start = item['join_confirmed'], item['already_present_at_start']
-        if type(join) is not bool or type(at_start) is not bool or join and at_start:
+        if type(join) is not bool or type(at_start) is not bool:
             raise ValueError('students')
+        if join and at_start:
+            join = at_start = False
+            comment = 'Có dẫn chứng tham gia nhưng chưa đủ căn cứ xác nhận thời điểm vào lớp.'
+            checks.append('AI trả các cờ vào lớp mâu thuẫn; cần đối chiếu, không suy ra đi trễ hoặc có mặt từ đầu.')
         if (part is None) != (offset is None):
             raise ValueError('students')
         seconds = None

@@ -4,11 +4,22 @@
         <field name="arch" type="xml">
             <form create="0" edit="0" delete="0" class="edu_review_form">
                 <header>
+                    <button name="action_resume_batch" type="object" string="Lấy lại kết quả tác vụ cũ"
+                            invisible="state != 'failed' or execution_mode != 'batch' or not analysis_started or batch_cleaned"/>
                     <button name="action_cancel" type="object" string="Hủy phân tích" invisible="state in ['done','failed','cancelled']"/>
                     <button name="action_reanalyze" type="object" string="Phân tích lại" class="btn-primary" invisible="state not in ['done','failed','cancelled']"/>
                     <field name="state" widget="statusbar" statusbar_visible="queued,processing,analyzing,done"/>
                 </header>
                 <sheet>
+                    <field name="analysis_started" invisible="1"/><field name="batch_cleaned" invisible="1"/>
+                    <group><field name="execution_mode"/>
+                        <field name="batch_name" invisible="execution_mode != 'batch'"/>
+                        <field name="batch_status" invisible="execution_mode != 'batch'"/>
+                        <field name="batch_submitted_at" invisible="execution_mode != 'batch'"/>
+                    </group>
+                    <div class="alert alert-info" invisible="execution_mode != 'batch' or state in ['done','failed','cancelled']">
+                        Gemini xử lý nền; kết quả có thể cần khoảng 24 giờ. Hệ thống tự kiểm tra tác vụ đã lưu, không cần bấm Phân tích lại.
+                    </div>
                     <div class="edu_review_heading">
                         <span class="edu_review_eyebrow">CHẤT LƯỢNG BUỔI DẠY</span>
                         <h1><field name="session_id" nolabel="1"/></h1>
@@ -204,7 +215,7 @@
                 </div>
                 <group>
                     <group><field name="review_key_input" password="True" placeholder="Nhập key để thay; để trống giữ key hiện có"/>
-                        <field name="review_key_set"/><field name="review_model"/>
+                        <field name="review_key_set"/><field name="review_model"/><field name="review_execution"/>
                         <button name="action_test_review_connection" type="object" string="Kiểm tra kết nối Gemini"/>
                         <button name="action_clear_review_key" type="object" string="Xóa API key Gemini" confirm="Tắt phân tích và xóa key đã lưu?"/>
                     </group>

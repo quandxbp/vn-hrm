@@ -18,7 +18,7 @@ chuyển video Google Drive lên YouTube và nhận xét buổi học bằng Gem
 | Git | `https://github.com/quandxbp/vn-hrm.git`, nhánh `feature/edu-gvnn` | Source, không chứa DB/filestore |
 
 Trạng thái được kiểm tra ngày **03/11/2026 (UTC+7)**. Production đã chạy bản sửa
-upload AI `4bedad3`, module `edu_session_review` **17.0.2.2.4**. Việc khôi phục AI
+upload AI `4bedad3`; đợt tiếp nối chuyển sang Batch **17.0.2.3.0** theo lựa chọn của người dùng. Việc khôi phục AI
 còn đang chạy và có các báo cáo timeout chưa được phép phân tích lại; xem bàn giao.
 Push Git và deploy Odoo là hai bước riêng.
 

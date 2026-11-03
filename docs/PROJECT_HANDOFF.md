@@ -4,6 +4,32 @@ Cập nhật **03/11/2026**, giờ Việt Nam (UTC+7). Đây là đầu mối hi
 việc đọc tuần tự toàn bộ lịch sử chat. Các trạng thái hàng đợi bên dưới là snapshot,
 phải đọc lại DB trước khi xử lý tiếp. Không ghi credential hoặc URL chứa token vào đây.
 
+## Cập nhật tiếp nối 03/11/2026 — Batch đã được chọn
+
+Người dùng đã trả lời: **ưu tiên ổn định, xử lý nền, chấp nhận chờ** và cho phép tạo
+**đúng một lượt thay thế báo cáo 32**. Bản `edu_session_review` **17.0.2.3.0** bổ sung
+Batch API; xem [SESSION_AI_REVIEW.md](SESSION_AI_REVIEW.md). Các mục 2/5 bên dưới
+giữ snapshot trước đợt này để truy nguyên, không dùng chúng thay cho kiểm tra hiện tại.
+
+- Đợt recovery cũ đã có **23/27 done** trước đợt Batch; bản thay thế **46 đã done**.
+- Báo cáo **32** mất kết quả được phép tạo một bản mới. Receipt
+  `edu_session_review.batch_recovery_20261103` lưu `replacement_id`; luôn đọc receipt
+  trước khi tạo lại. Các lần GET/lấy lại tác vụ Batch cũ không tạo lượt phân tích mới.
+- Báo cáo **38** timeout vẫn chưa có quyền tạo lượt mới; giữ nguyên lịch sử.
+- Báo cáo **39** dừng sau các HTTP 503 rõ ràng, chưa có inference được xác nhận,
+  `analysis_started=False`, không có JSON: có thể tiếp tục yêu cầu ban đầu bằng Batch
+  sau khi đối chiếu nguồn; không cần tạo một bản trùng cho cùng nội dung.
+- Báo cáo **40** có JSON giữ lại nhưng cờ vào lớp mâu thuẫn. Bản mới hạ nhận định
+  thời điểm vào lớp thành cần xác nhận, giữ báo cáo giáo viên; khôi phục offline từ
+  phản hồi cũ, không gọi Gemini thêm và không đổi JSON gốc.
+- Batch lưu UUID trước POST, dò lại khi mất phản hồi, poll sau khoảng một phút và
+  cho phép chờ tới 36 giờ từ lúc gửi. Lỗi retrieval không tự tạo job mới. Hủy tác vụ
+  phải được xác nhận trước khi xóa nguồn. Không đổi model sang Interactions.
+- **76 kiểm thử đạt, 0 lỗi** trên clone local, có kiểm thử mất phản hồi tạo, polling,
+  chống trùng, hủy bất đồng bộ, giữ nguồn và mâu thuẫn thời điểm vào lớp.
+- Sau deploy, chạy script audit để lấy phiên bản/config, trạng thái Batch, receipt và
+  kết quả khôi phục thực tế. Không lấy số terminal của phiên cũ làm điều kiện tiếp tục.
+
 ## 1. Mục tiêu và kiến trúc
 
 Repo tên `vn-hrm` nhưng ứng dụng đang vận hành là **Kim Academy / GVNN**, trên
@@ -265,7 +291,7 @@ provider vào Git. `artifacts/` bị ignore và có thể không tồn tại ở
 1. Đọc tài liệu này, kiểm tra Git và SSH, chạy script audit mới.
 2. Xác minh kết quả bản thay thế 46; không tạo thêm lượt cho báo cáo 10.
 3. Kiểm tra các báo cáo còn pending/failed, phân biệt retry tạm, JSON đã lưu và inference mất phản hồi.
-4. Chỉ xử lý lại báo cáo 32/38 sau khi có quyền tương ứng từ người dùng; nếu đã có câu trả lời ở
-   phiên sau thì cập nhật trạng thái bàn giao, không hỏi lặp quyền đã cấp.
-5. Chốt lựa chọn xử lý timeout nhanh hay batch trước khi thay transport/model. Tiếp tục kiểm thử,
-   backup và deploy theo checkpoint, rồi cập nhật tài liệu bằng trạng thái đã kiểm chứng.
+4. Báo cáo 32 đã có quyền một lần: đọc receipt Batch để theo dõi bản thay thế, không tạo lần nữa.
+   Báo cáo 38 chưa có quyền tạo lượt mới. Không hỏi lặp quyền đã cấp.
+5. Người dùng đã chọn Batch: theo dõi job đã lưu, kiểm tra retrieval/cleanup khi có lỗi,
+   rồi cập nhật tài liệu bằng trạng thái đã kiểm chứng.

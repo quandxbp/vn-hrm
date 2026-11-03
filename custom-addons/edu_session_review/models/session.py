@@ -79,6 +79,7 @@ class SessionReviewLink(models.Model):
                                                     'file_id': file_id, 'resource_key': resource_key}))
         return Review.create({'name': 'Nhận xét AI — %s' % self.display_name,
             'session_id': self.id, 'source_signature': signature, 'model_name': config.review_model,
+            'execution_mode': config.review_execution,
             'requested_by': self.env.uid, 'part_ids': commands,
             'roster_snapshot': roster, 'planned_minutes': planned})
 
