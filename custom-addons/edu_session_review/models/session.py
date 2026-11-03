@@ -14,6 +14,9 @@ class SessionReviewLink(models.Model):
     ai_review_id = fields.Many2one('edu.session.review', compute='_compute_ai_review', store=True,
                                    groups='edu_gvnn.group_edu_manager')
     ai_review_state = fields.Selection(related='ai_review_id.state', groups='edu_gvnn.group_edu_manager')
+    ai_review_done = fields.Boolean('Đã có nhận xét', compute='_compute_ai_review', store=True,
+        groups='edu_gvnn.group_edu_manager',
+        help='Tự đánh dấu khi có ít nhất một báo cáo AI hoàn tất trong lịch sử buổi học.')
     ai_review_current = fields.Boolean(related='ai_review_id.source_current', groups='edu_gvnn.group_edu_manager')
     ai_review_summary = fields.Text(related='ai_review_id.summary', groups='edu_gvnn.group_edu_manager')
     ai_review_score = fields.Char(related='ai_review_id.score_display', groups='edu_gvnn.group_edu_manager')
@@ -41,6 +44,7 @@ class SessionReviewLink(models.Model):
     def _compute_ai_review(self):
         for session in self:
             session.ai_review_id = session.ai_review_ids.sorted('id', reverse=True)[:1]
+            session.ai_review_done = any(review.state == 'done' for review in session.ai_review_ids)
 
     def _review_sources(self):
         self.ensure_one()

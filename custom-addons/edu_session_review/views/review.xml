@@ -1,4 +1,24 @@
 <odoo>
+    <record id="session_tree_review_done" model="ir.ui.view">
+        <field name="name">edu.session.tree.review.done</field>
+        <field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_gvnn.view_edu_session_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/button[@name='get_formview_action']" position="before">
+                <field name="ai_review_done" readonly="1" optional="show" groups="edu_gvnn.group_edu_manager"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="session_video_tree_review_done" model="ir.ui.view">
+        <field name="name">edu.session.video.tree.review.done</field>
+        <field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_gvnn.view_edu_session_video_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/button[@name='get_formview_action']" position="before">
+                <field name="ai_review_done" readonly="1" optional="show" groups="edu_gvnn.group_edu_manager"/>
+            </xpath>
+        </field>
+    </record>
     <record id="review_form" model="ir.ui.view">
         <field name="name">edu.session.review.form</field><field name="model">edu.session.review</field>
         <field name="arch" type="xml">

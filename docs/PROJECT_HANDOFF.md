@@ -4,7 +4,19 @@ Cập nhật **03/11/2026**, giờ Việt Nam (UTC+7). Đây là đầu mối hi
 việc đọc tuần tự toàn bộ lịch sử chat. Các trạng thái hàng đợi bên dưới là snapshot,
 phải đọc lại DB trước khi xử lý tiếp. Không ghi credential hoặc URL chứa token vào đây.
 
-## Cập nhật tiếp nối 03/11/2026 — Batch đã được chọn
+## Quyết định mới nhất 03/11/2026 10:17 UTC+7 — Free Tier, tuần tự
+
+Người dùng đã đổi lựa chọn: **không dùng Batch/Paid Tier**, phân tích trực tiếp tuần tự.
+Production đã đặt `review_execution=sync`, `review_enabled=True`; worker video/YouTube
+`processing_enabled=True`. Giữ model `gemini-3.5-flash-lite` và key hiện có, không bật Billing.
+Chỉ chuyển báo cáo **39 và 47** chưa được Gemini tiếp nhận sang sync; giữ nguyên file và
+offset upload. Không tạo thêm bản thay thế cho 32, không tự chạy lại 38 mất phản hồi.
+Receipt: `edu_session_review.free_tier_sequential_20261103`. Worker dùng global lock
+87425 để chỉ xử lý một báo cáo tại một thời điểm. Cấu hình DB hiện tại ưu tiên hơn default
+Batch trong code; không đổi lại Batch khi deploy. Hết quota Free Tier vẫn có thể gặp HTTP429;
+timeout inference không được tự gửi lặp khi chưa xác nhận kết quả.
+
+## Lịch sử tiếp nối 03/11/2026 — Batch trước khi đổi lựa chọn
 
 Người dùng đã trả lời: **ưu tiên ổn định, xử lý nền, chấp nhận chờ** và cho phép tạo
 **đúng một lượt thay thế báo cáo 32**. Bản `edu_session_review` **17.0.2.3.1** bổ sung
@@ -22,8 +34,9 @@ trước khi tạo job cho báo cáo 47. Schema request, File API và model capa
 chiếu hợp lệ; bảng giá Google ghi Batch không khả dụng ở Free Tier. Không có Batch ID,
 không có lượt phân tích được chấp nhận. Bản 2.3.1 giữ nguồn khi bị từ chối, lưu status
 an toàn và cho phép **Gửi lại tác vụ nền** trên chính báo cáo. Production giữ
-`review_enabled=False`, `processing_enabled=False` cho tới khi người có quyền thanh toán
-bật Billing/Paid Tier trên đúng project API key. Không tự bật lại trước bước đó.
+`review_enabled=False` cho tới khi người có quyền thanh toán bật Billing/Paid Tier
+trên đúng project API key. Worker video/YouTube độc lập: người dùng đã yêu cầu bật lại,
+đã xác nhận `processing_enabled=True` lúc 10:13 UTC+7 ngày 03/11.
 Sau deploy đã cập nhật báo cáo 47 thành `batch_status=FAILED_PRECONDITION`, xác nhận
 `can_retry_same_review=True`, file 62.602.279 byte vẫn `ready`; thao tác không gọi Gemini.
 
@@ -80,7 +93,7 @@ chặn upload. AI không tự sửa điểm danh, học phí hay lương.
 | Repo local / DB | `D:\Software\vn-hrm`; `kimacademy`, neutralized |
 | Containers | web, db đang chạy; zalo-bridge đang chạy và Docker health healthy |
 | Google | Drive / YouTube có trạng thái connected trong DB; không đồng nghĩa mọi API luôn sẵn sàng |
-| Tự động production | nhận xét AI và xử lý video tạm dừng chờ Paid Tier; các worker khác không đổi |
+| Tự động production | xử lý video/YouTube đã bật lại; nhận xét AI tạm dừng chờ Paid Tier |
 | Local | `database.is_neutralized=true`; review/auto-review/video processing đều tắt khi kiểm tra |
 
 | Addon | Phiên bản production |
@@ -210,7 +223,7 @@ Snapshot **03/11/2026 khoảng 01:12 UTC+7**:
   “đã khôi phục toàn bộ” khi còn pending hoặc timeout.
 
 Tại snapshot này cron Active và worker flags từng được khôi phục True. Sau đó Batch bị
-`FAILED_PRECONDITION`; trạng thái hiện tại là hai cờ worker tạm tắt như đầu tài liệu.
+`FAILED_PRECONDITION`; trạng thái hiện tại là AI tạm tắt, video/YouTube đã bật lại như đầu tài liệu.
 **Không phụ thuộc session ID
 của terminal chat cũ** để kiểm tra hiện trạng. Không rerun script tạo recovery nếu chưa đọc receipt.
 
@@ -312,7 +325,7 @@ provider vào Git. `artifacts/` bị ignore và có thể không tồn tại ở
 1. Đọc tài liệu này, kiểm tra Git và SSH, chạy script audit mới.
 2. Xác nhận Billing/Paid Tier của đúng project API key trong Google AI Studio; đây là
    thao tác tài chính của chủ tài khoản, không tự làm thay.
-3. Khi Paid Tier đã hiệu lực, gửi lại chính báo cáo 47, khôi phục worker từ cờ đã lưu và
+3. Khi Paid Tier đã hiệu lực, gửi lại chính báo cáo 47, khôi phục riêng worker AI và
    theo dõi Batch ID/kết quả. Báo cáo 39 tiếp tục từ offset upload đã lưu, không tạo bản mới.
 4. Bản thay thế 46 đã done; không tạo thêm cho báo cáo 10. Báo cáo 32 đã có đúng một
    bản thay thế 47 theo receipt, không tạo lần nữa.

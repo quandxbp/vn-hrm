@@ -5,6 +5,16 @@ Không chấm điểm hay tự quyết định đánh giá nhân sự.
 
 ## Cấu hình
 
+### Lựa chọn hiện tại: Free Tier, tuần tự (03/11/2026 10:17 UTC+7)
+
+Production dùng `review_execution=sync`, `review_enabled=True`, model
+`gemini-3.5-flash-lite` qua Standard generateContent bằng key hiện có. Không dùng Batch
+hoặc bật Billing. Global advisory lock bảo đảm một báo cáo AI chạy tại một thời điểm.
+Các báo cáo 39 và 47 chưa gửi inference đã chuyển sang sync trên cùng bản ghi.
+Giới hạn Free Tier vẫn áp dụng; HTTP429 thử lại có giới hạn. Mất phản hồi sau POST
+không tự gửi lại. Phần Batch bên dưới là khả năng đã triển khai và lịch sử, không phải
+chế độ production đang dùng. Khi tạo môi trường mới chọn trực tiếp vì default code còn Batch.
+
 ### Xử lý nền Batch (03/11/2026)
 
 Từ `17.0.2.3.0`, cấu hình **Cách phân tích** mặc định là Batch theo lựa chọn của

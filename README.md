@@ -20,8 +20,9 @@ chuyển video Google Drive lên YouTube và nhận xét buổi học bằng Gem
 Trạng thái được kiểm tra ngày **03/11/2026 (UTC+7)**. Production đã chạy bản sửa
 upload AI `4bedad3`; đợt tiếp nối chuyển sang Batch **17.0.2.3.1** theo lựa chọn của người dùng. Google đã từ chối
 tạo Batch bằng `FAILED_PRECONDITION` vì project API key chưa đáp ứng điều kiện Paid Tier;
-worker AI đang tạm dừng chờ bật Billing. Báo cáo 32 có đúng một bản thay thế 47 và file
-đã upload vẫn được giữ; báo cáo 38 chưa được phép phân tích lại. Xem bàn giao.
+Người dùng sau đó chọn **Free Tier, xử lý trực tiếp tuần tự**: production đã chuyển sang
+`sync` và bật lại AI lúc 10:17 UTC+7, không bật Billing. Báo cáo 32 có đúng một bản thay
+thế 47; báo cáo 38 chưa được phép phân tích lại. Xem cập nhật mới nhất trong bàn giao.
 Push Git và deploy Odoo là hai bước riêng.
 
 ## Bản đồ code

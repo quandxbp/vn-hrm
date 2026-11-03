@@ -73,6 +73,18 @@ class TestSessionReview(TransactionCase):
         self.assertAlmostEqual(values['teaching_percent'], 80 / 120 * 100)
         self.assertIn('Phần 1 00:20–00:30', values['strengths'])
 
+    def test_session_review_done_tracks_any_successful_report(self):
+        self.assertFalse(self.session.ai_review_done)
+        self.review.state = 'failed'
+        self.assertFalse(self.session.ai_review_done)
+        self.review.state = 'done'
+        self.assertTrue(self.session.ai_review_done)
+        newer = self.session._queue_ai_review(force=True)
+        self.assertEqual(self.session.ai_review_id, newer)
+        self.assertTrue(self.session.ai_review_done)
+        self.review.unlink()
+        self.assertFalse(self.session.ai_review_done)
+
     def test_v2_content_start_and_score_are_calculated(self):
         values = validate_report(report_v2(), {1: 120}, require_v2=True)
         self.assertEqual(values['teaching_started_at'], 'Phần 1 · 00:10')
