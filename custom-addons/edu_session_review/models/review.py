@@ -89,6 +89,7 @@ class SessionReview(models.Model):
     batch_status = fields.Char('Trạng thái tác vụ nền', readonly=True, copy=False)
     batch_response = fields.Json(readonly=True, copy=False, groups='base.group_no_one')
     batch_cleaned = fields.Boolean(copy=False)
+    can_retry_batch_submission = fields.Boolean(compute='_compute_can_retry_batch_submission')
     prompt_version = fields.Char('Phiên bản tiêu chí', default='2.1', readonly=True)
     roster_snapshot = fields.Json('Danh sách học sinh lúc yêu cầu', readonly=True, default=lambda self: [])
     planned_minutes = fields.Float('Thời lượng theo lịch (phút)', readonly=True)
@@ -163,6 +164,16 @@ class SessionReview(models.Model):
                 review.source_current = review.source_current and (review.roster_snapshot or []) == review.session_id._review_roster() \
                     and abs(review.planned_minutes - max(0, (review.session_id.time_end - review.session_id.time_start) * 60)) < 0.001
 
+    @api.depends('state', 'execution_mode', 'analysis_started', 'batch_name', 'create_date',
+                 'batch_submitted_at', 'source_current', 'part_ids.state')
+    def _compute_can_retry_batch_submission(self):
+        for review in self:
+            review.can_retry_batch_submission = bool(
+                review.state == 'failed' and review.execution_mode == 'batch'
+                and not review.analysis_started and not review.batch_name and not review._expired()
+                and review.source_current and review.part_ids
+                and not review.part_ids.filtered(lambda item: item.state != 'ready'))
+
     def _manager(self):
         if not self.env.user.has_group('edu_gvnn.group_edu_manager'):
             raise AccessError('Chỉ quản lý GVNN được phân tích hoặc hủy nhận xét AI.')
@@ -204,8 +215,25 @@ class SessionReview(models.Model):
         if not 200 <= response.status_code < 300:
             status = response.status_code
             self.last_error_type = 'HTTP_%s' % status
+            provider_error = {}
+            try:
+                provider_error = (response.json() or {}).get('error') or {}
+            except (ValueError, TypeError, AttributeError):
+                pass
+            provider_status = provider_error.get('status') if isinstance(provider_error, dict) else False
+            if stage == 'batch_submit':
+                # Keep only Google's structured status, never request data, URLs or credentials.
+                self.batch_status = provider_status or 'HTTP_%s' % status
+                self.batch_response = {'error': {
+                    'code': status,
+                    'status': provider_status or '',
+                }}
             response.close()
-            message = ('Gemini tạm quá tải hoặc giới hạn truy cập (HTTP %s). Hệ thống sẽ chờ rồi thử lại trong giới hạn cho phép.' % status
+            message = ('Project của API key chưa đáp ứng điều kiện chạy Gemini Batch '
+                       '(FAILED_PRECONDITION). Batch chỉ khả dụng ở Paid Tier; hãy bật Billing cho đúng project, '
+                       'sau đó bấm “Gửi lại tác vụ nền”. Video đã tải lên được giữ tạm để không phải gửi lại.'
+                       if stage == 'batch_submit' and status == 400 and provider_status == 'FAILED_PRECONDITION' else
+                       'Gemini tạm quá tải hoặc giới hạn truy cập (HTTP %s). Hệ thống sẽ chờ rồi thử lại trong giới hạn cho phép.' % status
                        if status in (429, 500, 502, 503, 504) else
                        'Gemini từ chối dữ liệu tải video (HTTP %s). Kiểm tra phiên tải, kích thước phần và offset.' % status
                        if stage in ('upload_chunk', 'upload_query', 'upload_start') and status == 400 else
@@ -402,13 +430,33 @@ class SessionReview(models.Model):
             review.sudo().write({'state': 'analyzing', 'attempts': 0, 'next_attempt': False,
                                 'error': False, 'cleanup_pending': False})
 
+    def action_retry_batch_submission(self):
+        """Retry a create that Gemini explicitly rejected, without making a new review."""
+        self._manager()
+        for review in self:
+            self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s, %s)', [LOCK, review.id])
+            if not self.env.cr.fetchone()[0]:
+                raise UserError('Tác vụ đang xử lý, hãy thử lại sau.')
+            if review.state != 'failed' or review.execution_mode != 'batch' or review.analysis_started \
+                    or review.batch_name or review._expired():
+                raise UserError('Báo cáo này không thể gửi lại tác vụ nền an toàn.')
+            if not review.source_current:
+                raise UserError('Video hoặc danh sách học sinh đã thay đổi. Hãy tạo lần phân tích mới.')
+            if not review.part_ids or review.part_ids.filtered(lambda item: item.state != 'ready'):
+                raise UserError('File video tạm không còn sẵn sàng; hãy tạo lần phân tích mới.')
+            review.sudo().write({'state': 'analyzing', 'attempts': 0, 'next_attempt': False,
+                                'error': False, 'last_error_type': False, 'last_error_stage': False,
+                                'batch_status': False, 'batch_response': False, 'cleanup_pending': False})
+
     def _cleanup(self):
         """Delete only this review's temporary files. Never touch the upload cache."""
         complete = True
         # A retrieval/network failure does not mean the paid server job failed.
         # Keep its sources until a manager resumes retrieval or the job expires.
-        if self.execution_mode == 'batch' and self.state == 'failed' and self.analysis_started \
-                and not self.batch_response and not self._expired():
+        if self.execution_mode == 'batch' and self.state == 'failed' and not self._expired() and (
+                (self.analysis_started and not self.batch_response) or
+                (not self.analysis_started and not self.batch_name and not self.result_json
+                 and self.part_ids and not self.part_ids.filtered(lambda item: item.state != 'ready'))):
             self.cleanup_pending = True
             return
         if self.execution_mode == 'batch' and self.analysis_started and self.batch_token and not self.batch_cleaned:

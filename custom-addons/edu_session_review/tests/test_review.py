@@ -653,6 +653,33 @@ class TestSessionReview(TransactionCase):
         self.assertFalse(self.review.batch_token)
         self.assertFalse(self.review.batch_submitted_at)
 
+    def test_batch_paid_tier_precondition_is_explained_and_sources_are_kept(self):
+        self._batch_fixture()
+        self.path.write_bytes(b'keep')
+        rejected = response({'error': {'code': 400, 'status': 'FAILED_PRECONDITION',
+            'message': 'Precondition check failed.'}}, status=400)
+        with patch('requests.request', return_value=rejected):
+            with self.assertRaisesRegex(ReviewError, 'Paid Tier'):
+                self.review._step()
+        self.assertFalse(self.review.analysis_started)
+        self.assertEqual(self.review.batch_status, 'FAILED_PRECONDITION')
+        self.assertEqual(self.review.batch_response['error']['code'], 400)
+        self.review.state = 'failed'
+        self.review._cleanup()
+        self.assertTrue(self.review.cleanup_pending)
+        self.assertTrue(self.path.exists())
+
+    def test_rejected_batch_can_retry_same_review_after_configuration_fix(self):
+        self._batch_fixture()
+        self.review.write({'state': 'failed', 'batch_status': 'FAILED_PRECONDITION',
+                           'batch_response': {'error': {'code': 400}}})
+        self.assertTrue(self.review.can_retry_batch_submission)
+        self.review.action_retry_batch_submission()
+        self.assertEqual(self.review.state, 'analyzing')
+        self.assertFalse(self.review.batch_response)
+        self.assertFalse(self.review.batch_status)
+        self.assertFalse(self.review.analysis_started)
+
     def test_batch_wrong_result_key_is_retained_and_rejected(self):
         self._batch_fixture()
         self.review.write({'batch_name': 'batches/test-job', 'batch_token': 'test-key', 'analysis_started': True})

@@ -7,25 +7,42 @@ phải đọc lại DB trước khi xử lý tiếp. Không ghi credential hoặ
 ## Cập nhật tiếp nối 03/11/2026 — Batch đã được chọn
 
 Người dùng đã trả lời: **ưu tiên ổn định, xử lý nền, chấp nhận chờ** và cho phép tạo
-**đúng một lượt thay thế báo cáo 32**. Bản `edu_session_review` **17.0.2.3.0** bổ sung
+**đúng một lượt thay thế báo cáo 32**. Bản `edu_session_review` **17.0.2.3.1** bổ sung
 Batch API; xem [SESSION_AI_REVIEW.md](SESSION_AI_REVIEW.md). Các mục 2/5 bên dưới
-giữ snapshot trước đợt này để truy nguyên, không dùng chúng thay cho kiểm tra hiện tại.
+ghi mốc kiểm chứng; mục 5 có snapshot lịch sử để truy nguyên.
+
+**Mốc trước bản vá 2.3.1:** commit ứng dụng `831db53`, upgrade 2.3.0 và login HTTP 200.
+Chế độ `review_execution=batch`. Local luôn neutralized và mọi cờ gửi thật tắt. Backup DB/source overrides:
+`C:\ProgramData\KimAcademyDeploy\backups\ai-batch-20261103-085608`.
+Các override tài liệu cũ đã được giữ trong backup và Git stash; source server sạch.
+
+**Điều kiện vận hành phát hiện lúc 09:20 UTC+7:** Google trả `400 FAILED_PRECONDITION`
+trước khi tạo job cho báo cáo 47. Schema request, File API và model capability đã đối
+chiếu hợp lệ; bảng giá Google ghi Batch không khả dụng ở Free Tier. Không có Batch ID,
+không có lượt phân tích được chấp nhận. Bản 2.3.1 giữ nguồn khi bị từ chối, lưu status
+an toàn và cho phép **Gửi lại tác vụ nền** trên chính báo cáo. Production giữ
+`review_enabled=False`, `processing_enabled=False` cho tới khi người có quyền thanh toán
+bật Billing/Paid Tier trên đúng project API key. Không tự bật lại trước bước đó.
 
 - Đợt recovery cũ đã có **23/27 done** trước đợt Batch; bản thay thế **46 đã done**.
 - Báo cáo **32** mất kết quả được phép tạo một bản mới. Receipt
   `edu_session_review.batch_recovery_20261103` lưu `replacement_id`; luôn đọc receipt
   trước khi tạo lại. Các lần GET/lấy lại tác vụ Batch cũ không tạo lượt phân tích mới.
+  Đã tạo bản ghi **47** lúc 08:57 UTC+7, chạy script lần hai vẫn trả receipt này, không tạo thêm.
+  Google chưa tạo job do điều kiện Paid Tier; file 62.602.279 byte ở trạng thái `ready`
+  còn được giữ để gửi lại cùng báo cáo sau khi Billing hoạt động.
 - Báo cáo **38** timeout vẫn chưa có quyền tạo lượt mới; giữ nguyên lịch sử.
 - Báo cáo **39** dừng sau các HTTP 503 rõ ràng, chưa có inference được xác nhận,
   `analysis_started=False`, không có JSON: có thể tiếp tục yêu cầu ban đầu bằng Batch
-  sau khi đối chiếu nguồn; không cần tạo một bản trùng cho cùng nội dung.
+  sau khi đối chiếu nguồn; đã xếp lại **cùng báo cáo 39** bằng Batch, không tạo bản trùng.
 - Báo cáo **40** có JSON giữ lại nhưng cờ vào lớp mâu thuẫn. Bản mới hạ nhận định
   thời điểm vào lớp thành cần xác nhận, giữ báo cáo giáo viên; khôi phục offline từ
-  phản hồi cũ, không gọi Gemini thêm và không đổi JSON gốc.
+  phản hồi cũ, không gọi Gemini thêm và không đổi JSON gốc. Đã xác nhận **40 done**,
+  hash JSON trước/sau giống nhau.
 - Batch lưu UUID trước POST, dò lại khi mất phản hồi, poll sau khoảng một phút và
   cho phép chờ tới 36 giờ từ lúc gửi. Lỗi retrieval không tự tạo job mới. Hủy tác vụ
   phải được xác nhận trước khi xóa nguồn. Không đổi model sang Interactions.
-- **76 kiểm thử đạt, 0 lỗi** trên clone local, có kiểm thử mất phản hồi tạo, polling,
+- **78 kiểm thử đạt, 0 lỗi** trên clone local, có kiểm thử mất phản hồi tạo, polling,
   chống trùng, hủy bất đồng bộ, giữ nguồn và mâu thuẫn thời điểm vào lớp.
 - Sau deploy, chạy script audit để lấy phiên bản/config, trạng thái Batch, receipt và
   kết quả khôi phục thực tế. Không lấy số terminal của phiên cũ làm điều kiện tiếp tục.
@@ -54,30 +71,29 @@ chặn upload. AI không tự sửa điểm danh, học phí hay lương.
 | Mục | Hiện trạng |
 | --- | --- |
 | Nhánh / remote | `feature/edu-gvnn`; `https://github.com/quandxbp/vn-hrm.git` |
-| Code nghiệp vụ đã deploy | `4bedad376c01e21a6960d8bcd1aa1af384c55d6d` |
+| Code ứng dụng nền trước vá Paid Tier | `831db53c9cbf2591fac8407b758c5696e568635e` (Batch 2.3.0) |
 | Production | https://kimacademy.uk; SSH `administrator@192.168.110.105` |
 | Repo server / DB | `C:\inetpub\wwwroot\vn-hrm`; **`kimacademy`** |
 | Repo local / DB | `D:\Software\vn-hrm`; `kimacademy`, neutralized |
 | Containers | web, db đang chạy; zalo-bridge đang chạy và Docker health healthy |
 | Google | Drive / YouTube có trạng thái connected trong DB; không đồng nghĩa mọi API luôn sẵn sàng |
-| Tự động production | upload, xử lý video, nhận xét AI và auto-review đều bật |
+| Tự động production | nhận xét AI và xử lý video tạm dừng chờ Paid Tier; các worker khác không đổi |
 | Local | `database.is_neutralized=true`; review/auto-review/video processing đều tắt khi kiểm tra |
 
 | Addon | Phiên bản production |
 | --- | --- |
 | `edu_gvnn` | `17.0.1.17.2` |
 | `edu_video` | `17.0.1.9.0` |
-| `edu_session_review` | `17.0.2.2.4` |
+| `edu_session_review` | `17.0.2.3.1` |
 | `edu_landing` | `17.0.1.10.0` |
 | `edu_zalo` | `17.0.1.4.0` |
 | `vnpt_hrm_dashboard` | `17.0.1.1.0` |
 | `vnpt_base` | `17.0.1.0` |
 
-Trước đợt commit tài liệu này, local và server cùng commit nghiệp vụ trên. Server còn
-ba override tài liệu: `SESSION_HANDOFF_2026-10-26.md`, `ZALO_SCHEDULE.md` và
-`SERVER_CONNECTION_HANDOFF.md`. Phiên này gom/cập nhật chúng vào Git; **không reset
-server để bỏ override**. Commit tài liệu mới được push không đồng nghĩa server đã pull
-commit đó hay đã chạy deploy mới.
+Đợt Batch đã đồng bộ source local/server. Ba override tài liệu cũ đã được bảo toàn
+trong backup/stash rồi thay bằng nội dung đã gom vào Git, không bị reset mất.
+Commit chỉ cập nhật tài liệu sau đó không yêu cầu upgrade lại addon; vẫn phải kiểm tra
+Git server để biết đã pull tài liệu mới chưa. Push Git không tự đồng nghĩa deploy.
 
 ## 3. Luồng nghiệp vụ và các quyết định phải giữ
 
@@ -166,7 +182,7 @@ Không thể suy từ kết quả này rằng mọi yêu cầu Google sẽ luôn
 
 ## 5. Việc chưa hoàn tất — đọc trước khi tiếp tục
 
-### Khôi phục hàng đợi AI vẫn đang chạy
+### Snapshot lịch sử trước Batch — không dùng làm trạng thái hiện tại
 
 Snapshot **03/11/2026 khoảng 01:12 UTC+7**:
 
@@ -190,21 +206,21 @@ Snapshot **03/11/2026 khoảng 01:12 UTC+7**:
 - Chưa có HTTP 400 upload tái diễn trong đợt phục hồi đã theo dõi. Không ghi là
   “đã khôi phục toàn bộ” khi còn pending hoặc timeout.
 
-Odoo cron xử lý mỗi phút, đang Active; worker flags đã khôi phục True. Lượt chạy hỗ trợ
-trong Odoo shell đã dừng khi phát hiện lỗi mới ở báo cáo 38; cron vẫn tiếp tục các tác vụ hợp lệ.
+Tại snapshot này cron Active và worker flags từng được khôi phục True. Sau đó Batch bị
+`FAILED_PRECONDITION`; trạng thái hiện tại là hai cờ worker tạm tắt như đầu tài liệu.
 **Không phụ thuộc session ID
 của terminal chat cũ** để kiểm tra hiện trạng. Không rerun script tạo recovery nếu chưa đọc receipt.
 
-### Hướng xử lý timeout còn chờ lựa chọn
+### Lịch sử lựa chọn xử lý timeout tại 01:12 — đã có trả lời ở cập nhật đầu trang
 
 - API `generateContent` hiện dùng là đồng bộ. Mất phản hồi sau POST không cho biết
   Google đã hoàn tất/tính phí chưa, nên code chủ động không gửi lại để tránh trùng.
 - Đã thử capability bằng metadata và input rỗng, không gửi video mới:
   model hiện tại có `batchGenerateContent` nhưng endpoint Interactions trả 404 cho model đó.
   Không mặc định hỗ trợ Interactions chỉ vì tài liệu Google có API này.
-- Đã hỏi người dùng lựa chọn: ưu tiên kết quả nhanh hay Batch API có mã tác vụ để poll,
-  chấp nhận có thể tới khoảng 24 giờ. **Chưa có lựa chọn; chưa triển khai Batch/Interactions,
-  chưa đổi model hoặc tăng timeout**. Không ghi phương án đề xuất thành chức năng đã chạy.
+- Tại snapshot cũ đã hỏi người dùng chọn nhanh hay Batch, có thể chờ khoảng 24 giờ.
+  Khi đó chưa có trả lời. Sau đó người dùng đã chọn Batch và bản 2.3.0 đã deploy;
+  không đổi model hoặc tăng timeout đồng bộ. Xem trạng thái tiếp nối ở đầu trang.
 - Tài liệu Google tham khảo:
   [Batch API](https://ai.google.dev/gemini-api/docs/batch-api),
   [background execution](https://ai.google.dev/gemini-api/docs/background-execution).
@@ -265,6 +281,7 @@ Rollback phải xét cả source và migration DB; commit cũ không tự hạ s
 | `week104-import-20261102-200421` | DB trước import tuần 104 và báo cáo đối chiếu |
 | `ai-upload-protocol-20261102-234137` | DB trước sửa protocol upload 2.2.3; metadata/source overrides |
 | `ai-upload-progress-20261103-000103` | DB trước upgrade 2.2.4; metadata/source overrides |
+| `ai-batch-20261103-085608` | DB trước upgrade Batch 2.3.0, metadata/source overrides và stash reference |
 
 Không đưa backup, log riêng, OAuth JSON, Excel, `.env.zalo`, token giáo viên hoặc dữ liệu
 provider vào Git. `artifacts/` bị ignore và có thể không tồn tại ở máy mới.
@@ -289,9 +306,12 @@ provider vào Git. `artifacts/` bị ignore và có thể không tồn tại ở
 ## 8. Thứ tự phiên tiếp theo
 
 1. Đọc tài liệu này, kiểm tra Git và SSH, chạy script audit mới.
-2. Xác minh kết quả bản thay thế 46; không tạo thêm lượt cho báo cáo 10.
-3. Kiểm tra các báo cáo còn pending/failed, phân biệt retry tạm, JSON đã lưu và inference mất phản hồi.
-4. Báo cáo 32 đã có quyền một lần: đọc receipt Batch để theo dõi bản thay thế, không tạo lần nữa.
+2. Xác nhận Billing/Paid Tier của đúng project API key trong Google AI Studio; đây là
+   thao tác tài chính của chủ tài khoản, không tự làm thay.
+3. Khi Paid Tier đã hiệu lực, gửi lại chính báo cáo 47, khôi phục worker từ cờ đã lưu và
+   theo dõi Batch ID/kết quả. Báo cáo 39 tiếp tục từ offset upload đã lưu, không tạo bản mới.
+4. Bản thay thế 46 đã done; không tạo thêm cho báo cáo 10. Báo cáo 32 đã có đúng một
+   bản thay thế 47 theo receipt, không tạo lần nữa.
    Báo cáo 38 chưa có quyền tạo lượt mới. Không hỏi lặp quyền đã cấp.
-5. Người dùng đã chọn Batch: theo dõi job đã lưu, kiểm tra retrieval/cleanup khi có lỗi,
-   rồi cập nhật tài liệu bằng trạng thái đã kiểm chứng.
+5. Người dùng đã chọn Batch: không tự đổi lại đồng bộ. Batch có thể cần khoảng 24 giờ;
+   kiểm tra retrieval/cleanup rồi cập nhật tài liệu bằng trạng thái đã kiểm chứng.

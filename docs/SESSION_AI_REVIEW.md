@@ -27,6 +27,11 @@ Người dùng đã cho phép phân tích lại **đúng một lần báo cáo 3
 `edu_session_review.batch_recovery_20261103` chống tạo lặp. Không dùng quyền này để
 phân tích lại báo cáo 38. Bản thay thế của báo cáo 10 là 46 và đã hoàn tất.
 
+Từ `17.0.2.3.1`, lỗi tạo Batch lưu lại `status` có cấu trúc của Google. Với
+`FAILED_PRECONDITION`, giao diện nói rõ project API key phải thuộc Paid Tier và đã bật
+Billing. Báo cáo/file đã upload được giữ tạm; nút **Gửi lại tác vụ nền** tiếp tục chính
+báo cáo đó sau khi sửa cấu hình, không tạo bản ghi mới. Batch không khả dụng ở Free Tier.
+
 ### Xử lý lỗi kết nối (02/11/2026)
 
 Từ `17.0.2.2.1`, lỗi ghi rõ bước Drive/upload/chờ phân tích/kiểm tra kết quả và
@@ -147,8 +152,10 @@ URL cần bấm phân tích lại thủ công. Không tự phát hiện chỉnh 
   Cache riêng `data_dir/edu_session_review/<database hash>/<part id>.video`, không dùng hay xóa
   cache YouTube/filestore. File local được xóa sau khi Gemini nhận file.
 - Khi xong/lỗi/hủy, dọn file trên Gemini; nếu lỗi thì ghi `cleanup_pending` để cron thử lại.
-  Tác vụ quá 24 giờ bị dừng và dọn cache, kể cả khi phân tích đang tắt. Không xóa Drive/YouTube.
-- Gemini generateContent chạy trong worker, không giữ cuộc hội thoại Interactions.
+  Tác vụ trực tiếp quá 24 giờ bị dừng; Batch có 36 giờ từ lúc gửi để nhận kết quả.
+  Chờ xác nhận hủy trước khi xóa nguồn của Batch. Không xóa Drive/YouTube.
+- Gemini chạy trong worker qua Batch API (hoặc generateContent khi chọn trực tiếp),
+  không giữ cuộc hội thoại Interactions.
   Việc xử lý dữ liệu phía nhà cung cấp vẫn theo điều khoản và cấu hình dự án Google.
 - HTTP quá tải/hạn mức được thử lại tối đa 3 lần. Yêu cầu phân tích mất phản hồi không
   được gửi lại tự động vì có thể phát sinh chi phí trùng; tạo lần phân tích mới sau khi kiểm tra.

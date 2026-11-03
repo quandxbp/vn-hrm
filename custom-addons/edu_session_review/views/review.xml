@@ -6,12 +6,16 @@
                 <header>
                     <button name="action_resume_batch" type="object" string="Lấy lại kết quả tác vụ cũ"
                             invisible="state != 'failed' or execution_mode != 'batch' or not analysis_started or batch_cleaned"/>
+                    <button name="action_retry_batch_submission" type="object" string="Gửi lại tác vụ nền" class="btn-primary"
+                            invisible="not can_retry_batch_submission"/>
                     <button name="action_cancel" type="object" string="Hủy phân tích" invisible="state in ['done','failed','cancelled']"/>
-                    <button name="action_reanalyze" type="object" string="Phân tích lại" class="btn-primary" invisible="state not in ['done','failed','cancelled']"/>
+                    <button name="action_reanalyze" type="object" string="Phân tích lại" class="btn-primary"
+                            invisible="state not in ['done','failed','cancelled'] or can_retry_batch_submission"/>
                     <field name="state" widget="statusbar" statusbar_visible="queued,processing,analyzing,done"/>
                 </header>
                 <sheet>
                     <field name="analysis_started" invisible="1"/><field name="batch_cleaned" invisible="1"/>
+                    <field name="can_retry_batch_submission" invisible="1"/>
                     <group><field name="execution_mode"/>
                         <field name="batch_name" invisible="execution_mode != 'batch'"/>
                         <field name="batch_status" invisible="execution_mode != 'batch'"/>
@@ -212,6 +216,10 @@
                     Khi bật phân tích, video Drive được gửi đến Google Gemini để tạo nhận xét nội bộ.
                     Không cần đăng công khai video. API key Gemini độc lập với OAuth Drive/YouTube.
                     Chỉ các link mới/thay đổi được tự xếp hàng; không tự phân tích các video cũ.
+                </div>
+                <div class="alert alert-warning" role="alert">
+                    Chế độ Batch cần project API key thuộc Gemini Paid Tier và đã bật Billing.
+                    Nếu Google báo FAILED_PRECONDITION, hãy bật Billing cho đúng project rồi gửi lại chính tác vụ cũ.
                 </div>
                 <group>
                     <group><field name="review_key_input" password="True" placeholder="Nhập key để thay; để trống giữ key hiện có"/>
