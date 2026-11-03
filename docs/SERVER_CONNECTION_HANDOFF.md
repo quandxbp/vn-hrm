@@ -193,13 +193,12 @@ Không cần rebuild/restart bridge chỉ để thay cấu hình giờ gửi ho�
 
 ## Trạng thái code và dữ liệu lúc bàn giao
 
-- Đã kiểm tra ngày 03/11: local/server cùng nhánh `feature/edu-gvnn`, code ứng dụng
-  đã deploy Batch 2.3.0 tại `831db53c9cbf2591fac8407b758c5696e568635e`;
-  xem `PROJECT_HANDOFF.md` để lấy commit 2.3.1 mới nhất sau đợt vá điều kiện Paid Tier.
+- Đã kiểm tra ngày 03/11: local/server cùng nhánh `feature/edu-gvnn`; production đã
+  deploy Batch 2.3.1 tại `cc4f97bd2a5c0cfc3fadc7fb858b50ffc327a328`.
 - Không còn thay đổi code ứng dụng chưa commit ở hai phía. Ba override tài liệu cũ
   đã giữ trong backup/stash tại `backups\ai-batch-20261103-085608` trước khi đồng bộ.
   Khi pull lần sau vẫn kiểm tra diff thực tế, không reset hoặc ghi đè mù.
-- `edu_zalo` production **17.0.1.4.0**, `edu_session_review` mục tiêu **17.0.2.3.1**.
+- `edu_zalo` production **17.0.1.4.0**, `edu_session_review` **17.0.2.3.1**.
   Bảng đầy đủ và trạng thái hàng đợi ở [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md).
 - Local DB `kimacademy` là bản sao neutralized, worker gửi thật tắt. `gvnn` và `odoo`
   trong các ghi chú cũ không phải tên DB production hiện tại.

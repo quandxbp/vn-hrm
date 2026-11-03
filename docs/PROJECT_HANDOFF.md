@@ -11,8 +11,9 @@ Người dùng đã trả lời: **ưu tiên ổn định, xử lý nền, chấ
 Batch API; xem [SESSION_AI_REVIEW.md](SESSION_AI_REVIEW.md). Các mục 2/5 bên dưới
 ghi mốc kiểm chứng; mục 5 có snapshot lịch sử để truy nguyên.
 
-**Mốc trước bản vá 2.3.1:** commit ứng dụng `831db53`, upgrade 2.3.0 và login HTTP 200.
-Chế độ `review_execution=batch`. Local luôn neutralized và mọi cờ gửi thật tắt. Backup DB/source overrides:
+**Đã deploy bản vá:** commit `cc4f97bd2a5c0cfc3fadc7fb858b50ffc327a328`,
+upgrade 2.3.1 và login HTTP 200 lúc 09:42 UTC+7. Chế độ `review_execution=batch`.
+Local luôn neutralized và mọi cờ gửi thật tắt. Backup nền trước Batch:
 `C:\ProgramData\KimAcademyDeploy\backups\ai-batch-20261103-085608`.
 Các override tài liệu cũ đã được giữ trong backup và Git stash; source server sạch.
 
@@ -23,6 +24,8 @@ không có lượt phân tích được chấp nhận. Bản 2.3.1 giữ nguồn
 an toàn và cho phép **Gửi lại tác vụ nền** trên chính báo cáo. Production giữ
 `review_enabled=False`, `processing_enabled=False` cho tới khi người có quyền thanh toán
 bật Billing/Paid Tier trên đúng project API key. Không tự bật lại trước bước đó.
+Sau deploy đã cập nhật báo cáo 47 thành `batch_status=FAILED_PRECONDITION`, xác nhận
+`can_retry_same_review=True`, file 62.602.279 byte vẫn `ready`; thao tác không gọi Gemini.
 
 - Đợt recovery cũ đã có **23/27 done** trước đợt Batch; bản thay thế **46 đã done**.
 - Báo cáo **32** mất kết quả được phép tạo một bản mới. Receipt
@@ -71,7 +74,7 @@ chặn upload. AI không tự sửa điểm danh, học phí hay lương.
 | Mục | Hiện trạng |
 | --- | --- |
 | Nhánh / remote | `feature/edu-gvnn`; `https://github.com/quandxbp/vn-hrm.git` |
-| Code ứng dụng nền trước vá Paid Tier | `831db53c9cbf2591fac8407b758c5696e568635e` (Batch 2.3.0) |
+| Code ứng dụng đã deploy | `cc4f97bd2a5c0cfc3fadc7fb858b50ffc327a328` (Batch 2.3.1) |
 | Production | https://kimacademy.uk; SSH `administrator@192.168.110.105` |
 | Repo server / DB | `C:\inetpub\wwwroot\vn-hrm`; **`kimacademy`** |
 | Repo local / DB | `D:\Software\vn-hrm`; `kimacademy`, neutralized |
@@ -282,6 +285,7 @@ Rollback phải xét cả source và migration DB; commit cũ không tự hạ s
 | `ai-upload-protocol-20261102-234137` | DB trước sửa protocol upload 2.2.3; metadata/source overrides |
 | `ai-upload-progress-20261103-000103` | DB trước upgrade 2.2.4; metadata/source overrides |
 | `ai-batch-20261103-085608` | DB trước upgrade Batch 2.3.0, metadata/source overrides và stash reference |
+| `ai-paid-tier-20261103-094207` | DB đã kiểm tra trước deploy 2.3.1; source server sạch, không cần stash |
 
 Không đưa backup, log riêng, OAuth JSON, Excel, `.env.zalo`, token giáo viên hoặc dữ liệu
 provider vào Git. `artifacts/` bị ignore và có thể không tồn tại ở máy mới.
