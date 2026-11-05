@@ -8,7 +8,7 @@
                 <span t-else="" class="text-muted">—</span>
                 <CopyButton t-if="props.record.data[props.linkField]"
                             content="props.record.data[props.linkField]"
-                            copyText.translate="Copy" successText.translate="Đã sao chép"
+                            successText.translate="Đã sao chép"
                             className="'btn-sm py-0 px-1 edu_video_link_copy'"/>
             </div>
             <div t-foreach="parts" t-as="part" t-key="part.id" class="edu_video_link_part">
@@ -18,7 +18,7 @@
                 <span t-else="" class="text-muted">—</span>
                 <CopyButton t-if="part.data[props.linkField]"
                             content="part.data[props.linkField]"
-                            copyText.translate="Copy" successText.translate="Đã sao chép"
+                            successText.translate="Đã sao chép"
                             className="'btn-sm py-0 px-1 edu_video_link_copy'"/>
             </div>
             <button t-if="!props.readonly and activeActions.create and props.linkField === 'google_drive_url'"
