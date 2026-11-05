@@ -3,10 +3,11 @@
 import { registry } from "@web/core/registry";
 import { X2ManyField, x2ManyField } from "@web/views/fields/x2many/x2many_field";
 import { UrlField } from "@web/views/fields/url/url_field";
+import { CopyButton } from "@web/views/fields/copy_clipboard/copy_button";
 
 class SessionVideoLinksField extends X2ManyField {
     static template = "edu_gvnn.SessionVideoLinksField";
-    static components = { ...X2ManyField.components, UrlField };
+    static components = { ...X2ManyField.components, UrlField, CopyButton };
     static props = { ...X2ManyField.props, linkField: String };
 
     onClick(event) {

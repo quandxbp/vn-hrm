@@ -5,3 +5,4 @@ from . import test_import_history
 from . import test_public_schedule
 from . import test_recording_parts
 from . import test_session_history
+from . import test_menu_visibility

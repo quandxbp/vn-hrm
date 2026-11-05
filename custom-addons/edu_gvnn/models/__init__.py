@@ -16,3 +16,4 @@ from . import edu_expense_category
 from . import res_config_settings
 from . import public_schedule
 from . import recording_part
+from . import ir_ui_menu

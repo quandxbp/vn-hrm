@@ -6,12 +6,20 @@
                 <UrlField t-if="!props.readonly or props.record.data[props.linkField]"
                           record="props.record" name="props.linkField" readonly="props.readonly"/>
                 <span t-else="" class="text-muted">—</span>
+                <CopyButton t-if="props.record.data[props.linkField]"
+                            content="props.record.data[props.linkField]"
+                            copyText.translate="Copy" successText.translate="Đã sao chép"
+                            className="'btn-sm py-0 px-1 edu_video_link_copy'"/>
             </div>
             <div t-foreach="parts" t-as="part" t-key="part.id" class="edu_video_link_part">
                 <span class="text-muted">Phần <t t-esc="part.data.number"/></span>
                 <UrlField t-if="!props.readonly or part.data[props.linkField]"
                           record="part" name="props.linkField" readonly="props.readonly"/>
                 <span t-else="" class="text-muted">—</span>
+                <CopyButton t-if="part.data[props.linkField]"
+                            content="part.data[props.linkField]"
+                            copyText.translate="Copy" successText.translate="Đã sao chép"
+                            className="'btn-sm py-0 px-1 edu_video_link_copy'"/>
             </div>
             <button t-if="!props.readonly and activeActions.create and props.linkField === 'google_drive_url'"
                     type="button" class="btn btn-link p-0 mt-1" t-on-click.stop="addPart">
