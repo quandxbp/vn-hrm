@@ -13,9 +13,14 @@ chuyển video Google Drive lên YouTube và nhận xét buổi học bằng Gem
 
 | Môi trường | Địa chỉ / vị trí | Database |
 | --- | --- | --- |
-| Production | https://kimacademy.uk; Windows `192.168.110.105`; `C:\inetpub\wwwroot\vn-hrm` | `kimacademy` |
+| Production | https://kimacademy.uk; Windows `10.77.160.128`; `C:\KimAcademy\source` | `kimacademy` |
 | Local hiện tại | http://localhost:8069; `D:\Software\vn-hrm` | `kimacademy`, bản sao **neutralized** |
 | Git | `https://github.com/quandxbp/vn-hrm.git`, nhánh `feature/edu-gvnn` | Source, không chứa DB/filestore |
+
+**07/11/2026:** đã migrate production từ `.105` sang `.128`, giữ domain và phiên bản
+ứng dụng. Xem [vận hành trên .128](docs/KIMACADEMY_SERVER_128.md). Compose chạy thật là
+`C:\KimAcademy\compose.production.yml`, project `kimacademy128`; không chạy Compose
+gốc trong thư mục source. Bản `.105` đã dừng và được giữ để rollback.
 
 Trạng thái được kiểm tra ngày **03/11/2026 (UTC+7)**. Production đã chạy bản sửa
 upload AI `4bedad3`; đợt tiếp nối chuyển sang Batch **17.0.2.3.1** theo lựa chọn của người dùng. Google đã từ chối

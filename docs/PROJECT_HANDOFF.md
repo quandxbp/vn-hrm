@@ -1,8 +1,27 @@
 # Bàn giao project Kim Academy
 
-Cập nhật **03/11/2026**, giờ Việt Nam (UTC+7). Đây là đầu mối hiện trạng thay cho
+Cập nhật **07/11/2026**, giờ Việt Nam (UTC+7). Đây là đầu mối hiện trạng thay cho
 việc đọc tuần tự toàn bộ lịch sử chat. Các trạng thái hàng đợi bên dưới là snapshot,
 phải đọc lại DB trước khi xử lý tiếp. Không ghi credential hoặc URL chứa token vào đây.
+
+## Production hiện tại — đã chuyển sang .128 ngày 07/11/2026
+
+- Server **10.77.160.128**, SSH Administrator; source `C:\KimAcademy\source`.
+- Domain giữ nguyên https://kimacademy.uk; connector Cloudflare chạy trên .128.
+- Compose **`C:\KimAcademy\compose.production.yml`**, project **`kimacademy128`**.
+- Code ứng dụng giữ commit `b30fe06b48df6a417903b4f739cd1ddcf7fda3fd`;
+  `edu_gvnn=17.0.1.17.4`, `edu_session_review=17.0.2.3.2`. Không nâng phiên bản lúc migrate.
+- Đối chiếu cuối: 105 buổi, 74 học viên, 6 giáo viên, 157 lượt tham dự, 55 video jobs,
+  59 báo cáo AI, 16 log Zalo; 25 file attachment vật lý, không thiếu file.
+- AI `sync`, review/video worker bật; khôi phục 23 cron. Zalo connected và kiểm tra
+  trực tiếp nhóm nhận thành công. Không tạo lượt AI hay gửi tin thử khi migrate.
+- Giữ nguyên 5 video jobs failed và 18 báo cáo AI failed từ hệ thống cũ; migration
+  không cấp quyền gửi lại các yêu cầu mất phản hồi hoặc xóa lịch sử lỗi.
+- `.105`: ba container GVNN đã stop, restart policy `no`; dịch vụ Cloudflared dành
+  Kim Academy đã stop/Disabled. Volume và backup còn nguyên. Cầu nối Công dân số
+  trên .105 và ứng dụng Công dân số trên .128 được kiểm tra vẫn hoạt động.
+- Runbook hiện hành: [KIMACADEMY_SERVER_128.md](KIMACADEMY_SERVER_128.md).
+  Các địa chỉ `.105` trong snapshot bên dưới là **lịch sử/rollback**, không phải production.
 
 ## Quyết định mới nhất 03/11/2026 10:17 UTC+7 — Free Tier, tuần tự
 

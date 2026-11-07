@@ -1,6 +1,18 @@
 # Kết nối server Kim Academy cho phiên làm việc tiếp theo
 
-Cập nhật: **03/11/2026**, giờ Việt Nam (UTC+7).
+Cập nhật: **07/11/2026**, giờ Việt Nam (UTC+7).
+
+## Server đang phục vụ production: .128
+
+Kim Academy đã chuyển sang **10.77.160.128 / Administrator**. Source tại
+`C:\KimAcademy\source`; Compose thật `C:\KimAcademy\compose.production.yml`, project
+`kimacademy128`. Xem [runbook .128](KIMACADEMY_SERVER_128.md) trước khi thao tác.
+Host fingerprint ED25519 đã được người dùng đối chiếu trực tiếp:
+`SHA256:cp2o3MbZU+1FFTf68A4jghfAjcHtG01sft+eTe9/Gyc`.
+
+**Các lệnh .105 bên dưới giữ lại làm lịch sử và rollback. Không chạy deploy/restart
+GVNN trên .105 khi mục tiêu là production hiện tại.** Cầu nối Công dân số trên .105
+là hệ thống riêng, vẫn đang phục vụ và không được dừng theo GVNN.
 
 Đọc [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md) trước để biết kiến trúc, phiên bản,
 tiến độ khôi phục AI và việc chưa được phép chạy lại. Các backup theo ngày bên dưới
