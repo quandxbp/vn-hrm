@@ -1,0 +1,17 @@
+name: kimreview
+services:
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file: .env.worker          # WORKER_TOKEN, SYNTH_*; never committed
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "${WORKER_BIND:-127.0.0.1}:8090:8090"   # set WORKER_BIND to the private LAN IP only
+    volumes:
+      - worker-data:/data
+      - ./models:/models:ro
+    mem_limit: 7g
+    cpus: 4
+volumes:
+  worker-data:
