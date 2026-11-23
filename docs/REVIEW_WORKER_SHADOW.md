@@ -31,6 +31,21 @@ khoảng ±0.5 nên chỉ đánh giá lệch điểm trên nhiều buổi.
 Đã cài và bật trên .128/kimacademy ngày 23/11/2026: `enabled_since` = `2026-11-23 01:21:49` (UTC),
 `daily_limit` = 20, cron 5 phút đang chạy. Backup trước cài: `C:\KimAcademy\backups\review-shadow-prod-20261123`.
 
+## Báo cáo chính thức cho buổi chưa có nhận xét (từ 23/11/2026)
+
+Người dùng duyệt: buổi đã dạy, có Drive, **chưa có báo cáo done** (chưa có báo cáo hoặc chỉ có báo cáo lỗi,
+kể cả 24 buổi Gemini mất phản hồi) được chạy bằng worker và tạo **một báo cáo AI mới** `model_name =
+kim-worker/<model>`. Báo cáo này dùng cho buổi học, cảnh báo thiếu thời lượng, gợi ý học phí/lương và trang
+giáo viên như báo cáo Gemini. Báo cáo lỗi cũ giữ nguyên (không reset `analysis_started`).
+
+- Xếp hàng: `env['edu.session.review.shadow']._queue_official()` (idempotent theo mã tác vụ, cũ nhất trước).
+  Ngày 23/11 đã xếp 61 buổi (26/10–18/11).
+- Tuần tự: chỉ một buổi nằm trên worker; buổi sau chỉ upload khi không còn dòng `waiting`.
+- Chỉ tạo báo cáo khi lúc đó buổi vẫn chưa có báo cáo done, không có lượt Gemini đang chạy, Drive/học viên/
+  thời lượng lịch không đổi, tuần chưa khóa và không đang giữ khóa tuần tự Gemini (87425, 0). Ngược lại kết quả
+  chỉ ở dòng worker với lỗi `not_published:<lý do>`.
+- Chế độ so sánh không lấy báo cáo `kim-worker/*` làm báo cáo Gemini.
+
 ## Bật
 
 1. Upgrade/cài addon trên đúng DB (`-i edu_review_shadow` lần đầu). Pause worker theo quy trình bàn giao.

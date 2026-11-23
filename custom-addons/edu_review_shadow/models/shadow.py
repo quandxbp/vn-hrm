@@ -1,8 +1,17 @@
-"""Shadow run of the internal review worker next to Gemini.
+"""Internal review worker runs, in two modes.
 
-Never writes to edu.session.review, the session, attendance, payroll or week locks: the worker
-result is stored here only, for comparison. Disabled until the cron is turned on and the
-system parameters below are set.
+shadow:   next to a finished Gemini report, for comparison. Never writes to edu.session.review.
+official: for a taught session WITHOUT any finished report (no review, or only failed ones;
+          approved 23/11/2026). On success it creates ONE new edu.session.review in state done
+          (model_name kim-worker/...), exactly like a Gemini result, so the session, duration
+          warning, billing suggestion and teacher page use it. Old failed reports are untouched
+          (analysis_started is never reset). Published only if, at that moment, the session still
+          has no done report, no Gemini run in progress, the same Drive/roster/schedule and an
+          unlocked week; otherwise the result stays on this row only.
+
+Never writes to the session, attendance, payroll or week locks. Disabled until the cron is
+turned on and the system parameters below are set. Rows are processed strictly one at a time
+on the worker: the next upload starts only when no other row is waiting on the worker.
 
   edu_review_shadow.worker_url     http://10.77.160.36:8090 (internal network only)
   edu_review_shadow.worker_token   bearer token from E:\\KimReview\\app\\.env.worker
@@ -47,9 +56,16 @@ class ReviewShadow(models.Model):
     _order = 'id desc'
     _rec_name = 'job_key'
 
-    review_id = fields.Many2one('edu.session.review', 'Báo cáo Gemini', required=True, ondelete='cascade',
+    mode = fields.Selection([('shadow', 'So sánh với Gemini'), ('official', 'Báo cáo chính thức')], 'Chế độ',
+                            default='shadow', required=True, index=True, readonly=True)
+    review_id = fields.Many2one('edu.session.review', 'Báo cáo Gemini', ondelete='cascade',
                                 index=True, readonly=True)
-    session_id = fields.Many2one(related='review_id.session_id', store=True, string='Buổi học')
+    session_id = fields.Many2one('edu.session', 'Buổi học', required=True, ondelete='cascade', index=True,
+                                 readonly=True)
+    source_signature = fields.Char(readonly=True, copy=False)
+    planned_minutes = fields.Float(readonly=True)
+    official_review_id = fields.Many2one('edu.session.review', 'Báo cáo AI đã tạo', readonly=True, copy=False,
+                                         ondelete='set null')
     job_key = fields.Char('Mã tác vụ worker', required=True, readonly=True, copy=False)
     state = fields.Selection([('upload', 'Đang gửi video'), ('waiting', 'Worker đang xử lý'),
                               ('done', 'Có kết quả'), ('failed', 'Lỗi'), ('skipped', 'Bỏ qua')],
@@ -67,6 +83,7 @@ class ReviewShadow(models.Model):
     finished_at = fields.Datetime('Xong lúc', readonly=True)
     acked = fields.Boolean('Đã báo worker xóa dữ liệu', readonly=True)
     result_json = fields.Json(readonly=True, copy=False)
+    durations_json = fields.Json(readonly=True, copy=False)
     metrics_json = fields.Json(readonly=True, copy=False)
     wall_minutes = fields.Float('Thời gian xử lý (phút)', readonly=True, digits=(8, 1))
     peak_rss_mb = fields.Integer('RAM đỉnh (MB)', readonly=True)
@@ -122,6 +139,15 @@ class ReviewShadow(models.Model):
                              ensure_ascii=True, sort_keys=True)
         return 'kim-%s-%s' % (review.session_id.id, hashlib.sha256(('shadow|' + payload).encode()).hexdigest()[:16])
 
+    @staticmethod
+    def make_official_key(session, signature, roster, planned):
+        payload = json.dumps([session.id, signature, roster, round(planned, 3), '2.1'], ensure_ascii=True, sort_keys=True)
+        return 'kim-%s-%s' % (session.id, hashlib.sha256(('official|' + payload).encode()).hexdigest()[:16])
+
+    @staticmethod
+    def _planned(session):
+        return max(0, (session.time_end - session.time_start) * 60)
+
     # ------------------------------------------------------------------ transport (patched in tests)
     def _worker(self, method, path, **kwargs):
         url, token = self._ready()
@@ -158,12 +184,14 @@ class ReviewShadow(models.Model):
             return self.browse()
         limit = int(self._param('daily_limit', '20'))
         today = fields.Datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        room = limit - self.search_count([('create_date', '>=', today)])
+        room = limit - self.search_count([('mode', '=', 'shadow'), ('create_date', '>=', today)])
         if room <= 0:
             return self.browse()
-        done = self.search([]).review_id.ids
+        done = self.search([('mode', '=', 'shadow')]).review_id.ids
         reviews = self.env['edu.session.review'].sudo().search(
-            [('state', '=', 'done'), ('finished_at', '>=', since), ('id', 'not in', done)], order='finished_at', limit=room * 3)
+            [('state', '=', 'done'), ('finished_at', '>=', since), ('id', 'not in', done),
+             ('model_name', 'not like', 'kim-worker/%')],  # never compare the worker with itself
+            order='finished_at', limit=room * 3)
         created = self.browse()
         for review in reviews:
             if len(created) >= room:
@@ -171,15 +199,42 @@ class ReviewShadow(models.Model):
             if not review.source_current or review.session_id.state == 'cancel':
                 continue
             roster = review.roster_snapshot or review.session_id._review_roster()
-            created |= self.create({'review_id': review.id, 'job_key': self.make_key(review, roster),
-                                    'roster_json': roster})
+            created |= self.create({'review_id': review.id, 'session_id': review.session_id.id,
+                                    'job_key': self.make_key(review, roster), 'roster_json': roster,
+                                    'source_signature': review.source_signature,
+                                    'planned_minutes': review.planned_minutes})
+        return created
+
+    @api.model
+    def _official_candidates(self):
+        """Taught sessions with Drive video and no finished report, oldest first."""
+        sessions = self.env['edu.session'].sudo().search([('state', '=', 'done'), ('ai_review_done', '=', False)],
+                                                         order='date, time_start, id')
+        busy = self.env['edu.session.review'].sudo().search([
+            ('session_id', 'in', sessions.ids), ('state', 'in', ['queued', 'processing', 'analyzing'])]).session_id
+        return sessions.filtered(lambda s: s not in busy and s._review_sources()
+                                 and not (s.week_id and s.week_id.is_locked))
+
+    @api.model
+    def _queue_official(self, sessions=None):
+        """Create one official row per session (idempotent by job key). Returns the new rows."""
+        created = self.browse()
+        for session in (sessions if sessions is not None else self._official_candidates()):
+            sources = session._review_sources()
+            if session.state != 'done' or session.ai_review_done or not sources or len(sources) > 10:
+                continue
+            roster, planned, signature = session._review_roster(), self._planned(session), session._review_signature()
+            key = self.make_official_key(session, signature, roster, planned)
+            if self.search_count([('job_key', '=', key)]):
+                continue
+            created |= self.create({'mode': 'official', 'session_id': session.id, 'job_key': key,
+                                    'roster_json': roster, 'source_signature': signature, 'planned_minutes': planned})
         return created
 
     # ------------------------------------------------------------------ steps
     def _spec(self):
-        review = self.review_id
-        return {'roster': self.roster_json or [], 'prompt_version': review.prompt_version or '2.1',
-                'planned_minutes': review.planned_minutes or 0,
+        return {'roster': self.roster_json or [], 'prompt_version': '2.1',
+                'planned_minutes': self.planned_minutes or 0,
                 'parts': [{k: p[k] for k in ('number', 'size', 'md5')} for p in self.parts_json]}
 
     def _metadata(self):
@@ -210,7 +265,7 @@ class ReviewShadow(models.Model):
         return response.json()
 
     def _upload(self, deadline):
-        if self.review_id.source_signature != self.session_id._review_signature():
+        if self.source_signature != self.session_id._review_signature():
             self.write({'state': 'skipped', 'error': 'drive_changed'})
             return
         if not self.parts_json:
@@ -259,19 +314,83 @@ class ReviewShadow(models.Model):
             values.update(self._result_values(job))
         self.write(values)
         if job['state'] == 'done':
-            self._ack()
+            self._finish()
+
+    def _finish(self):
+        """Publish (official mode) BEFORE ack, so a deferred publish is retried while the row is unacked."""
+        if self.mode == 'official' and self.state == 'done' and not self.official_review_id \
+                and not (self.error or '').startswith('not_published') and not self._publish():
+            return
+        self._ack()
+
+    def _publish(self):
+        """Create the official report once. Returns False when it must be retried later.
+        Any doubt keeps the result on this row only (error not_published:<reason>)."""
+        session = self.session_id
+        Review = self.env['edu.session.review'].sudo()
+        # The Gemini cron holds (87425, 0) for its whole sequential run: never publish in the middle of it.
+        self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s, %s)', [87425, 0])
+        if not self.env.cr.fetchone()[0]:
+            self.next_check = fields.Datetime.now() + timedelta(minutes=5)
+            return False
+        session.invalidate_recordset()
+        reason = ('session_not_done' if session.state != 'done' else
+                  'already_reviewed' if session.ai_review_done else
+                  'gemini_in_progress' if Review.search_count([('session_id', '=', session.id),
+                                                               ('state', 'in', ['queued', 'processing', 'analyzing'])]) else
+                  'drive_changed' if session._review_signature() != self.source_signature else
+                  'roster_changed' if session._review_roster() != (self.roster_json or []) else
+                  'schedule_changed' if abs(self._planned(session) - self.planned_minutes) > 0.001 else False)
+        if not reason:
+            try:
+                with self.env.cr.savepoint():
+                    session._check_week_unlocked()
+            except UserError:
+                reason = 'week_locked'
+        if reason:
+            self.error = 'not_published:%s' % reason
+            return True
+        data = self.result_json
+        durations = {int(k): float(v) for k, v in (self.durations_json or {}).items()}
+        values = validate_report(data, durations, require_v2=True, require_students=bool(self.roster_json),
+                                 roster=self.roster_json, planned_minutes=self.planned_minutes)
+        model = 'kim-worker/%s' % (((self.metrics_json or {}).get('llm_usage') or {}).get('reduce_model')
+                                   or (self.metrics_json or {}).get('reduce_backend') or 'local')
+        parts = [fields.Command.create({'number': p['number'], 'source_url': source['drive'], 'file_id': p['file_id'],
+                                        'resource_key': p['resource_key'] or False, 'state': 'ready',
+                                        'total_bytes': p['size'], 'duration': durations.get(p['number'], 0)})
+                 for p in self.parts_json
+                 for source in session._review_sources() if source['number'] == p['number']]
+        if len(parts) != len(self.parts_json):
+            self.error = 'not_published:parts_mismatch'
+            return True
+        try:
+            with self.env.cr.savepoint():
+                review = Review.create(dict(
+                    values, name='Nhận xét AI — %s' % session.display_name, session_id=session.id,
+                    source_signature=self.source_signature, model_name=model[:100],
+                    execution_mode='sync', source_policy='drive_only', prompt_version='2.1',
+                    roster_snapshot=self.roster_json or [], planned_minutes=self.planned_minutes,
+                    part_ids=parts, state='done', result_json=data, requested_by=self.env.ref('base.user_root').id,
+                    finished_at=fields.Datetime.now(), cleanup_pending=False))
+        except Exception as exc:  # noqa: BLE001 - keep the worker result; a manager decides
+            _logger.warning('review worker row %s publish failed: %s', self.id, type(exc).__name__)
+            self.error = 'not_published:create_%s' % type(exc).__name__
+            return True
+        self.write({'official_review_id': review.id, 'error': False})
+        return True
 
     def _result_values(self, job):
-        review = self.review_id
         data = job.get('result') or {}
         durations = {int(k): float(v) for k, v in (job.get('durations') or {}).items()}
         metrics = job.get('metrics') or {}
         base = {'result_json': data, 'metrics_json': metrics, 'finished_at': fields.Datetime.now(), 'state': 'done',
+                'durations_json': {str(k): v for k, v in durations.items()},
                 'error': False, 'wall_minutes': (metrics.get('wall_seconds') or 0) / 60,
                 'peak_rss_mb': int(metrics.get('peak_child_rss_mb') or 0), 'worker_progress': 1}
         try:
             v = validate_report(data, durations, require_v2=True, require_students=bool(self.roster_json),
-                                roster=self.roster_json, planned_minutes=review.planned_minutes)
+                                roster=self.roster_json, planned_minutes=self.planned_minutes)
         except UserError as exc:
             return dict(base, state='failed', error=('invalid_result:%s' % exc)[:120])
         mapping = {'w_score_available': 'score_available', 'w_score_total': 'score_total',
@@ -299,7 +418,7 @@ class ReviewShadow(models.Model):
             elif self.state == 'waiting':
                 self._poll()
             elif self.state == 'done' and not self.acked:
-                self._ack()
+                self._finish()
             self.write({'failures': 0, 'next_check': False} if self.failures else {})
         except ShadowError as exc:
             failures = self.failures + 1
@@ -328,9 +447,13 @@ class ReviewShadow(models.Model):
             rows = self.search([('state', 'in', ('upload', 'waiting', 'done')), ('acked', '=', False),
                                 '|', ('next_check', '=', False), ('next_check', '<=', now)], order='id')
             deadline = time.monotonic() + STEP_SECONDS
+            uploaded = False
             for row in rows:
-                if row.state == 'upload' and time.monotonic() > deadline:
-                    continue  # polling is cheap; uploads wait for the next run
+                if row.state == 'upload':
+                    # Strictly sequential: one video set on the worker at a time, one upload per run.
+                    if uploaded or time.monotonic() > deadline or self.search_count([('state', '=', 'waiting')]):
+                        continue
+                    uploaded = True
                 row._advance(deadline)
                 cr.commit()
         finally:

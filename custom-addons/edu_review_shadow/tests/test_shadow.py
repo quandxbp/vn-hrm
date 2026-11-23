@@ -91,8 +91,7 @@ def fake_drive(record, file_id, resource_key, **kwargs):
                     headers={'Content-Range': 'bytes %s-%s/%s' % (start, end, len(VIDEO))})
 
 
-@tagged('post_install', '-at_install')
-class TestReviewShadow(TransactionCase):
+class ShadowBase(TransactionCase):
     def setUp(self):
         super().setUp()
         for target in ('odoo.addons.edu_review_shadow.models.shadow.requests.request',
@@ -130,6 +129,9 @@ class TestReviewShadow(TransactionCase):
         import time
         row._advance(time.monotonic() + budget)
 
+
+@tagged('post_install', '-at_install')
+class TestReviewShadow(ShadowBase):
     def test_enqueue_once_per_report_with_stable_key(self):
         first = self.Shadow._enqueue()
         self.assertEqual(first.review_id, self.review)
@@ -206,3 +208,87 @@ class TestReviewShadow(TransactionCase):
         self.advance(row)
         self.assertEqual(row.state, 'skipped')
         self.assertFalse(self.worker.calls)
+
+
+@tagged('post_install', '-at_install')
+class TestOfficialWorkerReview(ShadowBase):
+    """Sessions without a finished report get one official report from the worker."""
+
+    VALUES = {'sufficient_data': True, 'score_available': True, 'score_total': 7.5, 'teaching_minutes': 26.5,
+              'total_minutes': 30, 'teaching_percent': 88.3, 'teaching_started_at': 'Phần 1 · 01:45',
+              'interaction_level': 'good', 'summary': 'Tóm tắt worker', 'quality_note': 'ASR',
+              'interaction_comment': 'x', 'student_report': 'Học sinh', 'student_alert_count': 0,
+              'student_report_available': True}
+
+    def setUp(self):
+        super().setUp()
+        # The Gemini attempt sent the video and lost the answer: it must stay exactly as it is.
+        self.review.write({'state': 'failed', 'analysis_started': True, 'error': 'ReadTimeout'})
+        self.session.invalidate_recordset()
+
+    def finish(self, row, **job):
+        self.advance(row)
+        self.assertEqual(row.state, 'waiting')
+        self.worker.jobs[row.job_key].update(state='done', result={'summary': 'x'},
+                                             metrics={'wall_seconds': 60, 'llm_usage': {'reduce_model': 'gemini-3.5-flash'}},
+                                             **job)
+        with patch.object(shadow_module, 'validate_report', return_value=dict(self.VALUES)):
+            self.advance(row)
+
+    def test_creates_one_done_report_and_keeps_failed_attempt(self):
+        row = self.Shadow._queue_official()
+        self.assertEqual((row.mode, row.session_id), ('official', self.session))
+        self.assertFalse(self.Shadow._queue_official())
+        self.finish(row)
+        report = row.official_review_id
+        self.assertEqual(report.state, 'done')
+        self.assertEqual(report.model_name, 'kim-worker/gemini-3.5-flash')
+        self.assertEqual(report.summary, 'Tóm tắt worker')
+        self.assertEqual(report.part_ids.mapped('duration'), [1800.0])
+        self.assertTrue(report.source_current)
+        self.assertTrue(row.acked)
+        self.session.invalidate_recordset()
+        self.assertTrue(self.session.ai_review_done)
+        self.assertEqual(self.session.ai_review_id, report)
+        self.assertEqual(self.review.read(['state', 'analysis_started'])[0]['state'], 'failed')
+        self.assertTrue(self.review.analysis_started)
+        self.assertFalse(self.Shadow._queue_official())
+        self.assertFalse(self.Shadow._enqueue().filtered(lambda r: r.review_id == report))
+
+    def test_not_published_when_another_report_finished_first(self):
+        row = self.Shadow._queue_official()
+        self.review.state = 'done'
+        self.finish(row)
+        self.assertFalse(row.official_review_id)
+        self.assertEqual(row.error, 'not_published:already_reviewed')
+        self.assertTrue(row.acked)
+        self.assertEqual(self.env['edu.session.review'].search_count([('session_id', '=', self.session.id)]), 1)
+
+    def test_publish_waits_for_gemini_sequential_lock(self):
+        row = self.Shadow._queue_official()
+        with self.registry.cursor() as other:
+            other.execute('SELECT pg_advisory_lock(87425, 0)')
+            try:
+                self.finish(row)
+                self.assertFalse(row.official_review_id)
+                self.assertFalse(row.acked)
+                self.assertEqual(row.state, 'done')
+            finally:
+                other.execute('SELECT pg_advisory_unlock(87425, 0)')
+        with patch.object(shadow_module, 'validate_report', return_value=dict(self.VALUES)):
+            self.advance(row)
+        self.assertTrue(row.official_review_id)
+        self.assertTrue(row.acked)
+
+    def test_strictly_one_session_on_the_worker(self):
+        other = self.session.copy({'date': '2052-03-02', 'state': 'done', 'google_drive_url': 'https://drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm098765/view'})
+        self.assertNotEqual(other._review_signature(), False)
+        rows = self.Shadow._queue_official()
+        self.assertEqual(len(rows), 2)
+        with patch.object(type(self.env.cr), 'commit', lambda cr: None):
+            self.Shadow._cron_run()
+            first, second = rows.sorted('id')
+            self.assertEqual((first.state, second.state), ('waiting', 'upload'))
+            self.Shadow._cron_run()
+            self.assertEqual(second.state, 'upload')
+            self.assertFalse([c for c in self.worker.calls if second.job_key in c[1]])
