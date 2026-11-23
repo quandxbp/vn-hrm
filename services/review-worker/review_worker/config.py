@@ -22,6 +22,9 @@ class Settings:
     whisper_beam: int
     ocr_langs: str
     synth_backend: str
+    reduce_backend: str
+    gemini_key: str
+    gemini_model: str
     llm_model_path: str
     llm_ctx: int
     api_base: str
@@ -50,6 +53,10 @@ def load():
         whisper_beam=int(_env('WHISPER_BEAM', '1')),
         ocr_langs=_env('OCR_LANGS', 'eng+vie'),
         synth_backend=_env('SYNTH_BACKEND', 'local'),
+        # Final review text + rubric; timing labels stay on SYNTH_BACKEND (decision 2026-11-23).
+        reduce_backend=_env('SYNTH_REDUCE_BACKEND') or _env('SYNTH_BACKEND', 'local'),
+        gemini_key=_env('GEMINI_API_KEY'),
+        gemini_model=_env('GEMINI_MODEL', 'gemini-3.5-flash'),
         llm_model_path=_env('LLM_MODEL_PATH', '/models/llm/Qwen2.5-7B-Instruct-Q4_K_M.gguf'),
         llm_ctx=int(_env('LLM_CTX', '12288')),
         api_base=_env('SYNTH_API_BASE'),

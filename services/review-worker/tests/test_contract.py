@@ -219,6 +219,32 @@ class Regressions(unittest.TestCase):
         data = build(parts, visuals, out, Contract().labels)
         self.assertEqual(len(data['lesson_content']), 2)
 
+    def test_top_score_needs_two_evidence_ids(self):
+        parts, visuals = Contract().two_parts()
+        rubric = {k: {'score': 2.5, 'reason': 'Rất tốt.', 'evidence': ['S1.5']} for k in synth.RUBRIC}
+        rubric['content'] = {'score': 2.5, 'reason': 'Rất tốt.', 'evidence': ['S1.5', 'S1.6']}
+        data = build(parts, visuals, dict(GOOD, rubric=rubric), Contract().labels)
+        self.assertEqual(data['rubric']['content']['score'], 2.5)
+        self.assertEqual(data['rubric']['interaction']['score'], 2.0)
+        self.assertEqual(Contract().validate(data, parts)['score_total'], 8.5)
+
+    def test_evidence_ranges_are_accepted_and_hidden_in_text(self):
+        parts, visuals = Contract().two_parts()
+        out = dict(GOOD, strengths=[{'comment': 'Giải thích từ mới rõ (S1.41-S1.42, S1.53).', 'evidence': ['S1.3-S1.5']},
+                                    {'comment': 'Khoảng quá dài.', 'evidence': ['S1.1-S1.70']},
+                                    {'comment': 'Khác phần.', 'evidence': ['S1.1-S2.2']}])
+        data = build(parts, visuals, out, Contract().labels)
+        self.assertEqual(data['strengths'], [{'comment': 'Giải thích từ mới rõ.',
+                                              'evidence': [{'part': 1, 'start': '01:00', 'end': '01:58'}]}])
+        Contract().validate(data, parts)
+
+    def test_review_prompt_marks_pauses(self):
+        parts = {1: {'duration': 120.0, 'segments': [{'start': 0, 'end': 5, 'text': 'What is this?'},
+                                                     {'start': 17, 'end': 20, 'text': 'A clock.'},
+                                                     {'start': 22, 'end': 25, 'text': 'Good.'}]}}
+        prompt = synth.review_prompt({}, parts, {1: ''}, 100, {}, lambda t: t)
+        self.assertIn('S1.0 [00:00] What is this?\n(im lặng 12s)\nS1.1 [00:17] A clock.\nS1.2', prompt)
+
 
 class Pseudonym(unittest.TestCase):
     def test_names_replaced_and_common_words_kept(self):
@@ -227,6 +253,78 @@ class Pseudonym(unittest.TestCase):
         self.assertIn('[student_11]', text)
         self.assertIn('[student_12]', text)
         self.assertIn('And you?', text)
+
+    def test_fuzzy_catches_asr_spelling_for_external_text_only(self):
+        m = Matcher([{'key': 'student_21', 'label': 'ELLY', 'aliases': ['ELLY']},
+                     {'key': 'student_22', 'label': 'NGUYỄN PHƯƠNG', 'aliases': ['NGUYỄN PHƯƠNG']}])
+        text = 'Very good, Ellie. Fuong, your turn. Then read it again. Elly?'
+        self.assertIn('Ellie', m.pseudonymize(text))
+        out = m.pseudonymize(text, fuzzy=True)
+        self.assertNotIn('Ellie', out)
+        self.assertNotIn('Fuong', out)
+        self.assertEqual(out.count('[student_21]'), 2)
+        self.assertIn('[student_22]', out)
+        self.assertIn('Then read it again', out)
+
+    def test_review_prompt_has_no_roster_names(self):
+        parts = {1: {'duration': 600.0, 'segments': [{'start': 10, 'end': 15, 'text': 'Hello Elli, how are you?'},
+                                                     {'start': 20, 'end': 25, 'text': 'Good, Lê Chi. Open your book.'}]}}
+        roster = ROSTER + [{'key': 'student_21', 'label': 'ELLY', 'aliases': ['ELLY']}]
+        m = Matcher(roster)
+        prompt = synth.review_prompt({'roster': roster, 'planned_minutes': 10}, parts, {1: '00:00–10:00 dạy'}, 590,
+                                     {'start': (1, 10.0), 'end': (1, 600.0)}, lambda t: m.pseudonymize(t, fuzzy=True))
+        for name in ('Elli', 'Chi', 'Lê'):
+            self.assertNotIn(name, prompt)
+        self.assertIn('S1.0 [00:10]', prompt)
+
+
+class GeminiBackend(unittest.TestCase):
+    def setUp(self):
+        from review_worker import llm
+        self.llm = llm
+        self.settings = types.SimpleNamespace(gemini_key='k', gemini_model='gemini-3.5-flash')
+        self.waits = []
+
+    def run_with(self, responses):
+        import requests
+        from unittest import mock
+
+        def post(url, json, timeout, headers, allow_redirects):
+            self.assertNotIn('k', url)          # key only in the header
+            self.assertEqual(headers['x-goog-api-key'], 'k')
+            item = responses.pop(0)
+            if isinstance(item, Exception):
+                raise item
+            return item
+
+        with mock.patch.object(requests, 'post', post):
+            model = self.llm.GeminiLLM(self.settings, sleep=self.waits.append)
+            return model.complete('sys', 'user', {'type': 'object'}, 100)
+
+    def response(self, status, body=None, headers=None):
+        from unittest import mock
+        return mock.Mock(status_code=status, headers=headers or {}, json=lambda: body)
+
+    def ok(self, finish='STOP'):
+        return self.response(200, {'candidates': [{'finishReason': finish, 'content': {'parts': [
+            {'text': 'thinking', 'thought': True}, {'text': '{"a": 1}'}]}}],
+            'usageMetadata': {'promptTokenCount': 5, 'candidatesTokenCount': 2}})
+
+    def test_retries_quota_and_overload_then_parses(self):
+        import requests
+        data, used = self.run_with([self.response(429, headers={'Retry-After': '90'}), requests.Timeout(),
+                                    self.response(503), self.ok()])
+        self.assertEqual(data, {'a': 1})
+        self.assertEqual(used, {'prompt_tokens': 5, 'completion_tokens': 2})
+        self.assertEqual(self.waits, [90, 60, 150])
+
+    def test_gives_up_with_code_only(self):
+        with self.assertRaisesRegex(self.llm.LLMError, '^gemini_http_429$'):
+            self.run_with([self.response(429)] * 4)
+        with self.assertRaisesRegex(self.llm.LLMError, '^gemini_http_400$'):
+            self.run_with([self.response(400, {'error': {'message': 'secret transcript'}})])
+        with self.assertRaisesRegex(self.llm.LLMError, '^truncated$'):
+            self.run_with([self.ok('MAX_TOKENS')])
 
 
 class StoreIdempotency(unittest.TestCase):

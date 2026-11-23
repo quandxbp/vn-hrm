@@ -70,6 +70,70 @@ class ApiLLM:
         return _parse(choice['message']['content']), out.get('usage') or {}
 
 
+class GeminiLLM:
+    """Gemini generateContent, text only (same request shape as edu_session_review).
+
+    Free Tier: Google may use the input to improve its models, so callers send only the
+    pseudonymized transcript. Retries 429/5xx/timeouts here (Retry-After, max ~4 min) because
+    a job-level retry would redo nothing useful; errors carry only status codes."""
+    API = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent'
+    RETRY = (429, 500, 503, 504)
+
+    def __init__(self, settings, sleep=None):
+        import re
+        import time
+
+        if not (settings.gemini_key and re.fullmatch(r'[A-Za-z0-9_.-]{1,100}', settings.gemini_model or '')):
+            raise LLMError('gemini_not_configured')
+        self.settings = settings
+        self.sleep = sleep or time.sleep
+
+    def complete(self, system, user, schema, max_tokens):
+        import requests
+
+        s = self.settings
+        generation = {'temperature': 0.2, 'maxOutputTokens': max(max_tokens, 8192),
+                      'responseMimeType': 'application/json', 'responseJsonSchema': schema}
+        if s.gemini_model.startswith('gemini-3'):
+            generation['thinkingConfig'] = {'thinkingLevel': 'low'}
+        body = {'systemInstruction': {'parts': [{'text': system}]},
+                'contents': [{'role': 'user', 'parts': [{'text': user}]}], 'generationConfig': generation}
+        delays = [20, 60, 150]
+        while True:
+            code = None
+            try:
+                response = requests.post(self.API % s.gemini_model, json=body, timeout=(10, 300),
+                                         headers={'x-goog-api-key': s.gemini_key}, allow_redirects=False)
+                code = response.status_code
+            except requests.Timeout:
+                code = 'timeout'
+            except requests.RequestException as exc:
+                raise LLMError('transport:%s' % type(exc).__name__) from exc
+            if code == 200:
+                break
+            if code not in self.RETRY and code != 'timeout' or not delays:
+                raise LLMError('gemini_http_%s' % code)  # never log the provider body
+            wait = delays.pop(0)
+            if code == 429:
+                try:
+                    wait = max(wait, min(240, int(response.headers.get('Retry-After') or 0)))
+                except ValueError:
+                    pass
+            self.sleep(wait)
+        out = response.json()
+        candidates = out.get('candidates') or []
+        if len(candidates) != 1:
+            raise LLMError('gemini_candidates')
+        if candidates[0].get('finishReason') != 'STOP':
+            raise LLMError('truncated' if candidates[0].get('finishReason') == 'MAX_TOKENS' else
+                           'gemini_finish:%s' % str(candidates[0].get('finishReason'))[:40])
+        text = ''.join(p.get('text', '') for p in candidates[0].get('content', {}).get('parts', [])
+                       if not p.get('thought'))
+        meta = out.get('usageMetadata') or {}
+        return _parse(text), {'prompt_tokens': meta.get('promptTokenCount', 0),
+                              'completion_tokens': meta.get('candidatesTokenCount', 0)}
+
+
 def _parse(text):
     """Accept raw control characters inside strings (newline/tab from the local model) and
     trailing text after the object. The error carries only positions, never content."""
@@ -83,9 +147,12 @@ def _parse(text):
     return data
 
 
-def backend(settings):
-    if settings.synth_backend == 'local':
+def backend(settings, name=None):
+    name = name or settings.synth_backend
+    if name == 'local':
         return LocalLLM(settings)
-    if settings.synth_backend == 'api':
+    if name == 'api':
         return ApiLLM(settings)
+    if name == 'gemini':
+        return GeminiLLM(settings)
     raise LLMError('backend')

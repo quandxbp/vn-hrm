@@ -11,9 +11,20 @@ Menu: *Xử lý video → So sánh worker AI* (chỉ quản lý giáo vụ).
 
 - Phần hỏi chuyện khởi động bằng tiếng Anh ("How are you?", "Did you go out today?") **tính là dạy**.
   Lời chào đơn thuần, chờ học sinh, kiểm tra mic/camera không tính.
-- Lời văn nhận xét dự kiến dùng API chỉ nhận văn bản (transcript đã thay tên học sinh). Nhà cung cấp
-  chưa chọn. Đến khi có key, worker dùng model local (`REVIEW_SYNTH_BACKEND=local`).
+- Lời văn nhận xét và điểm rubric dùng **Gemini text Free Tier** (người dùng chọn 23/11/2026), một lần gọi
+  mỗi buổi: `SYNTH_REDUCE_BACKEND=gemini`, `GEMINI_MODEL=gemini-3.5-flash` (bucket quota khác model video
+  production). Free Tier có thể dùng dữ liệu để huấn luyện, nên chỉ gửi transcript đã thay tên học sinh, kể cả
+  tên ASR viết gần giống ("Ellie" ~ ELLY); không gửi video/âm thanh/khung hình/ID Odoo.
+- Nhãn hoạt động, mốc bắt đầu/kết thúc và thời gian dạy vẫn tính trên VPS (model local + quy tắc).
+- Key nằm ở `GEMINI_API_KEY` trong `E:\KimReview\app\.env.worker` (bản sao key Free Tier đang lưu ở cấu hình
+  Gemini production). Đổi key trong Odoo thì phải cập nhật file này. Không ghi vào Git, chat hay log.
+- Chốt điểm cố định: tiêu chí > 2.0 cần ít nhất 2 dẫn chứng hợp lệ, nếu không giới hạn ở 2.0.
 - Chạy shadow 1–2 tuần trước khi quyết định thay Gemini.
+
+Benchmark 23/11/2026 (worker / Gemini video): buổi 42 điểm 8.0/6.5, dạy 28.1/28.1 phút; buổi 187 điểm 7.5/8.4,
+dạy 51.7/32.2 phút (Gemini bỏ sót đoạn sau 19:30); buổi 27 điểm 7.5/7.0, dạy 54.0/53.8 phút. Mốc bắt đầu lệch
+≤ 6 giây. Lời gọi Gemini text mỗi buổi khoảng 8 giây, 7–10 nghìn token vào. Điểm giữa hai lần chạy dao động
+khoảng ±0.5 nên chỉ đánh giá lệch điểm trên nhiều buổi.
 
 ## Bật
 

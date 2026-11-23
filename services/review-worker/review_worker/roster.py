@@ -1,4 +1,5 @@
 """Roster name matching for OCR text and transcript pseudonymization (pure Python)."""
+import difflib
 import re
 import unicodedata
 
@@ -66,11 +67,49 @@ class Matcher:
             (sure if len(keys) == 1 else ambiguous).update(keys)
         return sure - ambiguous, ambiguous
 
-    def pseudonymize(self, text):
+    def pseudonymize(self, text, fuzzy=False):
+        """fuzzy=True is for text leaving the VPS: ASR spells names loosely ("Ellie" for ELLY),
+        so capitalized words that sound like a roster name are also replaced (over-redaction is
+        preferred to leaking a name)."""
+        hits = self.find(text, strict_case=True)
+        if fuzzy:
+            taken = [(s, e) for s, e, _ in hits]
+            for start, end, word in tokens(text):
+                if any(s < end and start < e for s, e in taken) or not word[:1].isupper():
+                    continue
+                keys = self._sounds_like(word, sentence_start=not text[:start].strip()
+                                         or text[:start].rstrip()[-1:] in '.?!')
+                if keys:
+                    hits.append((start, end, frozenset(keys)))
+            hits.sort()
         out, last = [], 0
-        for start, end, keys in self.find(text, strict_case=True):
+        for start, end, keys in hits:
             out.append(text[last:start])
             out.append('[%s]' % next(iter(keys)) if len(keys) == 1 else '[học sinh chưa rõ]')
             last = end
         out.append(text[last:])
         return ''.join(out)
+
+    def _sounds_like(self, word, sentence_start):
+        folded = fold(word)
+        if len(folded) < 3 or folded in STOP:
+            return set()
+        skel = skeleton(folded)
+        keys = set()
+        for pattern, pattern_keys in self.redact.items():
+            if len(pattern) != 1 or len(pattern[0]) < 3:
+                continue
+            other = skeleton(pattern[0])
+            if skel == other or (not sentence_start and skel[:1] == other[:1] and len(other) >= 4
+                                 and difflib.SequenceMatcher(None, skel, other).ratio() >= 0.85):
+                keys |= pattern_keys
+        return keys
+
+
+def skeleton(word):
+    """Rough spelling-insensitive form: Ellie/Elly -> eli, Phuong/Fuong -> fuong."""
+    word = re.sub(r'ph', 'f', word)
+    word = re.sub(r'(ck|c|q)', 'k', word)
+    word = re.sub(r'(ie|ee|ey|y)', 'i', word)
+    word = re.sub(r'(.)\1+', r'\1', word)
+    return re.sub(r'(?<=..)[eh]$', '', word)

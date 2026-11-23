@@ -25,6 +25,7 @@ TASK_CUE = re.compile(r"\b(take (one|a|two|three|\d+) minutes?|check (the|your)|
                       r"work on|do (the|this) (exercise|task)|answer (the|these)|write (down|the|your))\b", re.I)
 ACTIVITIES = ['teaching', 'practice', 'greeting', 'waiting', 'setup', 'interruption', 'off_topic', 'no_data']
 ID = re.compile(r'[SW][0-9]{1,2}\.[0-9]{1,5}')
+RANGE = re.compile(r'([SW])([0-9]{1,2})\.([0-9]{1,5})\s*[-–]\s*(?:[SW]([0-9]{1,2}\.))?([0-9]{1,5})')
 STUDENT_TOKEN = re.compile(r'\[(student_[0-9]+|học sinh chưa rõ)\]')
 LEVELS = ['low', 'medium', 'good', 'insufficient']
 RUBRIC = ['content', 'instruction', 'interaction', 'management']
@@ -99,14 +100,30 @@ class Evidence:
             return
         self.spans[key] = (part, start, end)
 
+    def span(self, value):
+        """One id, or a same-part range "S2.96-S2.98" (Gemini writes these) of at most 10 minutes."""
+        if value in self.spans:
+            return self.spans[value]
+        match = RANGE.fullmatch(value)
+        if not match:
+            return None
+        kind, part, first, other_part, last = match.groups()
+        if other_part and other_part.rstrip('.') != part:
+            return None
+        a, b = self.spans.get('%s%s.%s' % (kind, part, first)), self.spans.get('%s%s.%s' % (kind, part, last))
+        if not a or not b or b[2] < a[1] or b[2] - a[1] > 600:
+            return None
+        return a[0], a[1], b[2]
+
     def refs(self, ids, limit):
         out, seen = [], set()
         for value in ids or []:
             value = str(value).strip()
-            if value in seen or value not in self.spans:
+            span = self.span(value)
+            if value in seen or not span:
                 continue
             seen.add(value)
-            part, start, end = self.spans[value]
+            part, start, end = span
             out.append({'part': part, 'start': clock(start), 'end': clock(end)})
             if len(out) == limit:
                 break
@@ -437,12 +454,82 @@ def reduce_prompt(spec, parts, timeline, notes, teaching_seconds, boundary=None)
     return '\n'.join(lines)
 
 
+REVIEW_TASK = '''Viết nhận xét buổi học từ BẢN GHI LỜI NÓI và dòng thời gian hoạt động hệ thống đã tính sẵn.
+Thời lượng theo lịch: %(planned)s phút. Tổng video: %(total)s. Thời gian dạy/học hệ thống đã tính: %(teaching)s.
+Số học sinh trong danh sách: %(students)s. Mốc bắt đầu dạy: %(start)s. Mốc kết thúc dạy: %(end)s.
+Thời gian dạy, mốc bắt đầu/kết thúc đã cố định; không tính lại, chỉ giải thích trong timing_note.
+Phần hỏi chuyện khởi động bằng tiếng Anh với học sinh (How are you?, Did you go out today?) tính là dạy.
+Mỗi dòng bản ghi có mã S<phần>.<số> và mốc MM:SS; dẫn chứng chỉ dùng các mã S.. hoặc W.. này,
+mỗi phần tử evidence đúng MỘT mã (ví dụ "S2.96"), không viết khoảng "S2.96-S2.98", không ghi mã vào lời văn.
+Bản ghi là nhận dạng giọng nói tự động: có thể sai chính tả, KHÔNG phân biệt giáo viên và học sinh, không có hình.
+Dòng "(im lặng Ns)" là khoảng không có lời nói: thường là học sinh suy nghĩ/trả lời chậm, làm bài hoặc mất kết nối.
+Yêu cầu:
+- summary: 3–5 câu văn xuôi về nội dung (ví dụ cụ thể: từ vựng, mẫu câu, loại bài tập), mức độ học sinh tham gia,
+  điểm mạnh nổi bật và một hạn chế chính. Không nhắc số phút hay tỷ lệ thời gian.
+- lesson_content: 2–6 nội dung THỰC TẾ đã dạy, mỗi ý một hoạt động/kiến thức, kèm từ/câu tiếng Anh trích ngắn.
+  Không chỉ viết chung chung "luyện đọc, luyện phát âm"; không bịa tên bài.
+- strengths: 2–3 hành vi cụ thể GIÁO VIÊN làm tốt. improvements: 2–3 góp ý cho giáo viên, nêu hành vi và cách sửa.
+- interaction_level low/medium/good dựa trên hỏi–đáp, cơ hội thực hành, phản hồi; không chỉ đếm câu hỏi.
+  interaction_comment giải thích bằng ví dụ và nêu giới hạn không tách người nói.
+- timing_note: 1–2 câu về dấu hiệu bắt đầu/kết thúc dạy và các khoảng chờ/gián đoạn đã loại.
+- rubric, mỗi tiêu chí 0–2.5 (một chữ số thập phân), hệ thống cộng thành thang 10:
+  content: nội dung chính xác, phù hợp và bài tập gắn với mục tiêu quan sát được;
+  instruction: hướng dẫn rõ ràng, làm mẫu, kiểm tra hiểu bài và sửa lỗi có ích;
+  interaction: cơ hội học sinh thực hành, hỏi đáp, phản hồi và phân bổ lượt;
+  management: tiến độ, chuyển hoạt động, sử dụng thời gian và xử lý gián đoạn.
+  Mốc: 0–0.5 rất hạn chế; 1 còn nhiều thiếu sót; 1.5 đáp ứng cơ bản; 2 tốt; 2.5 rất tốt và có dẫn chứng rõ.
+  Hiệu chuẩn: buổi dạy bình thường, đạt yêu cầu thường ở 1.5–2 mỗi tiêu chí. Chỉ cho 2.5 khi có ít nhất 2 dẫn chứng
+  rõ ở mức xuất sắc và không thấy hạn chế đáng kể; nếu chính bạn nêu góp ý cho tiêu chí đó thì không cho 2.5.
+  interaction: 2 khi học sinh trả lời chủ động, thành câu, giáo viên phản hồi và mở rộng; nếu học sinh chủ yếu trả lời
+  ngắn/chậm, giáo viên phải lặp lại câu hỏi nhiều lần hoặc tự trả lời thay thì khoảng 1.5.
+  instruction: 2 khi có làm mẫu, kiểm tra hiểu bài VÀ sửa lỗi cụ thể; chỉ giải thích/đọc đáp án thì khoảng 1.5.
+  Không mặc định điểm cao, không phạt vì lỗi mạng. reason nêu cả căn cứ và hạn chế dữ liệu.
+- Không đủ dữ liệu (ít lời nói, không phải buổi học): sufficient_data=false, interaction_level=insufficient,
+  mọi score=null (không dùng 0), quality_note giải thích.
+- quality_note: giới hạn bản ghi (âm thanh, nhận dạng tự động, không có hình).
+- Mỗi ý 1–3 mã dẫn chứng. Không thêm tên/mã học sinh vào nhận xét giáo viên.'''
+# A prompt of this size stays far below Gemini limits; it only guards pathological transcripts.
+MAX_TRANSCRIPT_CHARS = 150000
+SILENCE_MARK = 8
+
+
+def review_prompt(spec, parts, timeline, teaching_seconds, boundary, pseudonymize):
+    """Transcript-based prompt for a text API. `pseudonymize` must be the fuzzy variant."""
+    total = sum(p['duration'] for p in parts.values())
+    start, end = boundary.get('start'), boundary.get('end')
+    lines = [REVIEW_TASK % {'planned': '%g' % (spec.get('planned_minutes') or 0), 'total': clock(total),
+                            'teaching': clock(teaching_seconds), 'students': len(spec.get('roster') or []),
+                            'start': 'Phần %d %s' % (start[0], clock(start[1])) if start else 'chưa xác định',
+                            'end': 'Phần %d %s' % (end[0], clock(end[1])) if end else 'chưa xác định'},
+             '', 'DÒNG THỜI GIAN (cửa sổ W<phần>.<phút>):']
+    for number in sorted(parts):
+        lines.append('Phần %d (%s): %s' % (number, clock(parts[number]['duration']), timeline[number]))
+    transcript = []
+    for number in sorted(parts):
+        transcript.append('--- Phần %d ---' % number)
+        previous_end = None
+        for n, seg in enumerate(parts[number]['segments']):
+            text = ' '.join(pseudonymize(seg['text'] or '').split())
+            if not text:
+                continue
+            # Text has no video: pauses are the only trace of slow/hesitant answers.
+            if previous_end is not None and seg['start'] - previous_end >= SILENCE_MARK:
+                transcript.append('(im lặng %ds)' % round(seg['start'] - previous_end))
+            previous_end = seg['end']
+            transcript.append('S%d.%d [%s] %s' % (number, n, clock(seg['start']), text))
+    body = '\n'.join(transcript)
+    if len(body) > MAX_TRANSCRIPT_CHARS:
+        body = body[:MAX_TRANSCRIPT_CHARS].rsplit('\n', 1)[0] + '\n[bản ghi bị cắt bớt]'
+    return '\n'.join(lines + ['', 'BẢN GHI LỜI NÓI:', body])
+
+
 def reduce_schema():
     ev = {'type': 'array', 'items': {'type': 'string'}, 'maxItems': 3}
     point = {'type': 'object', 'additionalProperties': False, 'required': ['comment', 'evidence'],
              'properties': {'comment': {'type': 'string'}, 'evidence': ev}}
     crit = {'type': 'object', 'additionalProperties': False, 'required': ['score', 'reason', 'evidence'],
-            'properties': {'score': {'type': ['number', 'null']}, 'reason': {'type': 'string'}, 'evidence': ev}}
+            'properties': {'score': {'type': ['number', 'null'], 'minimum': 0, 'maximum': 2.5},
+                           'reason': {'type': 'string'}, 'evidence': ev}}
     props = {'summary': {'type': 'string'}, 'sufficient_data': {'type': 'boolean'}, 'quality_note': {'type': 'string'},
              'interaction_level': {'type': 'string', 'enum': LEVELS}, 'interaction_comment': {'type': 'string'},
              'lesson_content': {'type': 'array', 'maxItems': 6, 'items': point},
@@ -468,7 +555,8 @@ def timeline_text(rows, labels):
     return '; '.join('%s–%s %s' % (clock(a), clock(b), names[l]) for l, a, b in out)
 
 
-EVIDENCE_TOKEN = re.compile(r'\s*(?:\(\s*)?(?:trong |ở |tại )?\b[SW]\d+\.\d+\b(?:\s*[,;]\s*\b[SW]\d+\.\d+\b)*(?:\s*\))?,?', re.I)
+_REF = r'\b[SW]\d+\.\d+(?:\s*[-–]\s*(?:[SW]\d+\.)?\d+)?\b'
+EVIDENCE_TOKEN = re.compile(r'\s*(?:\(\s*)?(?:trong |ở |tại )?%s(?:\s*[,;]\s*%s)*(?:\s*\))?,?' % (_REF, _REF), re.I)
 
 
 def clean(text, limit):
@@ -527,6 +615,10 @@ def assemble(llm_out, evidence, parts, segments_by_part, students, speech_ratio,
                 limits.append('Mô hình không chấm được tiêu chí %s.' % key)
             else:
                 score = round(min(2.5, max(0.0, float(score))), 1)
+                # Above "tốt" needs at least two checkable evidence ids (local 7B gave 10/10 on thin notes).
+                if score > 2.0 and len(refs) < 2:
+                    score = 2.0
+                    reason += ' (Điểm giới hạn 2.0 vì chưa đủ 2 dẫn chứng kiểm tra được.)'
             if not refs and longest:
                 refs = [longest]
                 reason += ' (Dẫn chứng chung: khoảng dạy dài nhất.)'

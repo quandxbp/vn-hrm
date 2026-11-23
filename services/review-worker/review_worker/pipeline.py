@@ -13,11 +13,23 @@ from .roster import Matcher
 
 _logger = logging.getLogger('review_worker')
 CHUNK_WINDOWS = 10
-LLM_FILE = 'llm-v5.json'  # bump when synthesis logic changes; ASR/visual/map caches stay valid
+LLM_FILE = 'llm-v7.json'  # bump when synthesis logic changes; ASR/visual/map caches stay valid
 
 
 class Cancelled(Exception):
     pass
+
+
+class _Lazy:
+    """Load a backend on first call: cached map/boundary files often make the 5 GB load unnecessary."""
+
+    def __init__(self, factory):
+        self.factory, self.value = factory, None
+
+    def complete(self, *args, **kwargs):
+        if self.value is None:
+            self.value = self.factory()
+        return self.value.complete(*args, **kwargs)
 
 
 def _child(fn, args, queue):
@@ -97,7 +109,7 @@ def _llm_stage(job_dir, spec, parts, visuals, settings):
     from . import llm, synth
 
     matcher = Matcher(spec.get('roster'))
-    model = llm.backend(settings)
+    model = _Lazy(lambda: llm.backend(settings))
     labels, notes, timeline, segments_by_part, rows_by_part = {}, [], {}, {}, {}
     usage = {'calls': 0, 'prompt_tokens': 0, 'completion_tokens': 0}
     pseudo = {n: dict(p, segments=[dict(s, text=matcher.pseudonymize(s['text'])) for s in p['segments']])
@@ -155,12 +167,27 @@ def _llm_stage(job_dir, spec, parts, visuals, settings):
     teaching = sum(e - s for spans in segments_by_part.values() for s, e in spans)
     boundary = {'start': start, 'end': end, 'start_reason': str(bound.get('start_reason', ''))[:300],
                 'end_reason': str(bound.get('end_reason', ''))[:300]}
-    path = job_dir / 'reduce-v4.json'
+    if settings.reduce_backend == 'local':
+        path, reducer = job_dir / 'reduce-v4.json', model
+
+        def prompt():
+            return synth.reduce_prompt(spec, parts, timeline, notes, teaching, boundary)
+    else:
+        # A text API writes the review from the transcript itself (fuzzy-pseudonymized), not from 7B notes.
+        path = job_dir / ('reduce-%s-v2.json' % settings.reduce_backend)
+        reducer = (model if settings.reduce_backend == settings.synth_backend
+                   else _Lazy(lambda: llm.backend(settings, settings.reduce_backend)))
+
+        def prompt():
+            return synth.review_prompt(spec, parts, timeline, teaching, boundary,
+                                       lambda text: matcher.pseudonymize(text, fuzzy=True))
+    usage['reduce_backend'] = settings.reduce_backend
+    if settings.reduce_backend == 'gemini':
+        usage['reduce_model'] = settings.gemini_model
     if path.exists():
         reduced = media.read_json(path)
     else:
-        reduced, used = model.complete(synth.SYSTEM, synth.reduce_prompt(spec, parts, timeline, notes, teaching, boundary),
-                                       synth.reduce_schema(), max_tokens=2500)
+        reduced, used = reducer.complete(synth.SYSTEM, prompt(), synth.reduce_schema(), max_tokens=2500)
         usage['calls'] += 1
         for k in ('prompt_tokens', 'completion_tokens'):
             usage[k] += int(used.get(k) or 0)
@@ -241,7 +268,7 @@ class Pipeline:
         speech = sum(min(s['end'], p['duration']) - s['start'] for p in parts.values() for s in p['segments'])
         result = synth.assemble(llm_out['reduced'], evidence, parts, segments_by_part, students,
                                 speech / total if total else 0, any(p['has_audio'] for p in probes.values()))
-        metrics = {'pipeline_version': PIPELINE_VERSION, 'backend': self.settings.synth_backend,
+        metrics = {'pipeline_version': PIPELINE_VERSION, 'backend': self.settings.synth_backend, 'reduce_backend': self.settings.reduce_backend,
                    'whisper_model': self.settings.whisper_model, 'wall_seconds': round(time.monotonic() - started, 1),
                    'video_seconds': round(total, 1), 'stage_seconds': timings, 'peak_child_rss_mb': peak_rss_mb(),
                    'llm_usage': llm_out.get('usage')}
