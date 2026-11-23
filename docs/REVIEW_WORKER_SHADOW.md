@@ -26,6 +26,11 @@ dạy 51.7/32.2 phút (Gemini bỏ sót đoạn sau 19:30); buổi 27 điểm 7.
 ≤ 6 giây. Lời gọi Gemini text mỗi buổi khoảng 8 giây, 7–10 nghìn token vào. Điểm giữa hai lần chạy dao động
 khoảng ±0.5 nên chỉ đánh giá lệch điểm trên nhiều buổi.
 
+## Trạng thái production
+
+Đã cài và bật trên .128/kimacademy ngày 23/11/2026: `enabled_since` = `2026-11-23 01:21:49` (UTC),
+`daily_limit` = 20, cron 5 phút đang chạy. Backup trước cài: `C:\KimAcademy\backups\review-shadow-prod-20261123`.
+
 ## Bật
 
 1. Upgrade/cài addon trên đúng DB (`-i edu_review_shadow` lần đầu). Pause worker theo quy trình bàn giao.
