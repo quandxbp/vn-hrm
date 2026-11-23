@@ -1,0 +1,15 @@
+<odoo>
+    <record id="session_review_page_worker" model="ir.ui.view">
+        <field name="name">edu.session.form.review.worker</field>
+        <field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_session_review.session_review_page"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('edu_session_review_empty')]" position="before">
+                <div class="alert alert-info" role="status" groups="edu_gvnn.group_edu_manager"
+                     invisible="not ai_worker_status">
+                    <field name="ai_worker_status" nolabel="1"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

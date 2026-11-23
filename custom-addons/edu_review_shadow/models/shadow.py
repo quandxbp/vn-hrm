@@ -17,6 +17,12 @@ on the worker: the next upload starts only when no other row is waiting on the w
   edu_review_shadow.worker_token   bearer token from E:\\KimReview\\app\\.env.worker
   edu_review_shadow.enabled_since  'YYYY-MM-DD HH:MM:SS' UTC; only Gemini reports finished after it
   edu_review_shadow.daily_limit    new shadow jobs per day (default 20)
+  edu_review_shadow.prefer_worker_since  'YYYY-MM-DD HH:MM:SS' UTC; empty = off. When set, the worker is the
+                                   primary provider (approved 23/11/2026): Gemini auto-queue stops, every
+                                   taught session without a finished report is queued here, auto-queued Gemini
+                                   requests created before this moment that never reached inference are
+                                   cancelled when their session moves here, and a failed worker run falls back
+                                   to ONE new Gemini request (never after a Gemini attempt with lost response).
 
 Duplicate protection: the job key is derived from the report id, Drive signature, roster and
 prompt version. Every worker call is idempotent for that key, so a lost response is resolved by
@@ -42,6 +48,15 @@ LOCK = 87426            # edu_session_review uses 87425
 CHUNK = 32 * 1024 ** 2
 STEP_SECONDS = 240      # upload budget shared by all records in one cron run; the cron runs every 5 minutes
 PARAM = 'edu_review_shadow.'
+GEMINI_LOCK = 87425     # edu_session_review sequential lock (held by its cron for a whole run)
+ACTIVE = ('queued', 'processing', 'analyzing')
+FALLBACK_REASONS = ('not_published:parts_mismatch', 'not_published:create_')
+
+
+def gemini_touched(review):
+    """True once a Gemini request may have reached the provider's inference (or holds a receipt)."""
+    return bool(review.analysis_started or review.batch_name or review.batch_token
+                or review.provider_response or review.result_json)
 
 
 class ShadowError(Exception):
@@ -66,6 +81,11 @@ class ReviewShadow(models.Model):
     planned_minutes = fields.Float(readonly=True)
     official_review_id = fields.Many2one('edu.session.review', 'Báo cáo AI đã tạo', readonly=True, copy=False,
                                          ondelete='set null')
+    priority = fields.Boolean('Ưu tiên', readonly=True, copy=False, help='Quản lý bấm Phân tích: chạy trước hàng đợi.')
+    fallback_checked = fields.Boolean(readonly=True, copy=False)
+    fallback_review_id = fields.Many2one('edu.session.review', 'Báo cáo Gemini dự phòng', readonly=True, copy=False,
+                                         ondelete='set null')
+    fallback_note = fields.Char('Dự phòng Gemini', readonly=True, copy=False)
     job_key = fields.Char('Mã tác vụ worker', required=True, readonly=True, copy=False)
     state = fields.Selection([('upload', 'Đang gửi video'), ('waiting', 'Worker đang xử lý'),
                               ('done', 'Có kết quả'), ('failed', 'Lỗi'), ('skipped', 'Bỏ qua')],
@@ -206,28 +226,69 @@ class ReviewShadow(models.Model):
         return created
 
     @api.model
+    def _prefer_since(self):
+        value = self._param('prefer_worker_since')
+        try:
+            return fields.Datetime.to_datetime(value) if value else False
+        except ValueError:
+            return False
+
+    @api.model
+    def _gemini_split(self, sessions):
+        """Active Gemini requests of `sessions` -> (sessions Gemini is busy with, requests the worker may take over).
+        Only auto-queued requests from before prefer_worker_since that never reached inference and are not a
+        manager's 'Phân tích ngay' can be taken over; everything else keeps the session on Gemini."""
+        since = self._prefer_since()
+        active = self.env['edu.session.review'].sudo().search([('session_id', 'in', sessions.ids),
+                                                               ('state', 'in', list(ACTIVE))])
+        movable = active.filtered(lambda r: since and r.create_date < since and not gemini_touched(r)
+                                  and not r.immediate_until)
+        busy = (active - movable).session_id
+        return busy, movable - movable.filtered(lambda r: r.session_id in busy)
+
+    @api.model
     def _official_candidates(self):
         """Taught sessions with Drive video and no finished report, oldest first."""
         sessions = self.env['edu.session'].sudo().search([('state', '=', 'done'), ('ai_review_done', '=', False)],
                                                          order='date, time_start, id')
-        busy = self.env['edu.session.review'].sudo().search([
-            ('session_id', 'in', sessions.ids), ('state', 'in', ['queued', 'processing', 'analyzing'])]).session_id
+        busy = self._gemini_split(sessions)[0]
         return sessions.filtered(lambda s: s not in busy and s._review_sources()
                                  and not (s.week_id and s.week_id.is_locked))
 
     @api.model
-    def _queue_official(self, sessions=None):
-        """Create one official row per session (idempotent by job key). Returns the new rows."""
+    def _official_key(self, session):
+        return self.make_official_key(session, session._review_signature(), session._review_roster(),
+                                      self._planned(session))
+
+    @api.model
+    def _queue_official(self, sessions=None, priority=False):
+        """Create one official row per session (idempotent by job key). Returns the new rows.
+        Takes over (cancels) movable Gemini requests of a queued session under the Gemini lock, so the
+        Gemini cron can never be inside one of them at that moment; without the lock those sessions wait."""
         created = self.browse()
-        for session in (sessions if sessions is not None else self._official_candidates()):
+        sessions = sessions if sessions is not None else self._official_candidates()
+        busy, movable = self._gemini_split(sessions)
+        locked = False
+        if movable:
+            self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s, %s)', [GEMINI_LOCK, 0])
+            locked = self.env.cr.fetchone()[0]
+            if locked:   # re-read under the lock: the Gemini cron may have moved them on
+                movable.invalidate_recordset()
+                busy, movable = self._gemini_split(sessions)
+        for session in sessions:
             sources = session._review_sources()
-            if session.state != 'done' or session.ai_review_done or not sources or len(sources) > 10:
+            if session.state != 'done' or session.ai_review_done or not sources or len(sources) > 10 or session in busy:
+                continue
+            take = movable.filtered(lambda r: r.session_id == session)
+            if take and not locked:
                 continue
             roster, planned, signature = session._review_roster(), self._planned(session), session._review_signature()
             key = self.make_official_key(session, signature, roster, planned)
             if self.search_count([('job_key', '=', key)]):
                 continue
-            created |= self.create({'mode': 'official', 'session_id': session.id, 'job_key': key,
+            take.write({'state': 'cancelled', 'cleanup_pending': True,
+                        'error': 'Đã chuyển sang Kim Worker (worker nội bộ được ưu tiên).'})
+            created |= self.create({'mode': 'official', 'session_id': session.id, 'job_key': key, 'priority': priority,
                                     'roster_json': roster, 'source_signature': signature, 'planned_minutes': planned})
         return created
 
@@ -329,15 +390,20 @@ class ReviewShadow(models.Model):
         session = self.session_id
         Review = self.env['edu.session.review'].sudo()
         # The Gemini cron holds (87425, 0) for its whole sequential run: never publish in the middle of it.
-        self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s, %s)', [87425, 0])
+        self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s, %s)', [GEMINI_LOCK, 0])
         if not self.env.cr.fetchone()[0]:
             self.next_check = fields.Datetime.now() + timedelta(minutes=5)
             return False
         session.invalidate_recordset()
+        if session.state == 'done' and not session.ai_review_done and Review.search_count(
+                [('session_id', '=', session.id), ('state', 'in', list(ACTIVE))]):
+            # A Gemini run (manual/started) is still open: wait for it instead of discarding this result.
+            # If it finishes done -> already_reviewed; if it fails -> this result is published.
+            self.write({'error': 'publish_wait:gemini_in_progress',
+                        'next_check': fields.Datetime.now() + timedelta(minutes=15)})
+            return False
         reason = ('session_not_done' if session.state != 'done' else
                   'already_reviewed' if session.ai_review_done else
-                  'gemini_in_progress' if Review.search_count([('session_id', '=', session.id),
-                                                               ('state', 'in', ['queued', 'processing', 'analyzing'])]) else
                   'drive_changed' if session._review_signature() != self.source_signature else
                   'roster_changed' if session._review_roster() != (self.roster_json or []) else
                   'schedule_changed' if abs(self._planned(session) - self.planned_minutes) > 0.001 else False)
@@ -430,6 +496,11 @@ class ReviewShadow(models.Model):
             self.write({'error': str(exc)[:120], 'failures': self.failures + 1,
                         'next_check': fields.Datetime.now() + timedelta(minutes=30)})
 
+    @staticmethod
+    def _run_order(row):
+        """Manager requests first, then official reports, then comparison runs; oldest first."""
+        return (not row.priority, row.mode != 'official', row.id)
+
     @api.model
     def _cron_run(self):
         try:
@@ -443,9 +514,13 @@ class ReviewShadow(models.Model):
         try:
             self._enqueue()
             cr.commit()
+            if self._prefer_since():
+                self._queue_official()
+                cr.commit()
             now = fields.Datetime.now()
             rows = self.search([('state', 'in', ('upload', 'waiting', 'done')), ('acked', '=', False),
                                 '|', ('next_check', '=', False), ('next_check', '<=', now)], order='id')
+            rows = rows.sorted(self._run_order)
             deadline = time.monotonic() + STEP_SECONDS
             uploaded = False
             for row in rows:
@@ -456,8 +531,44 @@ class ReviewShadow(models.Model):
                     uploaded = True
                 row._advance(deadline)
                 cr.commit()
+            if self._prefer_since():
+                self._fallback_gemini()
+                cr.commit()
         finally:
             cr.execute('SELECT pg_advisory_unlock(%s, 0)', [LOCK])
+
+    @api.model
+    def _fallback_gemini(self):
+        """A finished-but-unusable official run gets ONE new Gemini request (decided once per row)."""
+        rows = self.search([('mode', '=', 'official'), ('fallback_checked', '=', False),
+                            '|', ('state', '=', 'failed'),
+                            '&', ('state', '=', 'done'), '|', ('error', '=', FALLBACK_REASONS[0]),
+                            ('error', '=like', FALLBACK_REASONS[1] + '%')], order='id')
+        config = self.env.ref('edu_video.config_default').sudo()
+        for row in rows:
+            session = row.session_id.sudo()
+            session.invalidate_recordset()
+            reviews = session.ai_review_ids
+            note = ('superseded' if self.search_count([('session_id', '=', session.id), ('mode', '=', 'official'),
+                                                       ('id', '>', row.id)]) else
+                    'already_reviewed' if session.ai_review_done else
+                    'session_cancelled' if session.state == 'cancel' else
+                    'gemini_active' if reviews.filtered(lambda r: r.state in ACTIVE) else
+                    # A Gemini inference was sent and its answer lost: never create another attempt automatically.
+                    'unknown_gemini_attempt' if reviews.filtered(
+                        lambda r: r.analysis_started and not r.provider_response and not r.result_json) else
+                    'gemini_disabled' if not (config.review_enabled and config.review_api_key) else False)
+            review = self.env['edu.session.review']
+            if not note:
+                try:
+                    with self.env.cr.savepoint():
+                        review = session._queue_ai_review()
+                    note = 'gemini_queued' if review.state in ACTIVE else 'gemini_%s' % review.state
+                except UserError as exc:
+                    note = ('gemini_error:%s' % exc)[:120]
+            row.write({'fallback_checked': True, 'fallback_note': note, 'fallback_review_id': review.id or False})
+            if note == 'gemini_queued':
+                _logger.info('review worker row %s fell back to Gemini review %s', row.id, review.id)
 
     def action_retry(self):
         """Manager button: resume a failed upload/poll with the SAME job key (idempotent on the worker).

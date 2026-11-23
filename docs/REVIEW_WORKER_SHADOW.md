@@ -1,9 +1,10 @@
-# Chạy song song review worker nội bộ (shadow)
+# Kim Worker: review worker nội bộ (chính thức, so sánh, Gemini dự phòng)
 
-Addon `edu_review_shadow` gửi video của buổi **đã có báo cáo Gemini** sang review worker nội bộ
-(`services/review-worker`, máy 10.77.160.36) và lưu kết quả vào model riêng
-`edu.session.review.shadow` để so sánh. Addon không ghi vào báo cáo Gemini, buổi học, điểm danh,
-khóa tuần, cảnh báo thời lượng hay gợi ý học phí/lương. Gemini vẫn là nguồn chính.
+Addon `edu_review_shadow` gửi video buổi học sang review worker nội bộ (`services/review-worker`, máy
+10.77.160.36), lưu kết quả vào model riêng `edu.session.review.shadow`. Từ 23/11/2026 Kim Worker là nguồn
+**chính** cho buổi chưa có nhận xét (mục *Ưu tiên Kim Worker*), Gemini là dự phòng. Với buổi đã có báo cáo
+Gemini, worker chỉ chạy để so sánh và không ghi vào báo cáo Gemini, buổi học, điểm danh, khóa tuần, cảnh báo
+thời lượng hay gợi ý học phí/lương.
 
 Menu: *Xử lý video → So sánh worker AI* (chỉ quản lý giáo vụ).
 
@@ -45,6 +46,28 @@ giáo viên như báo cáo Gemini. Báo cáo lỗi cũ giữ nguyên (không res
   thời lượng lịch không đổi, tuần chưa khóa và không đang giữ khóa tuần tự Gemini (87425, 0). Ngược lại kết quả
   chỉ ở dòng worker với lỗi `not_published:<lý do>`.
 - Chế độ so sánh không lấy báo cáo `kim-worker/*` làm báo cáo Gemini.
+
+## Ưu tiên Kim Worker, Gemini dự phòng (17.0.1.2.0)
+
+Bật bằng tham số `edu_review_shadow.prefer_worker_since` = mốc UTC `YYYY-MM-DD HH:MM:SS` (để trống = tắt, quay về
+Gemini tự xếp hàng như cũ). Khi bật:
+
+- Thêm/sửa link Drive **không** tự tạo lượt Gemini. Cron worker (5 phút) tự xếp mọi buổi đã dạy, có Drive, chưa có
+  báo cáo done, tuần chưa khóa.
+- Lượt Gemini tự xếp **trước mốc**, chưa tới inference (`analysis_started`, batch, provider response, result đều trống)
+  và không phải *Phân tích ngay* được hủy (`cancelled`, dọn file tạm, ghi chú "Đã chuyển sang Kim Worker") đúng lúc
+  buổi vào hàng worker, trong khóa tuần tự Gemini (87425, 0). Không lấy được khóa thì để lượt sau.
+- Lượt Gemini đã gửi inference, *Phân tích ngay*, hoặc tạo sau mốc (bấm tay/dự phòng) giữ buổi ở Gemini: worker không
+  nhận buổi đó. Nếu worker đã xong mà buổi còn lượt Gemini mở, worker **chờ** (`publish_wait:gemini_in_progress`,
+  thử lại 15 phút); Gemini xong trước thì `not_published:already_reviewed`, Gemini lỗi thì báo cáo worker được lưu.
+- Nút **Phân tích** trên buổi đã dạy chưa có nhận xét gửi buổi cho worker và đưa lên đầu hàng (`priority`). *Phân tích
+  ngay* (chọn model Gemini), *Phân tích lại* buổi đã có nhận xét, buổi chưa xác nhận dạy, hoặc video worker đã kết thúc
+  lỗi vẫn dùng Gemini. Trang Nhận xét AI của buổi hiện dòng trạng thái Kim Worker (vị trí hàng đợi/bước/lỗi).
+- Dòng worker lỗi (`failed`, kể cả Drive/transport sau 6 lần) hoặc kết quả không dùng được
+  (`not_published:parts_mismatch`, `not_published:create_*`) được xét dự phòng **một lần**: tạo một lượt Gemini mới
+  (`fallback_note=gemini_queued`) trừ khi buổi đã có báo cáo done, đang có lượt Gemini mở, có dòng worker mới hơn,
+  Gemini tắt, hoặc từng có lượt Gemini **mất phản hồi** (`unknown_gemini_attempt`, không tạo lượt mới theo quy tắc).
+- Thứ tự chạy: bấm tay → báo cáo chính thức → so sánh; vẫn chỉ một buổi trên worker.
 
 ## Bật
 

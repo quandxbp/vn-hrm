@@ -18,6 +18,8 @@
                 <field name="w_teaching_started_at" string="Bắt đầu (worker)" optional="show"/>
                 <field name="wall_minutes" optional="hide"/>
                 <field name="error" optional="show"/>
+                <field name="priority" optional="hide"/>
+                <field name="fallback_note" optional="show"/>
             </tree>
         </field>
     </record>
@@ -36,7 +38,8 @@
                     <div class="alert alert-info" role="status">
                         Chế độ so sánh: kết quả chỉ để đối chiếu, không thay báo cáo Gemini. Chế độ báo cáo chính thức:
                         chỉ cho buổi chưa có nhận xét hoàn tất; khi xong tạo một báo cáo AI mới (model kim-worker),
-                        dùng cho cảnh báo thời lượng và gợi ý học phí/lương như báo cáo Gemini.
+                        dùng cho cảnh báo thời lượng và gợi ý học phí/lương như báo cáo Gemini. Khi Kim Worker được ưu tiên,
+                        lượt worker lỗi tự chuyển một lượt Gemini dự phòng (trừ buổi từng có lượt Gemini mất phản hồi).
                     </div>
                     <group>
                         <group>
@@ -46,6 +49,9 @@
                             <field name="official_review_id" invisible="mode != 'official'"/>
                             <field name="job_key"/>
                             <field name="error" invisible="not error"/>
+                            <field name="priority" invisible="mode != 'official'"/>
+                            <field name="fallback_note" invisible="not fallback_note"/>
+                            <field name="fallback_review_id" invisible="not fallback_review_id"/>
                         </group>
                         <group>
                             <field name="uploaded_mb"/><field name="total_mb"/>
@@ -105,6 +111,7 @@
                 <separator/>
                 <filter name="official" string="Báo cáo chính thức" domain="[('mode', '=', 'official')]"/>
                 <filter name="shadow" string="So sánh Gemini" domain="[('mode', '=', 'shadow')]"/>
+                <filter name="fallback" string="Đã chuyển Gemini" domain="[('fallback_note', '=', 'gemini_queued')]"/>
                 <separator/>
                 <filter name="big_score_gap" string="Lệch điểm &gt; 1" domain="['|', ('score_diff', '&gt;', 1), ('score_diff', '&lt;', -1)]"/>
                 <filter name="big_time_gap" string="Lệch phút dạy &gt; 2" domain="['|', ('teaching_diff', '&gt;', 2), ('teaching_diff', '&lt;', -2)]"/>

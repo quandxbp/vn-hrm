@@ -1,4 +1,5 @@
 import hashlib
+from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import fields
@@ -292,3 +293,153 @@ class TestOfficialWorkerReview(ShadowBase):
             self.Shadow._cron_run()
             self.assertEqual(second.state, 'upload')
             self.assertFalse([c for c in self.worker.calls if second.job_key in c[1]])
+
+
+@tagged('post_install', '-at_install')
+class TestWorkerPriority(ShadowBase):
+    """Kim Worker is the primary provider once prefer_worker_since is set; Gemini is the fallback."""
+
+    VALUES = TestOfficialWorkerReview.VALUES
+    finish = TestOfficialWorkerReview.finish
+
+    def setUp(self):
+        super().setUp()
+        self.config = self.env.ref('edu_video.config_default').sudo()
+        self.config.write({'processing_enabled': False, 'review_enabled': True, 'review_auto': True,
+                           'review_execution': 'sync', 'review_api_key': 'fake-key', 'drive_state': 'connected',
+                           'refresh_token': 'fake-drive'})
+        # Rejected before inference (no lost response): a fallback may create a new attempt.
+        self.review.write({'state': 'failed', 'analysis_started': False, 'error': 'HTTP 400'})
+        self.session.invalidate_recordset()
+        since = fields.Datetime.now() + timedelta(hours=1)   # everything created in the test is "before"
+        self.set_since(fields.Datetime.to_string(since))
+        self.env.user.groups_id |= self.env.ref('edu_gvnn.group_edu_manager')
+        self.Review = self.env['edu.session.review'].sudo()
+
+    def set_since(self, value):
+        self.env['ir.config_parameter'].sudo().set_param('edu_review_shadow.prefer_worker_since', value)
+
+    def gemini(self, **values):
+        return self.Review.create(dict({
+            'session_id': self.session.id, 'model_name': 'gemini-test', 'state': 'queued', 'prompt_version': '2.1',
+            'source_signature': self.session._review_signature(), 'roster_snapshot': self.session._review_roster(),
+            'planned_minutes': 30}, **values))
+
+    def reviews(self):
+        return self.Review.search([('session_id', '=', self.session.id)])
+
+    def upload_queue(self):
+        return self.Shadow.search([('state', '=', 'upload')]).sorted(self.Shadow._run_order)
+
+    def test_drive_change_no_longer_queues_gemini(self):
+        before = self.reviews()
+        self.session.google_drive_url = 'https://drive.google.com/file/d/1ZyXwVuTsRqPoNmLkJiHgFeDcBa98765/view'
+        self.assertEqual(self.reviews(), before)
+        self.set_since(False)
+        self.session.google_drive_url = 'https://drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm098765/view'
+        self.assertEqual(len(self.reviews() - before), 1)   # unchanged Gemini behaviour when switched off
+
+    def test_unsent_auto_gemini_request_is_taken_over(self):
+        queued = self.gemini()
+        row = self.Shadow._queue_official()
+        self.assertEqual(row.session_id, self.session)
+        self.assertEqual(queued.state, 'cancelled')
+        self.assertTrue(queued.cleanup_pending)
+        self.assertFalse(queued.analysis_started)
+        self.assertEqual(self.review.state, 'failed')
+
+    def test_started_immediate_or_new_gemini_requests_keep_the_session(self):
+        for values in ({'state': 'analyzing', 'analysis_started': True},
+                       {'immediate_until': fields.Datetime.now() + timedelta(hours=1)}):
+            with self.subTest(values=values):
+                run = self.gemini(**values)
+                self.assertFalse(self.Shadow._queue_official())
+                self.assertIn(run.state, ('queued', 'analyzing'))
+                run.state = 'cancelled'
+        self.set_since('2000-01-01 00:00:00')
+        manual = self.gemini()   # created after the switch: a manager asked Gemini explicitly
+        self.assertFalse(self.Shadow._queue_official())
+        self.assertEqual(manual.state, 'queued')
+
+    def test_takeover_waits_for_the_gemini_cron(self):
+        queued = self.gemini()
+        with self.registry.cursor() as other:
+            other.execute('SELECT pg_advisory_lock(87425, 0)')
+            try:
+                self.assertFalse(self.Shadow._queue_official())
+                self.assertEqual(queued.state, 'queued')
+            finally:
+                other.execute('SELECT pg_advisory_unlock(87425, 0)')
+
+    def test_failed_worker_run_falls_back_to_one_gemini_request(self):
+        row = self.Shadow._queue_official()
+        self.advance(row)
+        self.worker.jobs[row.job_key]['state'] = 'failed'
+        self.advance(row)
+        self.assertEqual(row.state, 'failed')
+        before = self.reviews()
+        self.Shadow._fallback_gemini()
+        new = self.reviews() - before
+        self.assertEqual(len(new), 1)
+        self.assertEqual((row.fallback_note, row.fallback_review_id), ('gemini_queued', new))
+        self.assertEqual(new.state, 'queued')
+        self.Shadow._fallback_gemini()
+        self.assertEqual(self.reviews() - before, new)
+        self.assertFalse(self.Shadow._queue_official())   # the same video never goes back to the worker
+        self.assertEqual(self.review.state, 'failed')
+
+    def test_no_fallback_after_a_lost_gemini_response(self):
+        self.review.write({'analysis_started': True})
+        row = self.Shadow._queue_official()
+        row.write({'state': 'failed', 'error': 'worker:asr'})
+        before = self.reviews()
+        self.Shadow._fallback_gemini()
+        self.assertEqual(row.fallback_note, 'unknown_gemini_attempt')
+        self.assertEqual(self.reviews(), before)
+
+    def test_publish_waits_for_an_open_gemini_run(self):
+        row = self.Shadow._queue_official()
+        manual = self.gemini(immediate_until=fields.Datetime.now() + timedelta(hours=1))
+        self.finish(row)
+        self.assertEqual((row.state, row.error, row.acked), ('done', 'publish_wait:gemini_in_progress', False))
+        self.assertFalse(row.official_review_id)
+        self.session.invalidate_recordset()
+        self.assertIn('chờ lượt Gemini', self.session.ai_worker_status)
+        manual.write({'state': 'failed'})
+        row.next_check = False
+        with patch.object(shadow_module, 'validate_report', return_value=dict(self.VALUES)):
+            self.advance(row)
+        self.assertEqual(row.official_review_id.state, 'done')
+        self.assertTrue(row.acked)
+        self.assertFalse(row.error)
+
+    def test_analyze_button_sends_the_session_to_the_worker_first(self):
+        other = self.session.copy({'date': '2052-02-01', 'state': 'done', 'google_drive_url':
+                                   'https://drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm098765/view'})
+        first = self.Shadow._queue_official(other)
+        self.assertTrue(first)
+        before = self.reviews()
+        action = self.session.action_analyze_lesson()
+        self.assertEqual(action['tag'], 'display_notification')
+        self.assertEqual(self.reviews(), before)      # no Gemini request
+        row = self.Shadow.search([('session_id', '=', self.session.id)])
+        self.assertTrue(row.priority)
+        self.assertEqual(self.upload_queue()[:2].ids, [row.id, first.id])
+        self.session.invalidate_recordset()
+        self.assertIn('ưu tiên', self.session.ai_worker_status)
+        self.session.action_analyze_lesson()          # pressing again creates nothing new
+        self.assertEqual(self.Shadow.search_count([('session_id', '=', self.session.id)]), 1)
+        self.assertEqual(self.reviews(), before)
+
+    def test_analyze_button_uses_gemini_after_the_worker_failed(self):
+        row = self.Shadow._queue_official()
+        row.write({'state': 'failed', 'error': 'worker:asr', 'fallback_checked': True})
+        before = self.reviews()
+        self.session.action_analyze_lesson()
+        self.assertEqual(len(self.reviews() - before), 1)
+
+    def test_cron_queues_new_sessions_by_itself(self):
+        with patch.object(type(self.env.cr), 'commit', lambda cr: None):
+            self.Shadow._cron_run()
+        row = self.Shadow.search([('session_id', '=', self.session.id)])
+        self.assertEqual((row.mode, row.state), ('official', 'waiting'))
