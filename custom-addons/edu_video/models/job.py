@@ -521,9 +521,12 @@ class EduVideoJob(models.Model):
 
     def action_retry(self):
         self._action_lock()
-        if self.state != 'failed' and not (self.state == 'cancelled' and not self.upload_url):
+        # upload_url is technical-only (base.group_no_one): read it as superuser after the manager/access
+        # checks in _action_lock; the URL itself never reaches the client.
+        resumable = bool(self.sudo().upload_url)
+        if self.state != 'failed' and not (self.state == 'cancelled' and not resumable):
             raise UserError('Chỉ thử lại yêu cầu lỗi hoặc đã hủy trước upload. Trạng thái chưa rõ cần kiểm tra trên YouTube.')
-        vals = {'state': 'uploading' if self.upload_url else 'queued',
+        vals = {'state': 'uploading' if resumable else 'queued',
                 'error': False, 'attempts': 0, 'next_attempt': False}
         if self._cache_is_expired():
             self._cleanup()

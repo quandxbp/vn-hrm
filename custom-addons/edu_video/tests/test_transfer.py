@@ -175,6 +175,19 @@ class TestVideoTransfer(TransactionCase):
         with self.assertRaises(UserError):
             self.job.action_retry()
 
+    def test_manager_without_technical_rights_can_retry(self):
+        """Production 25/11/2026: 'Thử lại' read upload_url (base.group_no_one, effective only in debug mode,
+        so even the admin hit it) as the user -> AccessError. Without a request no user passes that check."""
+        manager = self.env['res.users'].create({
+            'name': 'Video Retry Manager', 'login': 'video-retry-manager',
+            'groups_id': [(6, 0, [self.env.ref('base.group_user').id, self.env.ref('edu_gvnn.group_edu_manager').id])]})
+        self.job.write({'state': 'failed', 'error': 'Tài khoản Drive không có quyền tải video này.'})
+        self.job.with_user(manager).action_retry()
+        self.assertEqual((self.job.state, self.job.error), ('queued', False))
+        self.job.write({'state': 'failed', 'upload_url': 'https://www.googleapis.com/upload/youtube/v3/videos?upload_id=fake'})
+        self.job.with_user(manager).action_retry()
+        self.assertEqual(self.job.state, 'uploading')      # resumable session kept, never a second upload
+
     @patch('odoo.addons.edu_video.models.job.requests.request')
     def test_timeout_keeps_session_for_retry(self, request):
         self.job.write({'state': 'uploading', 'total_bytes': 6,
