@@ -69,6 +69,27 @@ Gemini tự xếp hàng như cũ). Khi bật:
   Gemini tắt, hoặc từng có lượt Gemini **mất phản hồi** (`unknown_gemini_attempt`, không tạo lượt mới theo quy tắc).
 - Thứ tự chạy: bấm tay → báo cáo chính thức → so sánh; vẫn chỉ một buổi trên worker.
 
+## Hạn mức Gemini Free Tier (worker, từ 25/11/2026, addon 17.0.1.3.0)
+
+Sự cố 23–25/11: hạn mức ngày của `gemini-3.5-flash` Free Tier chỉ đủ khoảng 15–18 buổi; sau đó mọi buổi lỗi
+`worker:LLMError:gemini_http_429` sau 3 lần chạy (khoảng 45 phút mỗi buổi) và bị chuyển sang Gemini video dự phòng.
+Người dùng duyệt phương án A + B2 và dọn dữ liệu:
+
+- Worker (`.env.worker`): `GEMINI_FALLBACK_MODELS=gemini-3.5-flash-lite` (hạn mức riêng), `GEMINI_QUOTA_RESET_UTC_HOUR=8`.
+  Lỗi 429 *theo ngày* (đọc `quotaId ...PerDay` trong phản hồi, không log nội dung) chặn model đó đến 08:05 UTC
+  (15:05 VN) và chuyển sang model sau; 429 *theo phút* chờ ngắn rồi thử lại. Hết mọi model: job **không lỗi**, quay
+  lại hàng đợi với `stage=quota_wait`, giữ chép lời/khung hình đã tính, không tính lượt chạy; runner nghỉ tới giờ
+  reset. Trạng thái hạn mức lưu ở `E:\KimReview\data\gemini-quota.json`. Model đã viết nhận xét ghi trong
+  `llm_usage.reduce_model` → `model_name = kim-worker/<model>` để so chất lượng flash và flash-lite.
+- Odoo: dòng worker lỗi chỉ vì hạn mức (`gemini_http_429`/`gemini_quota`) **không** dự phòng sang Gemini
+  (`fallback_note=quota_requeue`); cron tự tạo lượt worker mới với mã tác vụ mới (`make_official_key(..., rerun=n)`,
+  worker không bao giờ chạy lại mã đã lỗi), dòng cũ ghi `requeued`. Lượt Gemini dự phòng chưa gửi của dòng đó bị hủy
+  trong khóa 87425 (`requeued:gemini_cancelled`); lượt Gemini đã gửi/đang chạy giữ nguyên và buổi ở lại Gemini.
+- Trang Nhận xét AI hiện "đang chờ hạn mức Gemini miễn phí của ngày mới (khoảng 15:00)" khi job ở `quota_wait`;
+  nút *Phân tích* trên buổi lỗi hạn mức đưa buổi lại worker (ưu tiên), không gọi Gemini.
+- Truy cập: .36 chỉ mở cổng 22/8090 cho .128; SSH tới .36 qua .128 (ProxyCommand). Backup worker trước khi thay:
+  `E:\KimReview\backups\worker-quota-20261125`.
+
 ## Bật
 
 1. Upgrade/cài addon trên đúng DB (`-i edu_review_shadow` lần đầu). Pause worker theo quy trình bàn giao.

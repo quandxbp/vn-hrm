@@ -23,6 +23,10 @@ on the worker: the next upload starts only when no other row is waiting on the w
                                    requests created before this moment that never reached inference are
                                    cancelled when their session moves here, and a failed worker run falls back
                                    to ONE new Gemini request (never after a Gemini attempt with lost response).
+                                   Exception (approved 25/11/2026): a run that failed only because the worker's
+                                   Gemini text quota was exhausted (429) never falls back; it is queued again on
+                                   the worker under a new job key, and an unsent fallback Gemini request it had
+                                   created is cancelled under the Gemini lock.
 
 Duplicate protection: the job key is derived from the report id, Drive signature, roster and
 prompt version. Every worker call is idempotent for that key, so a lost response is resolved by
@@ -51,6 +55,13 @@ PARAM = 'edu_review_shadow.'
 GEMINI_LOCK = 87425     # edu_session_review sequential lock (held by its cron for a whole run)
 ACTIVE = ('queued', 'processing', 'analyzing')
 FALLBACK_REASONS = ('not_published:parts_mismatch', 'not_published:create_')
+# Worker failures caused by the Gemini text quota only (nothing was generated): rerun on the worker.
+QUOTA_ERRORS = ('gemini_http_429', 'gemini_quota')
+
+
+def quota_failure(row):
+    return row.state == 'failed' and (row.error or '').startswith('worker:') and any(
+        code in row.error for code in QUOTA_ERRORS)
 
 
 def gemini_touched(review):
@@ -160,8 +171,10 @@ class ReviewShadow(models.Model):
         return 'kim-%s-%s' % (review.session_id.id, hashlib.sha256(('shadow|' + payload).encode()).hexdigest()[:16])
 
     @staticmethod
-    def make_official_key(session, signature, roster, planned):
-        payload = json.dumps([session.id, signature, roster, round(planned, 3), '2.1'], ensure_ascii=True, sort_keys=True)
+    def make_official_key(session, signature, roster, planned, rerun=0):
+        """`rerun` > 0 only for a new worker run after a quota failure (the first key stays unchanged)."""
+        data = [session.id, signature, roster, round(planned, 3), '2.1'] + ([rerun] if rerun else [])
+        payload = json.dumps(data, ensure_ascii=True, sort_keys=True)
         return 'kim-%s-%s' % (session.id, hashlib.sha256(('official|' + payload).encode()).hexdigest()[:16])
 
     @staticmethod
@@ -290,6 +303,53 @@ class ReviewShadow(models.Model):
                         'error': 'Đã chuyển sang Kim Worker (worker nội bộ được ưu tiên).'})
             created |= self.create({'mode': 'official', 'session_id': session.id, 'job_key': key, 'priority': priority,
                                     'roster_json': roster, 'source_signature': signature, 'planned_minutes': planned})
+        return created
+
+    @api.model
+    def _requeue_quota_failures(self, rows=None):
+        """Official runs that failed only on the worker's Gemini text quota get a new worker run
+        (new job key: the worker never reruns a failed job). An unsent fallback Gemini request created
+        for such a row is cancelled first, under the Gemini lock; a session Gemini is otherwise busy
+        with (sent/started request, 'Phân tích ngay', another open request) is left alone."""
+        if rows is None:
+            rows = self.search([('mode', '=', 'official'), ('state', '=', 'failed'), '|',
+                                ('error', 'like', QUOTA_ERRORS[0]), ('error', 'like', QUOTA_ERRORS[1])], order='id')
+        rows = rows.filtered(lambda r: r.mode == 'official').filtered(lambda r: quota_failure(r) and not self.search_count(
+            [('session_id', '=', r.session_id.id), ('mode', '=', 'official'), ('id', '>', r.id)]))
+        if not rows:
+            return self.browse()
+        fallbacks = rows.fallback_review_id.filtered(
+            lambda r: r.state in ACTIVE and not gemini_touched(r) and not r.immediate_until)
+        locked = False
+        if fallbacks:
+            self.env.cr.execute('SELECT pg_try_advisory_xact_lock(%s, %s)', [GEMINI_LOCK, 0])
+            locked = self.env.cr.fetchone()[0]
+            if locked:
+                fallbacks.invalidate_recordset()
+                fallbacks = fallbacks.filtered(lambda r: r.state in ACTIVE and not gemini_touched(r))
+        created = self.browse()
+        for row in rows:
+            session = row.session_id.sudo()
+            take = fallbacks.filtered(lambda r: r.session_id == session)
+            if take and not locked:
+                continue
+            sources = session._review_sources()
+            other = session.ai_review_ids.filtered(lambda r: r.state in ACTIVE) - take
+            if (session.state != 'done' or session.ai_review_done or not sources or len(sources) > 10 or other
+                    or (session.week_id and session.week_id.is_locked)):
+                continue
+            roster, planned, signature = session._review_roster(), self._planned(session), session._review_signature()
+            runs = self.search_count([('session_id', '=', session.id), ('mode', '=', 'official')])
+            key = self.make_official_key(session, signature, roster, planned, rerun=runs)
+            if self.search_count([('job_key', '=', key)]):
+                continue
+            take.write({'state': 'cancelled', 'cleanup_pending': True,
+                        'error': 'Đã chuyển lại sang Kim Worker (worker tạm hết hạn mức Gemini, đã xử lý).'})
+            created |= self.create({'mode': 'official', 'session_id': session.id, 'job_key': key,
+                                    'priority': row.priority, 'roster_json': roster, 'source_signature': signature,
+                                    'planned_minutes': planned})
+            row.write({'fallback_checked': True,
+                       'fallback_note': ('requeued' + (':gemini_cancelled' if take else ''))})
         return created
 
     # ------------------------------------------------------------------ steps
@@ -515,6 +575,8 @@ class ReviewShadow(models.Model):
             self._enqueue()
             cr.commit()
             if self._prefer_since():
+                self._requeue_quota_failures()
+                cr.commit()
                 self._queue_official()
                 cr.commit()
             now = fields.Datetime.now()
@@ -551,6 +613,8 @@ class ReviewShadow(models.Model):
             reviews = session.ai_review_ids
             note = ('superseded' if self.search_count([('session_id', '=', session.id), ('mode', '=', 'official'),
                                                        ('id', '>', row.id)]) else
+                    # Quota only: _requeue_quota_failures runs the session on the worker again instead.
+                    'quota_requeue' if quota_failure(row) else
                     'already_reviewed' if session.ai_review_done else
                     'session_cancelled' if session.state == 'cancel' else
                     'gemini_active' if reviews.filtered(lambda r: r.state in ACTIVE) else

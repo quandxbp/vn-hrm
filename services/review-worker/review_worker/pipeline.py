@@ -191,10 +191,41 @@ def _llm_stage(job_dir, spec, parts, visuals, settings):
         usage['calls'] += 1
         for k in ('prompt_tokens', 'completion_tokens'):
             usage[k] += int(used.get(k) or 0)
-        media.atomic_json(path, reduced)
+        if used.get('model'):      # a quota fallback model may have written the review
+            usage['reduce_model'] = used['model']
+        media.atomic_json(path, dict(reduced, _model=usage.get('reduce_model')))
+    usage['reduce_model'] = reduced.pop('_model', None) or usage.get('reduce_model')
     media.atomic_json(job_dir / LLM_FILE, {'reduced': reduced, 'segments': {str(k): v for k, v in segments_by_part.items()},
                                            'boundary': boundary, 'usage': usage})
     return True
+
+
+# ----------------------------------------------------------------- failures / quota
+QUOTA_ERROR = 'gemini_quota'
+
+
+def quota_until(settings):
+    """Epoch until which no Gemini model has quota (0 = usable or Gemini not used)."""
+    if settings.reduce_backend != 'gemini' and settings.synth_backend != 'gemini':
+        return 0
+    from .llm import Quota, gemini_models
+    return Quota(settings.data_dir).until(gemini_models(settings))
+
+
+def after_failure(store, settings, key, attempts, code):
+    """Record a failed run; returns seconds to wait before the next claim.
+
+    Quota exhaustion is not a failed attempt: the job goes back to the queue (stage quota_wait,
+    cached ASR/visual/map files kept), so after the reset only the review call is repeated."""
+    if QUOTA_ERROR in code:
+        store.update(key, state='queued', stage='quota_wait', error=QUOTA_ERROR, attempts=max(0, attempts - 1))
+        return 15
+    final = attempts >= settings.max_attempts
+    store.update(key, state='failed' if final else 'queued', error=code, finished=time.time() if final else None)
+    if final:
+        store.drop_media(key)
+        return 0
+    return 60
 
 
 # ----------------------------------------------------------------- orchestration

@@ -310,17 +310,61 @@ class GeminiBackend(unittest.TestCase):
             {'text': 'thinking', 'thought': True}, {'text': '{"a": 1}'}]}}],
             'usageMetadata': {'promptTokenCount': 5, 'candidatesTokenCount': 2}})
 
-    def test_retries_quota_and_overload_then_parses(self):
+    def daily(self):
+        return self.response(429, {'error': {'code': 429, 'message': 'secret', 'details': [
+            {'@type': 'type.googleapis.com/google.rpc.QuotaFailure',
+             'violations': [{'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier'}]},
+            {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '41s'}]}})
+
+    def test_retries_minute_quota_and_overload_then_parses(self):
         import requests
         data, used = self.run_with([self.response(429, headers={'Retry-After': '90'}), requests.Timeout(),
                                     self.response(503), self.ok()])
         self.assertEqual(data, {'a': 1})
-        self.assertEqual(used, {'prompt_tokens': 5, 'completion_tokens': 2})
-        self.assertEqual(self.waits, [90, 60, 150])
+        self.assertEqual(used, {'prompt_tokens': 5, 'completion_tokens': 2, 'model': 'gemini-3.5-flash'})
+        self.assertEqual(self.waits, [90, 20, 60])
+
+    def test_daily_quota_moves_to_the_fallback_model_and_blocks_until_reset(self):
+        from unittest import mock
+        self.settings.gemini_fallback_models = ('gemini-3.5-flash-lite',)
+        urls = []
+        responses = [self.daily(), self.ok()]
+
+        def post(url, **kwargs):
+            urls.append(url.split('/models/')[1].split(':')[0])
+            return responses.pop(0)
+
+        import requests
+        import datetime as dt
+        now = dt.datetime(2026, 11, 25, 7, 20, tzinfo=dt.timezone.utc).timestamp()
+        with mock.patch.object(requests, 'post', post):
+            model = self.llm.GeminiLLM(self.settings, sleep=self.waits.append, clock=lambda: now)
+            data, used = model.complete('sys', 'user', {'type': 'object'}, 100)
+            self.assertEqual(used['model'], 'gemini-3.5-flash-lite')
+            self.assertEqual(urls, ['gemini-3.5-flash', 'gemini-3.5-flash-lite'])
+            self.assertEqual(self.waits, [])          # a daily quota is not waited out inside the call
+            self.assertEqual(model.quota.available(model.models), ['gemini-3.5-flash-lite'])
+            responses[:] = [self.daily()]
+            with self.assertRaisesRegex(self.llm.LLMError, '^gemini_quota$'):
+                model.complete('sys', 'user', {'type': 'object'}, 100)
+            self.assertEqual(urls[-1], 'gemini-3.5-flash-lite')   # the blocked model is not called again
+            self.assertGreater(model.quota.until(model.models), 0)
+
+    def test_quota_reset_is_after_midnight_pacific(self):
+        import datetime as dt
+        at = lambda *a: dt.datetime(*a, tzinfo=dt.timezone.utc).timestamp()
+        self.assertEqual(self.llm.next_quota_reset(at(2026, 11, 25, 7, 20)), at(2026, 11, 25, 8, 5))
+        self.assertEqual(self.llm.next_quota_reset(at(2026, 11, 25, 9, 0)), at(2026, 11, 26, 8, 5))
+
+    def test_quota_file_is_shared_between_processes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.llm.Quota(tmp).block('m', 4102444800)
+            self.assertEqual(self.llm.Quota(tmp).until(['m']), 4102444800)
+            self.assertEqual(self.llm.Quota(tmp).until(['m', 'other']), 0)
 
     def test_gives_up_with_code_only(self):
-        with self.assertRaisesRegex(self.llm.LLMError, '^gemini_http_429$'):
-            self.run_with([self.response(429)] * 4)
+        with self.assertRaisesRegex(self.llm.LLMError, '^gemini_quota$'):
+            self.run_with([self.response(429)] * 4)   # per-minute limit that never clears
         with self.assertRaisesRegex(self.llm.LLMError, '^gemini_http_400$'):
             self.run_with([self.response(400, {'error': {'message': 'secret transcript'}})])
         with self.assertRaisesRegex(self.llm.LLMError, '^truncated$'):
@@ -345,6 +389,30 @@ class StoreIdempotency(unittest.TestCase):
             self.assertEqual(store.claim_next(), 'kim-0123456789ab')
             store.update('kim-0123456789ab', state='done', result={'x': 1})
             self.assertEqual(store.start('kim-0123456789ab')['state'], 'done')  # never re-queued
+
+    def test_quota_parks_the_job_without_using_an_attempt(self):
+        from review_worker.pipeline import after_failure
+        settings = types.SimpleNamespace(max_attempts=3)
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Store(tmp)
+            spec = {'roster': [], 'planned_minutes': 60, 'prompt_version': '2.1',
+                    'parts': [{'number': 1, 'size': 10, 'md5': '0' * 32}]}
+            key = 'kim-0123456789ab'
+            store.create(key, spec)
+            store.mark_verified(key, 1)
+            store.start(key)
+            for _ in range(5):                       # quota several days in a row: never fails the job
+                store.claim_next()
+                after_failure(store, settings, key, store.row(key)['attempts'], 'LLMError:gemini_quota')
+            job = store.get(key)
+            self.assertEqual((job['state'], job['stage'], job['error'], job['attempts']),
+                             ('queued', 'quota_wait', 'gemini_quota', 0))
+            store.part_path(key, 1).write_bytes(b'x')
+            for _ in range(3):
+                store.claim_next()
+                after_failure(store, settings, key, store.row(key)['attempts'], 'LLMError:gemini_http_400')
+            self.assertEqual(store.get(key)['state'], 'failed')
+            self.assertFalse(store.part_path(key, 1).exists())
 
 
 if __name__ == '__main__':

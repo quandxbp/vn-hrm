@@ -7,10 +7,12 @@
 from odoo import fields, models
 from odoo.exceptions import AccessError, UserError
 
-from .shadow import ACTIVE
+from .shadow import ACTIVE, quota_failure
 
 STAGES = {'asr': 'nhận dạng giọng nói', 'frames': 'đọc khung hình', 'synthesis': 'viết nhận xét',
           'queued': 'chờ worker', 'receiving': 'nhận video'}
+QUOTA_WAIT = ('Kim Worker đã chép lời xong, đang chờ hạn mức Gemini miễn phí của ngày mới (khoảng 15:00) '
+              'để viết nhận xét.')
 
 
 class SessionWorkerPriority(models.Model):
@@ -29,11 +31,15 @@ class SessionWorkerPriority(models.Model):
                 queue = Shadow.search([('state', '=', 'upload')]).sorted(Shadow._run_order)
                 ahead = list(queue).index(row) + Shadow.search_count([('state', '=', 'waiting')])
                 status = 'Kim Worker: đang chờ%s (còn %s buổi phía trước).' % (' — ưu tiên' if row.priority else '', ahead)
+            elif row.state == 'waiting' and row.worker_stage == 'quota_wait':
+                status = QUOTA_WAIT
             elif row.state == 'waiting':
-                status = 'Kim Worker đang phân tích: %s, %s%%.' % (
+                status ='Kim Worker đang phân tích: %s, %s%%.' % (
                     STAGES.get(row.worker_stage, row.worker_stage or 'đang xử lý'), round((row.worker_progress or 0) * 100))
             elif row.state == 'done' and (row.error or '').startswith('publish_wait'):
                 status = 'Kim Worker đã xong; chờ lượt Gemini đang mở của buổi này kết thúc rồi mới lưu báo cáo.'
+            elif quota_failure(row) and not session.ai_review_done:
+                status = 'Kim Worker tạm hết hạn mức Gemini; buổi học sẽ được tự xếp lại vào hàng đợi worker.'
             elif row.state == 'failed' and not session.ai_review_done:
                 status = 'Kim Worker lỗi (%s).%s' % (row.error or 'không rõ',
                     ' Đã chuyển sang Gemini.' if row.fallback_note == 'gemini_queued' else '')
@@ -63,7 +69,16 @@ class SessionWorkerPriority(models.Model):
             raise UserError('Cần buổi học chưa nghỉ và có ít nhất một link Drive để phân tích.')
         if len(sources) > 10:
             raise UserError('Một báo cáo hỗ trợ tối đa 10 phần video.')
-        row = Shadow.search([('job_key', '=', Shadow._official_key(self))], limit=1)
+        runs = Shadow.search([('session_id', '=', self.id), ('mode', '=', 'official')], order='id desc')
+        roster, planned, signature = self._review_roster(), Shadow._planned(self), self._review_signature()
+        keys = {Shadow.make_official_key(self, signature, roster, planned, rerun=n) for n in range(len(runs) + 1)}
+        row = runs.filtered(lambda r: r.job_key in keys)[:1]   # latest run for the current video/roster
+        if quota_failure(row):
+            again = Shadow._requeue_quota_failures(row)
+            if not again:
+                raise UserError('Worker AI đang bận chuyển hàng đợi, hãy thử lại sau vài phút.')
+            row = again
+            row.priority = True
         waiting_publish = row.state == 'done' and (row.error or '').startswith('publish_wait')
         if row and row.state not in ('upload', 'waiting') and not waiting_publish:
             return super().action_analyze_lesson()   # the worker already ended this video (failed/unusable): Gemini

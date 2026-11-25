@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse
 
 from . import PIPELINE_VERSION
 from .config import load
-from .pipeline import Cancelled, Pipeline
+from .pipeline import Cancelled, Pipeline, after_failure, quota_until
 from .store import KEY, Conflict, Store
 
 _logger = logging.getLogger('review_worker')
@@ -157,7 +157,8 @@ def runner():
             if time.time() - last_expire > 600:
                 store.expire(settings.retention_hours)
                 last_expire = time.time()
-            key = store.claim_next() if in_window() else None
+            # Every Gemini model out of quota: run nothing (the parked job keeps its transcript) until reset.
+            key = store.claim_next() if in_window() and not quota_until(settings) else None
             if not key:
                 time.sleep(15)
                 continue
@@ -173,13 +174,7 @@ def runner():
             except Exception as exc:  # noqa: BLE001 - keep only a short code, never transcript text
                 code = str(exc)[:200] if isinstance(exc, RuntimeError) else type(exc).__name__
                 _logger.warning('job %s attempt %s failed: %s', key, row['attempts'], code)
-                final = row['attempts'] >= settings.max_attempts
-                store.update(key, state='failed' if final else 'queued', error=code,
-                             finished=time.time() if final else None)
-                if final:
-                    store.drop_media(key)
-                else:
-                    time.sleep(60)
+                time.sleep(after_failure(store, settings, key, row['attempts'], code))
         except Exception:  # noqa: BLE001
             _logger.exception('runner loop error')
             time.sleep(30)

@@ -25,6 +25,8 @@ class Settings:
     reduce_backend: str
     gemini_key: str
     gemini_model: str
+    gemini_fallback_models: tuple
+    quota_reset_utc_hour: int
     llm_model_path: str
     llm_ctx: int
     api_base: str
@@ -57,6 +59,9 @@ def load():
         reduce_backend=_env('SYNTH_REDUCE_BACKEND') or _env('SYNTH_BACKEND', 'local'),
         gemini_key=_env('GEMINI_API_KEY'),
         gemini_model=_env('GEMINI_MODEL', 'gemini-3.5-flash'),
+        # Tried in order when the previous model's Free Tier quota is used up (separate buckets).
+        gemini_fallback_models=tuple(m.strip() for m in _env('GEMINI_FALLBACK_MODELS').split(',') if m.strip()),
+        quota_reset_utc_hour=int(_env('GEMINI_QUOTA_RESET_UTC_HOUR', '8')),
         llm_model_path=_env('LLM_MODEL_PATH', '/models/llm/Qwen2.5-7B-Instruct-Q4_K_M.gguf'),
         llm_ctx=int(_env('LLM_CTX', '12288')),
         api_base=_env('SYNTH_API_BASE'),

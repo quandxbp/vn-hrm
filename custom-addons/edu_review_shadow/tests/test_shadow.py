@@ -438,6 +438,75 @@ class TestWorkerPriority(ShadowBase):
         self.session.action_analyze_lesson()
         self.assertEqual(len(self.reviews() - before), 1)
 
+    # ---- worker Gemini text quota (25/11/2026): never a reason to fall back to Gemini video
+    def quota_failed(self, **values):
+        row = self.Shadow._queue_official()
+        row.write(dict({'state': 'failed', 'error': 'worker:LLMError:gemini_http_429'}, **values))
+        return row
+
+    def test_quota_failure_runs_again_on_the_worker_instead_of_gemini(self):
+        row = self.quota_failed()
+        before = self.reviews()
+        self.Shadow._fallback_gemini()
+        self.assertEqual(row.fallback_note, 'quota_requeue')
+        self.assertEqual(self.reviews(), before)
+        again = self.Shadow._requeue_quota_failures()
+        self.assertEqual((again.session_id, again.state, again.mode), (self.session, 'upload', 'official'))
+        self.assertNotEqual(again.job_key, row.job_key)        # the worker never reruns a failed job key
+        self.assertEqual(row.fallback_note, 'requeued')
+        self.assertFalse(self.Shadow._requeue_quota_failures())
+        self.assertFalse(self.Shadow._queue_official())
+        self.assertEqual(self.reviews(), before)
+        self.session.invalidate_recordset()
+        self.assertIn('Kim Worker: đang chờ', self.session.ai_worker_status)
+
+    def test_requeue_cancels_the_unsent_fallback_gemini_request(self):
+        row = self.quota_failed()
+        fallback = self.gemini()      # what the old code created after the quota failure
+        row.write({'fallback_checked': True, 'fallback_note': 'gemini_queued', 'fallback_review_id': fallback.id})
+        again = self.Shadow._requeue_quota_failures()
+        self.assertTrue(again)
+        self.assertEqual((fallback.state, fallback.cleanup_pending), ('cancelled', True))
+        self.assertFalse(fallback.analysis_started)
+        self.assertEqual(row.fallback_note, 'requeued:gemini_cancelled')
+
+    def test_requeue_leaves_a_sent_gemini_request_and_waits_for_the_lock(self):
+        row = self.quota_failed()
+        sent = self.gemini(state='analyzing', analysis_started=True)
+        row.fallback_review_id = sent
+        self.assertFalse(self.Shadow._requeue_quota_failures())
+        self.assertEqual(sent.state, 'analyzing')
+        sent.write({'state': 'failed'})
+        unsent = self.gemini()
+        row.fallback_review_id = unsent
+        with self.registry.cursor() as other:
+            other.execute('SELECT pg_advisory_lock(87425, 0)')
+            try:
+                self.assertFalse(self.Shadow._requeue_quota_failures())
+                self.assertEqual(unsent.state, 'queued')
+            finally:
+                other.execute('SELECT pg_advisory_unlock(87425, 0)')
+
+    def test_non_quota_worker_errors_still_fall_back(self):
+        row = self.quota_failed(error='worker:LLMError:gemini_http_400')
+        self.assertFalse(self.Shadow._requeue_quota_failures())
+        self.Shadow._fallback_gemini()
+        self.assertEqual(row.fallback_note, 'gemini_queued')
+
+    def test_quota_wait_status_and_analyze_button_requeue(self):
+        row = self.Shadow._queue_official()
+        row.write({'state': 'waiting', 'worker_stage': 'quota_wait'})
+        self.session.invalidate_recordset()
+        self.assertIn('hạn mức Gemini', self.session.ai_worker_status)
+        row.write({'state': 'failed', 'error': 'worker:LLMError:gemini_http_429'})
+        before = self.reviews()
+        self.session.action_analyze_lesson()
+        self.assertEqual(self.reviews(), before)               # no Gemini request
+        again = self.Shadow.search([('session_id', '=', self.session.id)], order='id desc', limit=1)
+        self.assertEqual((again.state, again.priority), ('upload', True))
+        self.session.action_analyze_lesson()                   # pressing again: same row
+        self.assertEqual(self.Shadow.search_count([('session_id', '=', self.session.id)]), 2)
+
     def test_cron_queues_new_sessions_by_itself(self):
         with patch.object(type(self.env.cr), 'commit', lambda cr: None):
             self.Shadow._cron_run()
