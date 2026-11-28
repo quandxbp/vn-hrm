@@ -1,0 +1,85 @@
+<odoo>
+    <record id="review_form_highlight" model="ir.ui.view">
+        <field name="name">edu.session.review.form.highlight</field>
+        <field name="model">edu.session.review</field>
+        <field name="inherit_id" ref="edu_session_review.review_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='score_details']/.." position="after">
+                <field name="highlight_count" invisible="1"/>
+                <div class="edu_review_section" invisible="not highlight_count">
+                    <h2>05 · Đoạn dạy nổi bật để cắt</h2>
+                    <p class="text-muted">Mốc tính từ 00:00 của từng phần video, dài tối đa 5 phút. AI chọn theo bản ghi lời nói;
+                        hãy xem lại trước khi đăng và xin phép phụ huynh nếu video có hình hoặc tên học sinh.</p>
+                    <field name="highlight_html" nolabel="1"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="session_review_page_highlight" model="ir.ui.view">
+        <field name="name">edu.session.form.review.highlight</field>
+        <field name="model">edu.session</field>
+        <field name="inherit_id" ref="edu_session_review.session_review_page"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ai_review_summary']/.." position="after">
+                <div class="edu_session_review_summary" invisible="ai_review_state != 'done' or not ai_review_highlight_html">
+                    <h4>Đoạn dạy nổi bật để cắt</h4>
+                    <field name="ai_review_highlight_html" nolabel="1" readonly="1"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="review_highlight_tree" model="ir.ui.view">
+        <field name="name">edu.session.review.highlight.tree</field>
+        <field name="model">edu.session.review</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0" delete="0" default_order="id desc">
+                <field name="session_date"/>
+                <field name="teacher_id"/>
+                <field name="session_id" optional="show"/>
+                <field name="score_display" string="Điểm /10"/>
+                <field name="interaction_level" widget="badge" optional="show"/>
+                <field name="highlight_clips" string="Đoạn nổi bật (phần · bắt đầu → kết thúc)" width="420px"/>
+                <button name="get_formview_action" type="object" string="Chi tiết" icon="fa-external-link" class="btn-link"/>
+            </tree>
+        </field>
+    </record>
+    <record id="review_highlight_search" model="ir.ui.view">
+        <field name="name">edu.session.review.highlight.search</field>
+        <field name="model">edu.session.review</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="teacher_id"/><field name="session_id"/><field name="week_id"/>
+                <filter name="good_interaction" string="Tương tác tốt" domain="[('interaction_level','=','good')]"/>
+                <filter name="high_score" string="Điểm từ 8" domain="[('score_available','=',True),('score_total','>=',8)]"/>
+                <separator/>
+                <filter name="session_date" string="Ngày học" date="session_date"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_teacher" string="Giáo viên" context="{'group_by':'teacher_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_review_highlight" model="ir.actions.act_window">
+        <field name="name">Đoạn dạy nổi bật</field>
+        <field name="res_model">edu.session.review</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'done'), ('highlight_count', '>', 0)]</field>
+        <field name="search_view_id" ref="review_highlight_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Chưa có đoạn dạy nổi bật.</p>
+            <p>Kim Worker chọn 1–2 đoạn 2–5 phút cho mỗi nhận xét AI mới. Nhận xét tạo trước khi có tính năng này không có đoạn nổi bật.</p>
+        </field>
+    </record>
+    <record id="action_review_highlight_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/><field name="view_mode">tree</field>
+        <field name="view_id" ref="review_highlight_tree"/><field name="act_window_id" ref="action_review_highlight"/>
+    </record>
+    <record id="action_review_highlight_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/><field name="view_mode">form</field>
+        <field name="view_id" ref="edu_session_review.review_form"/><field name="act_window_id" ref="action_review_highlight"/>
+    </record>
+    <menuitem id="menu_review_highlight" name="Đoạn dạy nổi bật" parent="edu_video.menu_video_processing_root"
+              action="action_review_highlight" sequence="21" groups="edu_gvnn.group_edu_manager"/>
+</odoo>

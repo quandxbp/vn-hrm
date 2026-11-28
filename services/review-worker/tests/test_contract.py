@@ -74,9 +74,39 @@ class Contract(unittest.TestCase):
         return 'greeting' if n == 1 and w['k'] < 2 else 'teaching'
 
     def validate(self, data, parts):
+        # edu_review_shadow strips the optional 'highlights' key before the Odoo validator.
         durations = {n: p['duration'] for n, p in parts.items()}
+        data = {k: v for k, v in data.items() if k != 'highlights'}
         return report.validate_report(data, durations, require_v2=True, require_students=True,
                                       roster=ROSTER, planned_minutes=60)
+
+    def test_highlight_ids_become_exact_clips_within_teaching_time(self):
+        parts, visuals = self.two_parts()          # 20 s segments; part 1 teaching from 02:00
+        picks = [{'start_id': 'S1.30', 'end_id': 'S1.38', 'reason': 'Hỏi đáp qua lại [student_11].'},
+                 {'start_id': 'S1.40', 'end_id': 'S1.70', 'reason': 'Quá dài, cắt còn 5 phút.'},
+                 {'start_id': 'S2.5', 'end_id': 'S2.5', 'reason': 'Một câu, nới thêm.'}]
+        data = build(parts, visuals, dict(GOOD, highlights=picks), self.labels)
+        clips = data['highlights']
+        self.assertEqual(clips[0], {'part': 1, 'start': '09:58', 'end': '13:00', 'reason': 'Hỏi đáp qua lại học sinh.'})
+        self.assertEqual((clips[1]['start'], clips[1]['end']), ('13:18', '18:20'))   # cut at a sentence end <= 5 min
+        self.assertEqual(len(clips), 2)                                                # limit 2
+        one = synth.highlight_clips(picks[2:], parts, {2: [(0, 1200)]})
+        self.assertEqual((one[0]['start'], one[0]['end']), ('01:38', '03:20'))         # extended to ~90 s
+        self.validate(data, parts)
+
+    def test_bad_highlights_are_dropped(self):
+        parts, visuals = self.two_parts()
+        teaching = {1: [(120, 1500)], 2: [(0, 1200)]}
+        bad = [{'start_id': 'S1.1', 'end_id': 'S1.5', 'reason': 'greeting'},      # before teaching starts
+               {'start_id': 'S1.50', 'end_id': 'S2.3', 'reason': 'two parts'},
+               {'start_id': 'S1.60', 'end_id': 'S1.50', 'reason': 'reversed'},
+               {'start_id': 'S9.1', 'end_id': 'W1.2', 'reason': 'unknown'}, 'x']
+        self.assertEqual(synth.highlight_clips(bad, parts, teaching), [])
+        overlap = [{'start_id': 'S1.30', 'end_id': 'S1.38', 'reason': 'a'}, {'start_id': 'S1.35', 'end_id': 'S1.45', 'reason': 'b'}]
+        self.assertEqual(len(synth.highlight_clips(overlap, parts, teaching)), 1)
+        silent = build({1: {'duration': 1800.0, 'segments': segs(0, 60)}}, {1: frames(1800, lambda t: [])},
+                       dict(GOOD, highlights=overlap[:1]), lambda n, w: 'no_data')
+        self.assertEqual(silent['highlights'], [])                                    # insufficient data: none
 
     def test_full_report_passes_odoo_validator(self):
         parts, visuals = self.two_parts()

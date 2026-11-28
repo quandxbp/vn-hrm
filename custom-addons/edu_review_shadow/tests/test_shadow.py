@@ -256,6 +256,44 @@ class TestOfficialWorkerReview(ShadowBase):
         self.assertFalse(self.Shadow._queue_official())
         self.assertFalse(self.Shadow._enqueue().filtered(lambda r: r.review_id == report))
 
+    def test_highlight_clips_are_published_outside_the_report_schema(self):
+        self.session.youtube_url = 'https://youtu.be/AbCdEfGhIjK'
+        row = self.Shadow._queue_official()
+        self.advance(row)
+        clips = [{'part': 1, 'start': '12:30', 'end': '15:10', 'reason': 'Hỏi đáp qua lại, sửa lỗi ngay.'},
+                 {'part': 1, 'start': '20:00', 'end': '29:00', 'reason': 'quá 5 phút'},
+                 {'part': 2, 'start': '01:00', 'end': '03:00', 'reason': 'không có phần 2'},
+                 {'part': 1, 'start': '29:00', 'end': '31:00', 'reason': 'vượt thời lượng'}]
+        self.worker.jobs[row.job_key].update(state='done', result={'summary': 'x', 'highlights': clips},
+                                             metrics={'wall_seconds': 60})
+        seen = []
+
+        def validate(data, *args, **kwargs):
+            seen.append(set(data))
+            return dict(self.VALUES)
+        with patch.object(shadow_module, 'validate_report', side_effect=validate):
+            self.advance(row)
+        self.assertEqual(seen, [{'summary'}, {'summary'}])        # stored result and publish: key removed
+        report = row.official_review_id
+        self.assertEqual(report.highlight_count, 1)
+        self.assertEqual(report.highlight_clips,
+                         '1. Phần 1 · 12:30 → 15:10 (2 phút 40 giây)\n   Hỏi đáp qua lại, sửa lỗi ngay.')
+        self.assertIn('watch?v=AbCdEfGhIjK&amp;t=750s', report.highlight_html)
+        self.assertEqual(report.result_json['highlights'], clips)  # raw worker output kept for audit
+        self.session.invalidate_recordset()
+        self.assertEqual(self.session.ai_review_highlight_html, report.highlight_html)
+        domain = eval(self.env.ref('edu_review_shadow.action_review_highlight').domain)  # noqa: S307 - own XML
+        self.assertIn(report, self.env['edu.session.review'].search(domain))
+
+    def test_old_worker_result_without_highlights_is_unchanged(self):
+        data = {'summary': 'x'}
+        self.assertIs(shadow_module.split_highlights(data, {1: 1800.0})[0], data)
+        self.assertEqual(shadow_module.split_highlights(data, {1: 1800.0})[1], {})
+        row = self.Shadow._queue_official()
+        self.finish(row)
+        self.assertFalse(row.official_review_id.highlight_count)
+        self.assertFalse(row.official_review_id.highlight_html)
+
     def test_not_published_when_another_report_finished_first(self):
         row = self.Shadow._queue_official()
         self.review.state = 'done'

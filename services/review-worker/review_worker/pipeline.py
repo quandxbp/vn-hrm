@@ -13,7 +13,7 @@ from .roster import Matcher
 
 _logger = logging.getLogger('review_worker')
 CHUNK_WINDOWS = 10
-LLM_FILE = 'llm-v7.json'  # bump when synthesis logic changes; ASR/visual/map caches stay valid
+LLM_FILE = 'llm-v8.json'  # bump when synthesis logic changes; ASR/visual/map caches stay valid
 
 
 class Cancelled(Exception):
@@ -168,13 +168,13 @@ def _llm_stage(job_dir, spec, parts, visuals, settings):
     boundary = {'start': start, 'end': end, 'start_reason': str(bound.get('start_reason', ''))[:300],
                 'end_reason': str(bound.get('end_reason', ''))[:300]}
     if settings.reduce_backend == 'local':
-        path, reducer = job_dir / 'reduce-v4.json', model
+        path, reducer = job_dir / 'reduce-v5.json', model
 
         def prompt():
             return synth.reduce_prompt(spec, parts, timeline, notes, teaching, boundary)
     else:
         # A text API writes the review from the transcript itself (fuzzy-pseudonymized), not from 7B notes.
-        path = job_dir / ('reduce-%s-v2.json' % settings.reduce_backend)
+        path = job_dir / ('reduce-%s-v3.json' % settings.reduce_backend)  # v3: highlights
         reducer = (model if settings.reduce_backend == settings.synth_backend
                    else _Lazy(lambda: llm.backend(settings, settings.reduce_backend)))
 

@@ -90,6 +90,25 @@ Người dùng duyệt phương án A + B2 và dọn dữ liệu:
 - Truy cập: .36 chỉ mở cổng 22/8090 cho .128; SSH tới .36 qua .128 (ProxyCommand). Backup worker trước khi thay:
   `E:\KimReview\backups\worker-quota-20261125`.
 
+## Đoạn dạy nổi bật để cắt (addon 17.0.1.4.0, worker reduce v3)
+
+Người quản lý muốn biết đoạn 2–5 phút dạy/tương tác tốt nhất để tự cắt đăng nền tảng khác.
+
+- Không thêm lượt gọi AI: chính lượt Gemini viết nhận xét (đã đọc toàn bộ bản ghi) trả thêm `highlights`
+  gồm tối đa 2 đoạn `start_id`/`end_id` (mã câu S..) kèm lý do. Worker đổi mã sang MM:SS cố định
+  (`synth.highlight_clips`): cùng một phần, cắt tại cuối câu để ≤ 5 phút, đoạn một câu được nới tới khoảng 90 giây,
+  đệm 2 giây hai đầu, ≥ 80% nằm trong thời gian dạy, không chồng nhau. Không đủ dữ liệu thì không có đoạn.
+- Khóa `highlights` nằm ngoài schema báo cáo Gemini: `edu_review_shadow` tách khóa này trước `validate_report`;
+  đoạn sai (khác phần, vượt thời lượng, ngoài 30–330 giây) bị bỏ, không làm lỗi cả báo cáo. Kết quả gốc giữ trong
+  `result_json`.
+- Hiển thị: mục *05 · Đoạn dạy nổi bật để cắt* trong form nhận xét, khối tương ứng ở tab Nhận xét AI của buổi học
+  (link YouTube `&t=<giây>` nếu phần đó đã có link YouTube), và menu *Xử lý → Đoạn dạy nổi bật* (cạnh *Nhận xét AI*) (lọc giáo viên,
+  tương tác tốt, điểm từ 8).
+- **Thứ tự deploy bắt buộc:** upgrade `edu_review_shadow` 17.0.1.4.0 trên Odoo **trước**, rồi mới thay worker.
+  Odoo cũ kiểm tra đúng tập khóa nên sẽ từ chối kết quả có `highlights` (`invalid_result:schema`).
+- Chỉ áp dụng nhận xét worker mới. Báo cáo cũ không có đoạn nổi bật: worker xóa bản ghi lời nói sau khi Odoo ack
+  (hoặc sau 72 giờ), muốn có phải phân tích lại (tải video, chép lời, gọi Gemini lại).
+
 ## Bật
 
 1. Upgrade/cài addon trên đúng DB (`-i edu_review_shadow` lần đầu). Pause worker theo quy trình bàn giao.

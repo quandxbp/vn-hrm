@@ -45,6 +45,8 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from odoo.addons.edu_session_review.models.report import validate_report
+
+from .highlight import split_highlights
 from odoo.addons.edu_video.models.job import parse_drive_url
 
 _logger = logging.getLogger(__name__)
@@ -478,8 +480,10 @@ class ReviewShadow(models.Model):
             return True
         data = self.result_json
         durations = {int(k): float(v) for k, v in (self.durations_json or {}).items()}
-        values = validate_report(data, durations, require_v2=True, require_students=bool(self.roster_json),
+        report, clips = split_highlights(data, durations)
+        values = validate_report(report, durations, require_v2=True, require_students=bool(self.roster_json),
                                  roster=self.roster_json, planned_minutes=self.planned_minutes)
+        values.update(clips)
         model = 'kim-worker/%s' % (((self.metrics_json or {}).get('llm_usage') or {}).get('reduce_model')
                                    or (self.metrics_json or {}).get('reduce_backend') or 'local')
         parts = [fields.Command.create({'number': p['number'], 'source_url': source['drive'], 'file_id': p['file_id'],
@@ -515,7 +519,8 @@ class ReviewShadow(models.Model):
                 'error': False, 'wall_minutes': (metrics.get('wall_seconds') or 0) / 60,
                 'peak_rss_mb': int(metrics.get('peak_child_rss_mb') or 0), 'worker_progress': 1}
         try:
-            v = validate_report(data, durations, require_v2=True, require_students=bool(self.roster_json),
+            v = validate_report(split_highlights(data, durations)[0], durations, require_v2=True,
+                                require_students=bool(self.roster_json),
                                 roster=self.roster_json, planned_minutes=self.planned_minutes)
         except UserError as exc:
             return dict(base, state='failed', error=('invalid_result:%s' % exc)[:120])

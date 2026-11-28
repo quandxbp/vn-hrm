@@ -71,6 +71,7 @@ Yêu cầu:
 - Nếu dữ liệu không đủ (ít lời nói, không phải buổi học): sufficient_data=false, interaction_level=insufficient,
   mọi score=null, quality_note giải thích.
 - quality_note: nêu giới hạn bản ghi (âm thanh, hình, nhận dạng tự động).
+- highlights=[] (ghi chú không đủ để chọn đoạn video).
 - Mỗi ý 1–3 mã dẫn chứng, chỉ dùng mã có trong ghi chú.'''
 
 
@@ -487,6 +488,11 @@ Yêu cầu:
 - Không đủ dữ liệu (ít lời nói, không phải buổi học): sufficient_data=false, interaction_level=insufficient,
   mọi score=null (không dùng 0), quality_note giải thích.
 - quality_note: giới hạn bản ghi (âm thanh, nhận dạng tự động, không có hình).
+- highlights: 1–2 đoạn LIÊN TỤC dài 2–4 phút (tối đa 5 phút) trong CÙNG một phần, hay nhất để cắt đăng giới thiệu
+  lớp học: giáo viên dạy rõ VÀ học sinh tương tác tốt (hỏi–đáp qua lại, học sinh nói thành câu, giáo viên làm mẫu,
+  khen hoặc sửa lỗi). Tránh chào hỏi, chờ, kiểm tra mic/camera, gián đoạn, im lặng dài, nói chuyện ngoài bài;
+  ưu tiên đoạn ít gọi tên học sinh. start_id = mã S.. câu mở đầu đoạn, end_id = mã S.. câu kết thúc đoạn;
+  reason tối đa 30 từ nêu vì sao đoạn nổi bật. Không đủ dữ liệu thì highlights=[].
 - Mỗi ý 1–3 mã dẫn chứng. Không thêm tên/mã học sinh vào nhận xét giáo viên.'''
 # A prompt of this size stays far below Gemini limits; it only guards pathological transcripts.
 MAX_TRANSCRIPT_CHARS = 150000
@@ -537,8 +543,62 @@ def reduce_schema():
              'improvements': {'type': 'array', 'maxItems': 3, 'items': point},
              'timing_note': {'type': 'string'},
              'rubric': {'type': 'object', 'additionalProperties': False, 'required': RUBRIC,
-                        'properties': {k: crit for k in RUBRIC}}}
+                        'properties': {k: crit for k in RUBRIC}},
+             'highlights': {'type': 'array', 'maxItems': 2, 'items': {
+                 'type': 'object', 'additionalProperties': False, 'required': ['start_id', 'end_id', 'reason'],
+                 'properties': {'start_id': {'type': 'string'}, 'end_id': {'type': 'string'},
+                                'reason': {'type': 'string'}}}}}
     return {'type': 'object', 'additionalProperties': False, 'required': list(props), 'properties': props}
+
+
+# ----------------------------------------------------------------- highlight clips
+CLIP_MIN, CLIP_TARGET, CLIP_MAX, CLIP_PAD = 45, 90, 300, 2
+SEGMENT_ID = re.compile(r'S([0-9]{1,2})\.([0-9]{1,5})')
+
+
+def _segment(parts, value):
+    match = SEGMENT_ID.fullmatch(str(value or '').strip())
+    if not match:
+        return None
+    number, n = int(match.group(1)), int(match.group(2))
+    if number not in parts or n >= len(parts[number]['segments']):
+        return None
+    return number, n
+
+
+def highlight_clips(items, parts, segments_by_part, limit=2):
+    """Clips the model chose by transcript ids -> exact MM:SS inside one part.
+
+    The model never writes times. A clip is cut back at a sentence end to stay within 5 minutes,
+    a one-sentence pick is extended to about 90 s, and it must lie (80%) inside teaching time."""
+    out, spans = [], []
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        a, b = _segment(parts, item.get('start_id')), _segment(parts, item.get('end_id'))
+        if not a or not b or a[0] != b[0] or b[1] < a[1]:
+            continue
+        number, i, j = a[0], a[1], b[1]
+        segs = parts[number]['segments']
+        start = segs[i]['start']
+        while j > i and segs[j]['end'] - start > CLIP_MAX:
+            j -= 1
+        while j + 1 < len(segs) and segs[j]['end'] - start < CLIP_TARGET and segs[j + 1]['end'] - start <= CLIP_MAX:
+            j += 1
+        end = min(segs[j]['end'], start + CLIP_MAX)
+        limit_s = math.floor(parts[number]['duration'])
+        s = max(0, math.floor(start - CLIP_PAD))
+        e = min(limit_s, math.ceil(end + CLIP_PAD), s + CLIP_MAX + 2 * CLIP_PAD)
+        if e - s < CLIP_MIN:
+            continue
+        teaching = sum(overlap(s, e, x, y) for x, y in segments_by_part.get(number) or [])
+        if teaching < 0.8 * (e - s) or any(n == number and overlap(s, e, x, y) > 0 for n, x, y in spans):
+            continue
+        spans.append((number, s, e))
+        out.append({'part': number, 'start': clock(s), 'end': clock(e), 'reason': clean(item.get('reason'), 400)})
+        if len(out) == limit:
+            break
+    return out
 
 
 def timeline_text(rows, labels):
@@ -648,4 +708,6 @@ def assemble(llm_out, evidence, parts, segments_by_part, students, speech_ratio,
         'timing_note': clean(data.get('timing_note'), 6000) or 'Thời gian dạy tính từ nhãn hoạt động từng phút và mốc lời nói.',
         'rubric': rubric,
         'student_observations': students,
+        # Optional key, read by edu_review_shadow >= 17.0.1.4.0 (deploy Odoo before this worker).
+        'highlights': highlight_clips(data.get('highlights'), parts, segments_by_part) if sufficient else [],
     }
