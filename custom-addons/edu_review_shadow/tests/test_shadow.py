@@ -294,6 +294,54 @@ class TestOfficialWorkerReview(ShadowBase):
         self.assertFalse(row.official_review_id.highlight_count)
         self.assertFalse(row.official_review_id.highlight_html)
 
+    def test_find_highlights_adds_clips_to_a_finished_report_only(self):
+        self.review.write({'state': 'done', 'analysis_started': False, 'error': False})
+        self.session.invalidate_recordset()
+        before = self.review.read(['score_total', 'summary', 'model_name', 'state'])
+        self.session.action_find_highlights()
+        self.session.action_find_highlights()                  # second press: same run, no duplicate
+        rows = self.Shadow.search([('mode', '=', 'highlight')])
+        self.assertEqual(len(rows), 1)
+        row = rows
+        self.assertEqual((row.target_review_id, row.priority), (self.review, True))
+        self.assertIn('Tìm đoạn nổi bật', self.session.ai_highlight_status)
+        self.assertFalse(self.Shadow._queue_official())       # the session already has a report
+        self.advance(row)
+        clips = [{'part': 1, 'start': '05:00', 'end': '07:30', 'reason': 'Học sinh trả lời thành câu.'}]
+        self.worker.jobs[row.job_key].update(state='done', result={'summary': 'x', 'highlights': clips},
+                                             metrics={'wall_seconds': 60})
+        with patch.object(shadow_module, 'validate_report', return_value=dict(self.VALUES)):
+            self.advance(row)
+        self.assertEqual((row.state, row.fallback_note, row.acked), ('done', 'attached:1', True))
+        self.assertFalse(row.official_review_id)
+        self.assertEqual(self.review.highlight_count, 1)
+        self.assertIn('05:00 → 07:30', self.review.highlight_html)
+        self.assertEqual(self.review.read(['score_total', 'summary', 'model_name', 'state']), before)
+        self.assertEqual(self.env['edu.session.review'].search_count([('session_id', '=', self.session.id)]), 1)
+        self.Shadow._fallback_gemini()                          # never a Gemini fallback for this mode
+        self.assertFalse(row.fallback_review_id)
+        self.session.action_find_highlights()                  # pressed again later: a new run (new key)
+        self.assertEqual(len(self.Shadow.search([('mode', '=', 'highlight')])), 2)
+
+    def test_find_highlights_checks_the_report_and_its_videos(self):
+        with self.assertRaises(UserError):                     # report not done
+            self.session.action_find_highlights()
+        self.review.write({'state': 'done'})
+        self.session.invalidate_recordset()
+        self.session.action_find_highlights()
+        row = self.Shadow.search([('mode', '=', 'highlight')])
+        self.advance(row)
+        self.worker.jobs[row.job_key].update(state='done', result={'summary': 'x', 'highlights': [
+            {'part': 1, 'start': '05:00', 'end': '07:30', 'reason': 'r'}]}, metrics={'wall_seconds': 60})
+        self.review.source_signature = 'changed'               # report no longer describes these videos
+        with patch.object(shadow_module, 'validate_report', return_value=dict(self.VALUES)):
+            self.advance(row)
+        self.assertEqual(row.fallback_note, 'not_attached:review_changed')
+        self.assertFalse(self.review.highlight_count)
+        self.session.invalidate_recordset()
+        with self.assertRaises(UserError):                     # source no longer current
+            self.session.action_find_highlights()
+
     def test_not_published_when_another_report_finished_first(self):
         row = self.Shadow._queue_official()
         self.review.state = 'done'

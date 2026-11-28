@@ -106,8 +106,14 @@ Người quản lý muốn biết đoạn 2–5 phút dạy/tương tác tốt n
   tương tác tốt, điểm từ 8).
 - **Thứ tự deploy bắt buộc:** upgrade `edu_review_shadow` 17.0.1.4.0 trên Odoo **trước**, rồi mới thay worker.
   Odoo cũ kiểm tra đúng tập khóa nên sẽ từ chối kết quả có `highlights` (`invalid_result:schema`).
-- Chỉ áp dụng nhận xét worker mới. Báo cáo cũ không có đoạn nổi bật: worker xóa bản ghi lời nói sau khi Odoo ack
-  (hoặc sau 72 giờ), muốn có phải phân tích lại (tải video, chép lời, gọi Gemini lại).
+- Nhận xét worker mới tự có đoạn nổi bật. Báo cáo cũ (worker hoặc Gemini) dùng nút **Tìm đoạn nổi bật**
+  (17.0.1.5.0, người dùng chọn 28/11/2026; nút *Phân tích lại* vẫn là Gemini): tạo dòng `mode=highlight`
+  ưu tiên, `target_review_id` = báo cáo đang xem, mã tác vụ `highlight|...` riêng. Worker chạy lại toàn bộ
+  (tải video, chép lời, một lượt Gemini, khoảng 30–45 phút); khi xong **chỉ** ghi `highlight_*` vào báo cáo đích
+  nếu báo cáo còn `done` và cùng chữ ký Drive (`fallback_note` = `attached:N` / `none` /
+  `not_attached:review_changed`). Không tạo báo cáo mới, không đổi điểm/nhận xét, lỗi không dự phòng Gemini;
+  bấm lại khi đã xong/lỗi tạo lượt mới, đang chạy thì không tạo thêm. Tuần đã khóa vẫn dùng được (chỉ đọc video,
+  không ghi buổi học/lương).
 
 ## Bật
 

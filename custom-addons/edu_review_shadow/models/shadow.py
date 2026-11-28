@@ -84,8 +84,11 @@ class ReviewShadow(models.Model):
     _order = 'id desc'
     _rec_name = 'job_key'
 
-    mode = fields.Selection([('shadow', 'So sánh với Gemini'), ('official', 'Báo cáo chính thức')], 'Chế độ',
+    mode = fields.Selection([('shadow', 'So sánh với Gemini'), ('official', 'Báo cáo chính thức'),
+                             ('highlight', 'Tìm đoạn nổi bật')], 'Chế độ',
                             default='shadow', required=True, index=True, readonly=True)
+    target_review_id = fields.Many2one('edu.session.review', 'Nhận xét nhận đoạn nổi bật', readonly=True, copy=False,
+                                       ondelete='set null', index=True)
     review_id = fields.Many2one('edu.session.review', 'Báo cáo Gemini', ondelete='cascade',
                                 index=True, readonly=True)
     session_id = fields.Many2one('edu.session', 'Buổi học', required=True, ondelete='cascade', index=True,
@@ -444,7 +447,24 @@ class ReviewShadow(models.Model):
         if self.mode == 'official' and self.state == 'done' and not self.official_review_id \
                 and not (self.error or '').startswith('not_published') and not self._publish():
             return
+        if self.mode == 'highlight' and self.state == 'done' and not self.fallback_checked:
+            self._attach_highlights()
         self._ack()
+
+    def _attach_highlights(self):
+        """Only the clips go to the target report, and only while it still describes these videos."""
+        review = self.target_review_id.sudo()
+        durations = {int(k): float(v) for k, v in (self.durations_json or {}).items()}
+        values = split_highlights(self.result_json or {}, durations)[1]
+        if not review or review.state != 'done' or review.source_signature != self.source_signature \
+                or review.session_id._review_signature() != self.source_signature:
+            note = 'not_attached:review_changed'
+        elif not values.get('highlight_count'):
+            note = 'none'
+        else:
+            review.write(values)
+            note = 'attached:%s' % values['highlight_count']
+        self.write({'fallback_checked': True, 'fallback_note': note})
 
     def _publish(self):
         """Create the official report once. Returns False when it must be retried later.

@@ -4,6 +4,11 @@
         <field name="model">edu.session.review</field>
         <field name="inherit_id" ref="edu_session_review.review_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_find_highlights" type="object" string="Tìm đoạn nổi bật" icon="fa-scissors"
+                        invisible="state != 'done'" groups="edu_gvnn.group_edu_manager"
+                        confirm="Kim Worker sẽ tải lại video, chép lời và dùng một lượt Gemini để chọn 1–2 đoạn 2–5 phút (khoảng 30–45 phút). Điểm và nhận xét hiện tại giữ nguyên. Tiếp tục?"/>
+            </xpath>
             <xpath expr="//field[@name='score_details']/.." position="after">
                 <field name="highlight_count" invisible="1"/>
                 <div class="edu_review_section" invisible="not highlight_count">
@@ -21,6 +26,18 @@
         <field name="model">edu.session</field>
         <field name="inherit_id" ref="edu_session_review.session_review_page"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('edu_session_review_actions')]" position="inside">
+                <button name="action_find_highlights" type="object" string="Tìm đoạn nổi bật" icon="fa-scissors"
+                        class="btn-outline-secondary" invisible="not ai_review_id or ai_review_state != 'done'"
+                        help="Kim Worker chọn 1–2 đoạn 2–5 phút dạy và tương tác tốt nhất để cắt; không đổi điểm hay nhận xét."
+                        confirm="Kim Worker sẽ tải lại video, chép lời và dùng một lượt Gemini để chọn 1–2 đoạn 2–5 phút (khoảng 30–45 phút). Điểm và nhận xét hiện tại giữ nguyên. Tiếp tục?"/>
+            </xpath>
+            <xpath expr="//div[hasclass('edu_session_review_empty')]" position="before">
+                <div class="alert alert-info" role="status" groups="edu_gvnn.group_edu_manager"
+                     invisible="not ai_highlight_status">
+                    <i class="fa fa-scissors me-2" title="Đoạn nổi bật" aria-hidden="true"/><field name="ai_highlight_status" nolabel="1"/>
+                </div>
+            </xpath>
             <xpath expr="//field[@name='ai_review_summary']/.." position="after">
                 <div class="edu_session_review_summary" invisible="ai_review_state != 'done' or not ai_review_highlight_html">
                     <h4>Đoạn dạy nổi bật để cắt</h4>
